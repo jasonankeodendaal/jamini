@@ -66,5 +66,15 @@ export async function executeWithKeyRotation<T>(operation: (ai: GoogleGenAI) => 
       throw error;
     }
   }
-  throw new Error(`All API keys have exceeded their quota or failed. Last error: ${lastError?.message || 'Unknown error'}`);
+
+  const finalErrorMessage = lastError?.message || 'Unknown error';
+  
+  // Provide a much more helpful error message for the "limit: 0" issue
+  if (finalErrorMessage.includes('limit: 0')) {
+    throw new Error(
+      `API Error: Your free quota is set to 0 for this model. This usually happens if you are in a restricted region (like the EU/UK) or using a heavy Pro model without a billing account. \n\nFIX: Switch the "Text Engine" to "Gemini 3.1 Flash" in the settings, or attach a billing account to your Google Cloud Project.`
+    );
+  }
+
+  throw new Error(`All API keys have exceeded their quota or failed. Last error: ${finalErrorMessage}`);
 }
