@@ -941,7 +941,8 @@ export default function App() {
     setError(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+      const ai = new GoogleGenAI({ apiKey });
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
       if (textEngine === 'Gemini 3.1 Flash') textModelName = 'gemini-3.1-flash-preview';
@@ -1048,7 +1049,8 @@ export default function App() {
     setError(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+      const ai = new GoogleGenAI({ apiKey });
       
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
@@ -1086,7 +1088,8 @@ export default function App() {
     setError(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+      const ai = new GoogleGenAI({ apiKey });
       
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
@@ -1184,7 +1187,8 @@ export default function App() {
       if (logoAsset) parts.push({ inlineData: { data: logoAsset.data, mimeType: logoAsset.mimeType } });
       if (characterAsset) parts.push({ inlineData: { data: characterAsset.data, mimeType: characterAsset.mimeType } });
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: modelName,
         contents: { parts },
