@@ -808,7 +808,8 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide'>('editor');
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
+  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
 
   // State
   const [scenePrompt, setScenePrompt] = useState('');
@@ -1300,9 +1301,11 @@ export default function App() {
       <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
         
         {/* Left Column: Controls (Stepper) */}
-        <div className="w-full lg:w-[450px] xl:w-[500px] flex flex-col shrink-0 lg:h-full border-r border-white/5 bg-black/40 backdrop-blur-xl z-20 shadow-2xl lg:shadow-none">
+        <div className={`w-full lg:w-[450px] xl:w-[500px] flex-col shrink-0 lg:h-full border-r border-white/5 bg-black/40 backdrop-blur-xl z-20 shadow-2xl lg:shadow-none ${mobileView === 'edit' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 lg:p-6 flex-1 overflow-y-visible lg:overflow-y-auto custom-scrollbar">
-            {renderStepIndicator()}
+            <div className="hidden lg:block mb-6">
+              {renderStepIndicator()}
+            </div>
 
             <AnimatePresence mode="wait">
               {/* STEP 1: ASSETS */}
@@ -1660,26 +1663,35 @@ export default function App() {
             
             <div className="flex gap-3">
               {activeStep > 1 && (
-                <button onClick={() => setActiveStep((activeStep - 1) as 1|2)} className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+                <button onClick={() => setActiveStep((activeStep - 1) as 1|2|3)} className="hidden lg:flex px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
               )}
               
-              {activeStep < 3 ? (
-                <button onClick={() => setActiveStep((activeStep + 1) as 2|3)} className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-bold flex items-center justify-center gap-2 transition-colors">
+              {activeStep < 4 ? (
+                <button onClick={() => setActiveStep((activeStep + 1) as 2|3|4)} className="hidden lg:flex flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-bold items-center justify-center gap-2 transition-colors">
                   Next Step <ChevronRight className="w-5 h-5" />
                 </button>
               ) : (
-                <button onClick={handleGenerate} disabled={isGenerating} className={cn("flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl", isGenerating ? "bg-indigo-500/20 text-indigo-300 cursor-not-allowed border border-indigo-500/30" : "bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:shadow-indigo-500/40 text-white border border-white/10")}>
+                <button onClick={handleGenerate} disabled={isGenerating} className={cn("hidden lg:flex flex-1 py-3 rounded-xl font-bold items-center justify-center gap-2 transition-all shadow-xl", isGenerating ? "bg-indigo-500/20 text-indigo-300 cursor-not-allowed border border-indigo-500/30" : "bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:shadow-indigo-500/40 text-white border border-white/10")}>
                   {isGenerating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating...</> : <><Sparkles className="w-5 h-5" /> Generate Poster</>}
                 </button>
               )}
+
+              {/* Mobile Generate Button */}
+              <button 
+                onClick={() => { handleGenerate(); setMobileView('preview'); }} 
+                disabled={isGenerating}
+                className={cn("lg:hidden w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl", isGenerating ? "bg-indigo-500/20 text-indigo-300 cursor-not-allowed border border-indigo-500/30" : "bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:shadow-indigo-500/40 text-white border border-white/10")}
+              >
+                {isGenerating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating...</> : <><Sparkles className="w-5 h-5" /> Generate Poster</>}
+              </button>
             </div>
           </div>
         </div>
 
         {/* Right Column: Preview Area */}
-        <div className="flex-1 min-h-[600px] lg:min-h-0 bg-transparent relative flex flex-col overflow-hidden">
+        <div className={`flex-1 min-h-0 bg-transparent relative flex-col overflow-hidden ${mobileView === 'preview' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
           
           <div className="flex-1 p-4 lg:p-8 flex items-center justify-center relative z-10 overflow-y-auto custom-scrollbar">
@@ -1714,6 +1726,31 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden shrink-0 bg-black/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-around px-2 py-2 pb-safe z-50 relative">
+        <button onClick={() => { setMobileView('edit'); setActiveStep(1); }} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors min-w-[64px] ${mobileView === 'edit' && activeStep === 1 ? 'text-indigo-400 bg-indigo-500/10' : 'text-white/50 hover:text-white/80'}`}>
+          <ImageIcon className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Assets</span>
+        </button>
+        <button onClick={() => { setMobileView('edit'); setActiveStep(2); }} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors min-w-[64px] ${mobileView === 'edit' && activeStep === 2 ? 'text-fuchsia-400 bg-fuchsia-500/10' : 'text-white/50 hover:text-white/80'}`}>
+          <LayoutIcon className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Scene</span>
+        </button>
+        <button onClick={() => { setMobileView('edit'); setActiveStep(3); }} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors min-w-[64px] ${mobileView === 'edit' && activeStep === 3 ? 'text-emerald-400 bg-emerald-500/10' : 'text-white/50 hover:text-white/80'}`}>
+          <Type className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Text</span>
+        </button>
+        <button onClick={() => { setMobileView('edit'); setActiveStep(4); }} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors min-w-[64px] ${mobileView === 'edit' && activeStep === 4 ? 'text-blue-400 bg-blue-500/10' : 'text-white/50 hover:text-white/80'}`}>
+          <Settings2 className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Settings</span>
+        </button>
+        <div className="w-px h-8 bg-white/10 mx-1" />
+        <button onClick={() => setMobileView('preview')} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors min-w-[64px] ${mobileView === 'preview' ? 'text-amber-400 bg-amber-500/10' : 'text-white/50 hover:text-white/80'}`}>
+          <Sparkles className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Preview</span>
+        </button>
+      </nav>
     </div>
     );
   };

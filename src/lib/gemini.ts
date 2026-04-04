@@ -40,28 +40,31 @@ class ApiKeyManager {
 export const apiKeyManager = new ApiKeyManager();
 
 export async function executeWithKeyRotation<T>(operation: (ai: GoogleGenAI) => Promise<T>): Promise<T> {
-  let attempts = 0;
   const maxAttempts = Math.max(apiKeyManager.getKeyCount(), 1);
+  let lastError: any;
 
-  while (attempts < maxAttempts) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const key = apiKeyManager.getCurrentKey();
       const ai = new GoogleGenAI({ apiKey: key });
       return await operation(ai);
     } catch (error: any) {
+      lastError = error;
       const errorMessage = error?.message?.toLowerCase() || '';
       const isQuotaError = errorMessage.includes('quota') || 
                            error?.status === 429 || 
                            errorMessage.includes('too many requests') ||
                            errorMessage.includes('resource exhausted');
       
-      if (isQuotaError && apiKeyManager.rotateKey()) {
-        attempts++;
-        console.warn(`Quota exceeded. Retrying with next API key (Attempt ${attempts + 1} of ${maxAttempts})...`);
+      if (isQuotaError && attempt < maxAttempts) {
+        apiKeyManager.rotateKey();
+        console.warn(`Quota exceeded. Retrying with next API key (Attempt ${attempt + 1} of ${maxAttempts})...`);
+        // Add a small delay to avoid hammering the API and allow burst limits to reset
+        await new Promise(resolve => setTimeout(resolve, 1500));
         continue;
       }
       throw error;
     }
   }
-  throw new Error("All API keys have exceeded their quota or failed.");
+  throw new Error(`All API keys have exceeded their quota or failed. Last error: ${lastError?.message || 'Unknown error'}`);
 }
