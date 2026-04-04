@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { executeWithKeyRotation } from './lib/gemini';
 import { jsPDF } from "jspdf";
 import { 
   Image as ImageIcon, Sparkles, Download, Maximize, Minimize, Info, History,
@@ -234,41 +233,6 @@ const JaminiLogo = ({ showText = true, className = "", size = "md" }: { showText
   );
 };
 
-const AnimatedBackground = () => {
-  return (
-    <div className="fixed inset-0 z-[-1] bg-[#030014] overflow-hidden pointer-events-none">
-      <motion.div 
-        animate={{ 
-          x: [0, 100, -50, 0], 
-          y: [0, -100, 50, 0],
-          scale: [1, 1.2, 0.8, 1]
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen" 
-      />
-      <motion.div 
-        animate={{ 
-          x: [0, -100, 50, 0], 
-          y: [0, 100, -50, 0],
-          scale: [1, 0.8, 1.2, 1]
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen" 
-      />
-      <motion.div 
-        animate={{ 
-          x: [0, 50, -100, 0], 
-          y: [0, 50, -100, 0],
-          scale: [1, 1.1, 0.9, 1]
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[150px] mix-blend-screen" 
-      />
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay" />
-    </div>
-  );
-};
-
 const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
 
@@ -326,10 +290,18 @@ const WelcomeScreen = ({ onEnter }: { onEnter: () => void }) => {
   return (
     <motion.div 
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1 }}
+      exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
       transition={{ duration: 1.5, ease: "easeInOut" }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030014] overflow-hidden"
     >
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[150px] mix-blend-screen" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay" />
+      </div>
+
       <div className="relative z-10 flex flex-col items-center text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0, y: 50 }}
@@ -456,7 +428,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-screen text-white p-6 lg:p-12 overflow-y-auto custom-scrollbar relative">
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-screen bg-[#050505] text-white p-6 lg:p-12 overflow-y-auto custom-scrollbar relative">
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none" />
       <div className="max-w-4xl mx-auto relative z-10">
         <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-12 group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 w-fit">
@@ -519,20 +491,17 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
                 <li className="pl-2">Click on <strong>Add New...</strong> and select <strong>Project</strong>.</li>
                 <li className="pl-2">Import the GitHub repository you just created.</li>
                 <li className="pl-2">In the <strong>Configure Project</strong> section, open the <strong>Environment Variables</strong> dropdown.</li>
-                <li className="pl-2">Add your Gemini API Keys (this enables auto-rotation to prevent quota limits):
+                <li className="pl-2">Add your Gemini API Key (required for free models):
                   <div className="bg-black/80 border border-white/10 rounded-xl p-4 mt-3 mb-2 flex flex-col gap-3">
                     <div>
                       <label className="text-[10px] text-white/40 uppercase tracking-widest mb-1 block">Key Name</label>
-                      <code className="text-fuchsia-300 bg-white/5 px-2 py-1 rounded border border-white/10 block w-full">VITE_GEMINI_API_KEYS</code>
+                      <code className="text-fuchsia-300 bg-white/5 px-2 py-1 rounded border border-white/10 block w-full">GEMINI_API_KEY</code>
                     </div>
                     <div>
-                      <label className="text-[10px] text-white/40 uppercase tracking-widest mb-1 block">Value (Comma-separated, NO spaces)</label>
-                      <code className="text-white/60 bg-white/5 px-2 py-1 rounded border border-white/10 block w-full truncate">AIzaSyKey1...,AIzaSyKey2...,AIzaSyKey3...</code>
+                      <label className="text-[10px] text-white/40 uppercase tracking-widest mb-1 block">Value</label>
+                      <code className="text-white/60 bg-white/5 px-2 py-1 rounded border border-white/10 block w-full truncate">AIzaSyYourActualGeminiApiKeyHere...</code>
                     </div>
                   </div>
-                  <p className="text-xs text-white/50 mt-2">
-                    <strong>Important:</strong> Separate multiple keys with commas and do not add spaces between them. The system will automatically rotate to the next key if one hits a rate limit!
-                  </p>
                 </li>
                 <li className="pl-2">Click <strong className="text-white">Deploy</strong> and wait for the build to complete.</li>
               </ol>
@@ -577,7 +546,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
 
 const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-screen text-white overflow-y-auto custom-scrollbar relative">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-screen bg-[#050505] text-white overflow-y-auto custom-scrollbar relative">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -827,7 +796,7 @@ export default function App() {
   const [themeColors, setThemeColors] = useState<string[]>([]);
   const [customColor, setCustomColor] = useState('#ff0000');
 
-  const [textEngine, setTextEngine] = useState<TextEngine>('Gemini 3.1 Flash');
+  const [textEngine, setTextEngine] = useState<TextEngine>('Gemini 3.1 Pro');
   const [imageEngine, setImageEngine] = useState<ImageEngine>('Gemini 2.5 Flash Image (Free)');
   
   const [isRefiningScene, setIsRefiningScene] = useState(false);
@@ -972,15 +941,16 @@ export default function App() {
     setError(null);
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
       if (textEngine === 'Gemini 3.1 Flash') textModelName = 'gemini-3.1-flash-preview';
       if (textEngine === 'Gemini 2.5 Flash') textModelName = 'gemini-2.5-flash';
 
-      const response = await executeWithKeyRotation(ai => ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: textModelName,
         contents: `You are an expert AI image generation prompt engineer. Enhance the following asset description to be highly detailed and optimized for integrating this specific asset into a professional advertisement poster. Keep it concise but highly descriptive. Only return the enhanced prompt text, nothing else. Original text: "${asset.prompt}"`,
-      }));
+      });
       const refined = response.text?.trim();
       if (refined) {
         updateAssetPrompt(id, type, refined);
@@ -1078,6 +1048,8 @@ export default function App() {
     setError(null);
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
       if (textEngine === 'Gemini 3.1 Flash') textModelName = 'gemini-3.1-flash-preview';
@@ -1091,10 +1063,10 @@ export default function App() {
       
       The scene should perfectly complement these settings and the products. Return ONLY the scene description (1-3 sentences), with no introductory text, quotes, or explanations.`;
 
-      const response = await executeWithKeyRotation(ai => ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: textModelName,
         contents: prompt,
-      }));
+      });
       const suggestion = response.text?.trim();
       if (suggestion) {
         setScenePrompt(suggestion);
@@ -1114,15 +1086,17 @@ export default function App() {
     setError(null);
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      
       let textModelName = 'gemini-3.1-pro-preview';
       if (textEngine === 'Gemini 3.0 Pro') textModelName = 'gemini-3-pro-preview';
       if (textEngine === 'Gemini 3.1 Flash') textModelName = 'gemini-3.1-flash-preview';
       if (textEngine === 'Gemini 2.5 Flash') textModelName = 'gemini-2.5-flash';
 
-      const response = await executeWithKeyRotation(ai => ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: textModelName,
         contents: `You are an expert AI image generation prompt engineer. Enhance the following ${type} description to be highly detailed, vivid, and optimized for a professional advertisement poster. Keep it concise but highly descriptive. Only return the enhanced prompt text, nothing else. Original text: "${currentText}"`,
-      }));
+      });
       const refined = response.text?.trim();
       if (refined) {
         if (type === 'scene') setScenePrompt(refined); else setAssetPrompt(refined);
@@ -1210,11 +1184,12 @@ export default function App() {
       if (logoAsset) parts.push({ inlineData: { data: logoAsset.data, mimeType: logoAsset.mimeType } });
       if (characterAsset) parts.push({ inlineData: { data: characterAsset.data, mimeType: characterAsset.mimeType } });
 
-      const response = await executeWithKeyRotation(ai => ai.models.generateContent({
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || process.env.GEMINI_API_KEY || '' });
+      const response = await ai.models.generateContent({
         model: modelName,
         contents: { parts },
         config: { imageConfig: { aspectRatio: aspectRatio } }
-      }));
+      });
 
       let imageUrl = '';
       for (const part of response.candidates?.[0]?.content?.parts || []) {
@@ -1274,7 +1249,7 @@ export default function App() {
     if (currentView === 'guide') return <SetupGuide onBack={() => setCurrentView('editor')} />;
 
     return (
-      <div className="flex flex-col h-screen text-white font-sans overflow-hidden selection:bg-indigo-500/30">
+      <div className="flex flex-col h-screen bg-[#050505] text-white font-sans overflow-hidden selection:bg-indigo-500/30">
         {/* Header */}
         <header className="h-16 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 flex items-center justify-between px-4 lg:px-6 z-50">
         <JaminiLogo size="sm" />
@@ -1300,7 +1275,7 @@ export default function App() {
       <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
         
         {/* Left Column: Controls (Stepper) */}
-        <div className="w-full lg:w-[450px] xl:w-[500px] flex flex-col shrink-0 lg:h-full border-r border-white/5 bg-black/40 backdrop-blur-xl z-20 shadow-2xl lg:shadow-none">
+        <div className="w-full lg:w-[450px] xl:w-[500px] flex flex-col shrink-0 lg:h-full border-r border-white/5 bg-[#0a0a0a] z-20 shadow-2xl lg:shadow-none">
           <div className="p-4 lg:p-6 flex-1 overflow-y-visible lg:overflow-y-auto custom-scrollbar">
             {renderStepIndicator()}
 
@@ -1651,7 +1626,7 @@ export default function App() {
           </div>
 
           {/* Bottom Actions (Navigation & Generate) */}
-          <div className="p-4 lg:p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl shrink-0 sticky bottom-0 z-30">
+          <div className="p-4 lg:p-6 border-t border-white/5 bg-[#0a0a0a] shrink-0 sticky bottom-0 z-30">
             {error && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" /> {error}
@@ -1679,7 +1654,7 @@ export default function App() {
         </div>
 
         {/* Right Column: Preview Area */}
-        <div className="flex-1 min-h-[600px] lg:min-h-0 bg-transparent relative flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-[600px] lg:min-h-0 bg-[#050505] relative flex flex-col overflow-hidden">
           <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
           
           <div className="flex-1 p-4 lg:p-8 flex items-center justify-center relative z-10 overflow-y-auto custom-scrollbar">
@@ -1720,7 +1695,6 @@ export default function App() {
 
   return (
     <>
-      <AnimatedBackground />
       <AnimatePresence>
         {!hasEntered && <WelcomeScreen onEnter={() => setHasEntered(true)} />}
       </AnimatePresence>
