@@ -395,17 +395,17 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
 
       <div className="relative z-10 flex flex-col items-center text-center px-4">
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 40 }}
+          initial={{ scale: 0.9, opacity: 0, y: 30 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-4 md:mb-8"
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-3 md:mb-6"
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-indigo-500/20 blur-[60px] md:blur-[100px] animate-pulse" />
+            <div className="absolute inset-0 bg-indigo-500/15 blur-[40px] md:blur-[80px] animate-pulse" />
             <img 
               src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
               alt="JAMINI Studio" 
-              className="h-20 md:h-48 lg:h-56 w-auto object-contain relative z-10 drop-shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+              className="h-16 md:h-36 lg:h-44 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -414,58 +414,44 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="mb-8 md:mb-12 space-y-4 md:space-y-8"
+          transition={{ duration: 1, delay: 0.3 }}
+          className="mb-6 md:mb-10 space-y-3 md:space-y-6"
         >
-          <div className="space-y-2 md:space-y-4">
-            <h1 className="text-3xl md:text-7xl font-black tracking-tighter text-white uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" style={{ fontFamily: 'Space Grotesk' }}>
+          <div className="space-y-1 md:space-y-3">
+            <h1 className="text-2xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white uppercase" style={{ fontFamily: 'Space Grotesk' }}>
               Pro Design, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-emerald-400">Rhyme & Fine</span>
             </h1>
-            <div className="h-0.5 w-16 md:w-32 bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto" />
+            <div className="h-0.5 w-12 md:w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
           </div>
 
           <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 relative">
-            {/* Dramatic Flash Effect */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: [0, 1, 0], scale: [0, 2, 3] }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 5 }}
-              className="absolute inset-0 bg-white/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none"
-            />
-            
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1 }}
-              className="text-lg md:text-4xl text-white/80 font-light tracking-tight leading-relaxed font-sans relative z-10"
+              transition={{ delay: 0.6, duration: 1 }}
+              className="text-base md:text-2xl lg:text-3xl text-white/70 font-light tracking-tight leading-snug font-sans relative z-10"
             >
-              JAMINI makes the <span className="text-white font-bold drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]">Magic Shine.</span> <br className="hidden md:block" /> Joint Artificial Multi-modal <br className="md:hidden" /> Intelligence Network Interface.
+              JAMINI makes the <span className="text-white font-bold">Magic Shine.</span> <br className="hidden md:block" /> Joint Artificial Multi-modal Intelligence Network Interface.
             </motion.p>
             
             <motion.div 
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap justify-center gap-4 md:gap-8 pt-10 md:pt-16 border-t border-white/5"
+              transition={{ delay: 0.9, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-wrap justify-center gap-3 md:gap-8 pt-6 md:pt-12 border-t border-white/5"
             >
               {[
-                { label: 'VEO', sub: '4K Ultra Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/20', desc: 'Cinematic Precision' },
-                { label: 'PRO', sub: 'Neural Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/20', desc: 'Cluster Computing' },
-                { label: '9:16', sub: 'Social Native', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/20', desc: 'Mobile First' }
+                { label: 'VEO', sub: '4K Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/10' },
+                { label: 'PRO', sub: 'Neural Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/10' },
+                { label: '9:16', sub: 'Mobile First', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/10' }
               ].map((item, i) => (
-                <div key={i} className="group relative flex flex-col items-center min-w-[120px] md:min-w-[160px] p-4 md:p-6 rounded-[2rem] transition-all duration-500 overflow-hidden">
-                  <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent")} />
-                  <div className={cn("absolute -inset-[100%] opacity-0 group-hover:opacity-20 blur-[60px] transition-opacity duration-1000 pointer-events-none", item.glow)} />
-                  
-                  <div className={cn("mb-4 p-3 rounded-2xl bg-white/[0.03] border border-white/5 relative z-10 transition-transform duration-500 group-hover:scale-110 group-hover:border-white/20", item.color)}>
-                    <item.icon className="w-5 h-5 md:w-8 md:h-8" />
+                <div key={i} className="group relative flex flex-col items-center min-w-[100px] md:min-w-[140px] p-2 md:p-4 rounded-3xl transition-all duration-500">
+                  <div className={cn("mb-2 p-2 rounded-xl bg-white/[0.02] border border-white/5 relative z-10", item.color)}>
+                    <item.icon className="w-4 h-4 md:w-6 md:h-6" />
                   </div>
-                  
-                  <div className="flex flex-col items-center gap-1 relative z-10">
-                    <span className="text-white font-black text-2xl md:text-3xl tracking-tighter leading-none">{item.label}</span>
-                    <span className="text-[9px] md:text-[11px] text-indigo-400/60 uppercase tracking-[0.3em] font-black">{item.sub}</span>
-                    <div className="h-px w-0 group-hover:w-8 bg-indigo-500/50 transition-all duration-500 mt-2" />
-                    <span className="text-[8px] text-white/20 uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-all duration-500 mt-1">{item.desc}</span>
+                  <div className="flex flex-col items-center gap-0.5 relative z-10">
+                    <span className="text-white font-black text-xl md:text-2xl tracking-tighter leading-none">{item.label}</span>
+                    <span className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-[0.2em] font-black">{item.sub}</span>
                   </div>
                 </div>
               ))}
@@ -1322,16 +1308,50 @@ const AutoResizeTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery'>('editor');
+  const [keyRotationIndex, setKeyRotationIndex] = useState<number>(0);
+
   const getApiKey = (type: 'paid' | 'free') => {
+    let availableKeys: string[] = [];
+
+    // 1. Collect from LocalStorage
     try {
       const savedKeys = localStorage.getItem('jamini_api_keys');
       if (savedKeys) {
-        const keys = JSON.parse(savedKeys);
-        const match = keys.find((k: any) => k.type === type);
-        if (match && match.key) return match.key;
+        const keysArr = JSON.parse(savedKeys) as any[];
+        const typedKeys = keysArr.filter(k => k.type === type && k.key).map(k => k.key);
+        availableKeys = [...availableKeys, ...typedKeys];
       }
     } catch (e) { }
-    return process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+
+    // 2. Collect from Environment (supports comma-separated list)
+    const envValue = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+    if (envValue && typeof envValue === 'string') {
+      const keys = envValue.split(',').map((k: string) => k.trim()).filter(Boolean);
+      availableKeys = [...availableKeys, ...keys];
+    }
+    
+    // 3. Check node process environment
+    if (typeof process !== 'undefined' && process.env) {
+      const procValue = process.env.GEMINI_API_KEY || process.env.API_KEY;
+      if (procValue && typeof procValue === 'string') {
+        const keys = procValue.split(',').map((k: string) => k.trim()).filter(Boolean);
+        availableKeys = [...availableKeys, ...keys];
+      }
+    }
+
+    // Remove duplicates
+    const uniqueKeys = Array.from(new Set(availableKeys));
+    
+    if (uniqueKeys.length === 0) return '';
+    
+    // 4. Shifting Logic: Use Round Robin based on rotation index
+    const index = keyRotationIndex % uniqueKeys.length;
+    return uniqueKeys[index];
+  };
+
+  // Helper to shift to next key on failure
+  const shiftKey = () => {
+    setKeyRotationIndex(prev => prev + 1);
   };
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
@@ -1639,6 +1659,7 @@ export default function App() {
         }
       }
     } catch (err) {
+      shiftKey();
       console.error("Error vividly analyzing asset:", err);
     } finally {
       setRefining(false);
@@ -1997,6 +2018,7 @@ export default function App() {
          setVideoScript(text);
       }
     } catch (err: any) {
+      shiftKey();
       console.error("Error generating storyboard:", err);
       setError("Failed to generate storyboard. Please try again.");
     } finally {
@@ -2132,30 +2154,43 @@ export default function App() {
       if (!apiKey) throw new Error("API key is missing!");
       const ai = new GoogleGenAI({ apiKey });
       
-      const context = type === 'scene' ? `
-      Consider the following context:
-      Current Style: ${style}
-      Current Layout: ${layout}
-      Current Lighting: ${lighting}
-      Asset Instructions: ${assetPrompt}
-      Rules: ${rules.join(', ')}
-      Products uploaded: ${productAssets.length}
-      Brand Logo uploaded: ${brandLogoAsset ? 'Yes' : 'No'}
-      Company Logo uploaded: ${companyLogoAsset ? 'Yes' : 'No'}
-      Character uploaded: ${characterAsset ? 'Yes' : 'No'}
-      ` : '';
+      let prompt = "";
+      if (type === 'scene') {
+        prompt = `You are an expert Environmental Concept Artist. Your task is to enhance the following ENVIRONMENT description.
+        Focus ONLY on the setting, background, atmosphere, spatial geometry, and lighting of the world. 
+        DO NOT focus on specific products or subjects, but ensure the environment complements a professional advertisement.
+        
+        [CONTEXT]
+        Current Style: ${style}
+        Current Layout: ${layout}
+        Current Lighting: ${lighting}
+        Guidelines: ${rules.join(', ')}
+        
+        Original Text: "${currentText}"
+        Only return the enhanced environment description, nothing else.`;
+      } else {
+        prompt = `You are a professional Product Integration Specialist. Your task is to enhance the following ASSET INTEGRATION description.
+        Focus ONLY on how the primary products/subjects interact with their environment, their scale, their relative positioning, and their physical material interactions (reflections, shadows, touch-points).
+        DO NOT rewrite the background or general atmosphere.
+        
+        [CONTEXT]
+        Uploaded Assets: ${productAssets.map(a => a.name).join(', ')}
+        Current Lighting: ${lighting}
+        
+        Original Text: "${currentText}"
+        Only return the enhanced integration instructions, nothing else.`;
+      }
 
       const response = await withTimeout(ai.models.generateContent({
         model: getTextModelString(textEngine),
-        contents: `You are an expert AI image generation prompt engineer. Enhance the following ${type} description to be highly detailed, vivid, and optimized for a professional advertisement poster. 
-        CRITICAL: You MUST incorporate evocative details about the atmosphere, specific color temperature, and the emotional tone of the scene. Make it detailed but concise. Focus on the environment, mood, and composition.
-        Only return the enhanced prompt text, nothing else. ${context} Original text: "${currentText}"`,
+        contents: prompt,
       }), 60000, "Refine prompt text timed out.");
       const refined = response.text?.trim();
       if (refined) {
         if (type === 'scene') setScenePrompt(refined); else setAssetPrompt(refined);
       }
     } catch (err: any) {
+      shiftKey();
       console.error("Error refining prompt text:", err);
       let errorMessage = err.message || "Failed to refine prompt.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
@@ -2524,6 +2559,7 @@ export default function App() {
         throw new Error("No output was generated. Please try a different prompt.");
       }
     } catch (err: any) {
+      shiftKey();
       console.error("Generation error:", err);
       let errorMessage = err.message || "An unexpected error occurred during generation.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
@@ -4657,7 +4693,7 @@ export default function App() {
     };
 
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-4 md:p-12 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
+      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-2 md:p-8 xl:p-12 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
         {/* Dynamic Background Effects - Optimized Stack */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[30s] ease-linear animate-pulse" />
@@ -4667,24 +4703,24 @@ export default function App() {
 
 
 
-        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-4 md:space-y-12 py-4 md:py-8">
+        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-4 md:space-y-8 xl:space-y-12 py-4 md:py-8">
           {/* Brand Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-1 md:space-y-4 text-center px-4"
           >
-            <div className="relative inline-block scale-75 md:scale-100 transition-transform">
+            <div className="relative inline-block scale-75 md:scale-90 lg:scale-100 transition-transform">
               <div className="absolute inset-0 bg-white/10 blur-[20px] rounded-full animate-pulse" />
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
                 alt="JAMINI" 
-                className="h-7 md:h-14 lg:h-16 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                className="h-8 md:h-12 lg:h-16 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div className="space-y-0.5 md:space-y-1">
-              <h2 className="text-sm md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+              <h2 className="text-xs md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
               <div className="h-0.5 w-8 md:w-14 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
@@ -4696,7 +4732,7 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-8 w-full group/container px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 lg:gap-8 w-full group/container px-2 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}

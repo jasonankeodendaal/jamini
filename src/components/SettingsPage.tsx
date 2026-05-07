@@ -37,8 +37,18 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState<'paid' | 'free'>('paid');
   const [saved, setSaved] = useState(false);
+  const [systemKey, setSystemKey] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check for system provided keys (Vercel / Vite Env)
+    const envKey = import.meta.env.VITE_GEMINI_API_KEY || 
+                   import.meta.env.VITE_API_KEY || 
+                   (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : '');
+    
+    if (envKey && typeof envKey === 'string') {
+      setSystemKey(envKey);
+    }
+
     const savedKeys = localStorage.getItem('jamini_api_keys');
     if (savedKeys) {
       try {
@@ -229,6 +239,21 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                               {type === 'paid' ? 'Paid Cluster' : 'Free Sandbox Cluster'}
                             </h4>
                             <div className="space-y-2">
+                              {systemKey && !keys.some(k => k.type === type) && (
+                                <div className="group flex items-center justify-between bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl transition-all">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-black text-indigo-300">System Provided Key</p>
+                                      <span className="text-[8px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded uppercase font-bold tracking-widest border border-indigo-500/20">Auto-Detected</span>
+                                    </div>
+                                    <p className="text-[10px] font-mono text-indigo-300/40 mt-0.5 tracking-tighter">ENVIRONMENT VARIABLE • {systemKey.slice(0, 4)}...{systemKey.slice(-4)}</p>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1">
+                                    <Lock className="w-4 h-4 text-indigo-400/40 mr-2" />
+                                    <span className="text-[7px] text-indigo-400/30 uppercase font-bold tracking-tighter">Vercel/Vite Default</span>
+                                  </div>
+                                </div>
+                              )}
                               {keys.filter(k => k.type === type).map((k) => (
                                 <div key={k.id} className="group flex items-center justify-between bg-black/40 border border-white/5 hover:border-white/10 p-4 rounded-2xl transition-all">
                                   <div>
