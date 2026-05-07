@@ -175,6 +175,13 @@ const getTextModelString = (engine: string) => {
   }
 
   if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash-exp';
+  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-2.5-flash-preview-12-2025';
+  if (engine.includes('2.5') && engine.includes('Pro')) return 'gemini-2.5-pro-preview';
+  if (engine.includes('3.2') && engine.includes('Flash')) return 'gemini-3.2-flash-preview';
+  if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite-preview';
+  if (engine.includes('3.1') && engine.includes('Flash') && !engine.includes('Lite')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('3.1') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
+  if (engine.includes('3') && engine.includes('Flash')) return 'gemini-3-flash-preview';
   if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-1.5-flash';
   if (engine.includes('1.5') && engine.includes('Pro')) return 'gemini-1.5-pro';
   
@@ -189,28 +196,32 @@ const getTextModelString = (engine: string) => {
 
 const DEFAULT_TEXT_ENGINES: string[] = [
   'Gemini 2.0 Flash (Free)',
-  'Gemini 1.5 Flash (Free)',
-  'Gemini 1.5 Pro (Paid)'
+  'Gemini 2.5 Flash (Free)',
+  'Gemini 3.1 Flash-Lite (Paid)',
+  'Gemini 3.2 Flash (Paid)',
+  'Gemini 3.1 Pro (Paid)'
 ];
 const DEFAULT_IMAGE_ENGINES: string[] = [
   '--- Image Models ---',
-  'Gemini 2.0 Flash Image (Free)',
-  'Gemini 1.5 Flash Image (Free)',
-  'Gemini 1.5 Pro (Paid Image)',
+  'Gemini 2.5 Flash Image (Free)',
+  'Nano Banana 2 (3.1 Flash Image) (Free)',
+  'Gemini 3.1 Pro (Paid Image)',
   '--- Video Models ---',
   'Veo Lite (1080p Video)',
-  'Veo 2.0 (Pro Video)'
+  'Veo 3.1 (4K/Pro Video)'
 ];
 
 const ENGINE_DETAILS: Record<ImageEngine, string> = {
   'Gemini 2.0 Flash (Free)': 'Ultra-fast experimental model. Best for quick drafts and real-time interactions. Completely free.',
-  'Gemini 1.5 Flash (Free)': 'High-performance standard model. Optimized for speed and quality balance. Completely free.',
-  'Gemini 1.5 Pro (Paid)': 'Top-tier reasoning model for complex workflows. Requires your own Gemini API Key.',
-  'Gemini 2.0 Flash Image (Free)': 'Fast and versatile. Best for quick iterations and standard commercial layouts.',
-  'Gemini 1.5 Flash Image (Free)': 'Primary free image generation model. Advanced reasoning and higher quality.',
-  'Gemini 1.5 Pro (Paid Image)': 'Flagship image generation. Unmatched realism and cinematic quality.',
+  'Gemini 2.5 Flash (Free)': 'High-performance standard model. Optimized for speed and quality balance. Completely free.',
+  'Gemini 3.1 Flash-Lite (Paid)': 'Efficiency-optimized Flash model. Low latency, high throughput. Professional tier.',
+  'Gemini 3.2 Flash (Paid)': 'The latest evolution of Flash. Exceptional reasoning at speed. Professional tier.',
+  'Gemini 3.1 Pro (Paid)': 'Top-tier reasoning model for complex workflows. Requires your own Gemini API Key.',
+  'Gemini 2.5 Flash Image (Free)': 'Fast and versatile. Best for quick iterations and standard commercial layouts. Completely free to use.',
+  'Nano Banana 2 (3.1 Flash Image) (Free)': 'Primary free image generation model. Advanced reasoning and higher quality.',
+  'Gemini 3.1 Pro (Paid Image)': 'Flagship image generation. Unmatched realism and cinematic quality. Requires Paid Key.',
   'Veo Lite (1080p Video)': 'Efficiency-optimized video model. Standard for social ads.',
-  'Veo 2.0 (Pro Video)': 'Flagship video model. Supports high resolution and complex physical simulation.'
+  'Veo 3.1 (4K/Pro Video)': 'Flagship video model. Supports 4K resolution and complex physical simulation.'
 };
 
 
@@ -1177,7 +1188,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
                 </div>
               </div>
               <p className="text-base text-white/60 leading-relaxed mb-6">
-                When you select any <strong>(Free)</strong> engine, the application uses the built-in environment API key. To ensure it works without requiring your own key, image generation is routed through the free-tier compatible <strong>Gemini 2.0 Flash Image</strong> model, while your selected engine is used for text refinement and advanced prompt engineering.
+                When you select any <strong>(Free)</strong> engine, the application uses the built-in environment API key. To ensure it works without requiring your own key, image generation is routed through the free-tier compatible <strong>Gemini 2.5 Flash Image</strong> model, while your selected engine is used for text refinement and advanced prompt engineering.
               </p>
               <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3">
                 <Star className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -1412,7 +1423,7 @@ export default function App() {
   }, [hasEntered, currentView]);
 
   const [textEngine, setTextEngine] = useState<string>('Gemini 2.0 Flash (Free)');
-  const [imageEngine, setImageEngine] = useState<string>('Gemini 2.0 Flash Image (Free)');
+  const [imageEngine, setImageEngine] = useState<string>('Gemini 2.5 Flash Image (Free)');
   
   const [isRefiningScene, setIsRefiningScene] = useState(false);
   const [isRefiningAsset, setIsRefiningAsset] = useState(false);
@@ -2185,9 +2196,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.5 Flash'.";
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = "Model not found. Try switching to 'Gemini 2.5 Flash'.";
       }
       setError(errorMessage);
     } finally {
@@ -2554,9 +2565,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. You have made too many requests. Please wait a few minutes and try again.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.0 Flash Image (Free)'.";
+        errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.5 Flash Image (Free)'.";
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.0 Flash Image (Free)'.";
+        errorMessage = "Model not found. Try switching to 'Gemini 2.5 Flash Image (Free)'.";
       }
       setError(errorMessage);
     } finally {
