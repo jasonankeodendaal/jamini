@@ -8,7 +8,7 @@ import GalleryPage from './components/GalleryPage';
 import { 
   Image as ImageIcon, Sparkles, Download, Maximize, Minimize, Info, History,
   CheckCircle2, AlertCircle, Loader2, Upload, X, Type, Layout as LayoutIcon, Plus,
-  MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2,
+  MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2, PlusCircle,
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
   Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
   Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink
@@ -443,24 +443,29 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
             </motion.p>
             
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 1 }}
-              className="flex flex-wrap justify-center gap-3 md:gap-6 pt-8 md:pt-12 border-t border-white/5"
+              transition={{ delay: 1.2, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-wrap justify-center gap-4 md:gap-8 pt-10 md:pt-16 border-t border-white/5"
             >
               {[
-                { label: 'VEO', sub: '4K Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/20' },
-                { label: 'PRO', sub: 'Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/20' },
-                { label: '9:16', sub: 'Social', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/20' }
+                { label: 'VEO', sub: '4K Ultra Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/20', desc: 'Cinematic Precision' },
+                { label: 'PRO', sub: 'Neural Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/20', desc: 'Cluster Computing' },
+                { label: '9:16', sub: 'Social Native', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/20', desc: 'Mobile First' }
               ].map((item, i) => (
-                <div key={i} className="group relative flex items-center gap-4 px-6 py-3 bg-white/5 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300">
-                  <div className={cn("absolute inset-0 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full", item.glow)} />
-                  <div className={cn("p-2 bg-white/5 rounded-xl border border-white/10 relative z-10", item.color)}>
-                    <item.icon className="w-5 h-5 md:w-6 md:h-6" />
+                <div key={i} className="group relative flex flex-col items-center min-w-[120px] md:min-w-[160px] p-4 md:p-6 rounded-[2rem] transition-all duration-500 overflow-hidden">
+                  <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent")} />
+                  <div className={cn("absolute -inset-[100%] opacity-0 group-hover:opacity-20 blur-[60px] transition-opacity duration-1000 pointer-events-none", item.glow)} />
+                  
+                  <div className={cn("mb-4 p-3 rounded-2xl bg-white/[0.03] border border-white/5 relative z-10 transition-transform duration-500 group-hover:scale-110 group-hover:border-white/20", item.color)}>
+                    <item.icon className="w-5 h-5 md:w-8 md:h-8" />
                   </div>
-                  <div className="flex flex-col items-start leading-tight relative z-10">
-                    <span className="text-white font-black text-xl md:text-2xl tracking-tighter">{item.label}</span>
-                    <span className="text-[8px] md:text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">{item.sub}</span>
+                  
+                  <div className="flex flex-col items-center gap-1 relative z-10">
+                    <span className="text-white font-black text-2xl md:text-3xl tracking-tighter leading-none">{item.label}</span>
+                    <span className="text-[9px] md:text-[11px] text-indigo-400/60 uppercase tracking-[0.3em] font-black">{item.sub}</span>
+                    <div className="h-px w-0 group-hover:w-8 bg-indigo-500/50 transition-all duration-500 mt-2" />
+                    <span className="text-[8px] text-white/20 uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-all duration-500 mt-1">{item.desc}</span>
                   </div>
                 </div>
               ))}
@@ -591,7 +596,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-screen bg-[#050505] text-white p-6 lg:p-12 overflow-y-auto custom-scrollbar relative">
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full bg-[#050505] text-white p-6 lg:p-12 overflow-y-auto custom-scrollbar relative">
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-indigo-900/20 via-indigo-900/5 to-transparent pointer-events-none" />
       
       {/* Abstract Background Noise */}
@@ -2571,16 +2576,10 @@ export default function App() {
     if (currentView === 'settings') return <SettingsPage onBack={() => setCurrentView('editor')} />;
     if (currentView === 'gallery') return <GalleryPage onBack={() => setCurrentView('editor')} />;
 
-    if (!generationObjective) {
-      return (
-        <div className="flex flex-col h-[100dvh] bg-[#0E0E11] text-white font-sans overflow-hidden items-center justify-center">
-          <ObjectiveSelector />
-        </div>
-      );
-    }
+    if (!generationObjective) return <ObjectiveSelector />;
 
     return (
-      <div className="flex flex-col h-[100dvh] bg-[#0E0E11] text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
+      <div className="flex flex-col h-full bg-[#0E0E11] text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
         {/* 3D/4D Popping Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
@@ -4510,31 +4509,6 @@ export default function App() {
           </div>
         </div>
       </main>
-
-      {/* Mobile Bottom Navigation (2026 App Style) */}
-      <div className="lg:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0a0a] border-t border-white/10 flex items-center justify-around px-2 z-50 pb-safe">
-        <button onClick={() => setActiveStep(1)} className={cn("flex flex-col items-center justify-center w-16 h-full gap-1 transition-all", activeStep === 1 ? "text-indigo-400 scale-110" : "text-white/40 hover:text-white/60")}>
-          <Layers className="w-5 h-5" />
-          <span className="text-[9px] font-bold tracking-wider">ASSETS</span>
-        </button>
-        <button onClick={() => setActiveStep(2)} className={cn("flex flex-col items-center justify-center w-16 h-full gap-1 transition-all", activeStep === 2 ? "text-indigo-400 scale-110" : "text-white/40 hover:text-white/60")}>
-          <Palette className="w-5 h-5" />
-          <span className="text-[9px] font-bold tracking-wider">DESIGN</span>
-        </button>
-        <button onClick={() => setActiveStep(3)} className={cn("flex flex-col items-center justify-center w-16 h-full gap-1 transition-all", activeStep === 3 ? "text-indigo-400 scale-110" : "text-white/40 hover:text-white/60")}>
-          <SlidersHorizontal className="w-5 h-5" />
-          <span className="text-[9px] font-bold tracking-wider">TWEAK</span>
-        </button>
-        <button onClick={() => setActiveStep(4)} className={cn("flex flex-col items-center justify-center w-16 h-full gap-1 transition-all relative", activeStep === 4 ? "text-indigo-400 scale-110" : "text-white/40 hover:text-white/60")}>
-          {(generatedImage || generatedVideo) && <span className="absolute top-2 right-3 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />}
-          <MonitorPlay className="w-5 h-5" />
-          <span className="text-[9px] font-bold tracking-wider">PREVIEW</span>
-        </button>
-        <button onClick={() => setActiveStep(5)} className={cn("flex flex-col items-center justify-center w-16 h-full gap-1 transition-all", activeStep === 5 ? "text-indigo-400 scale-110" : "text-white/40 hover:text-white/60")}>
-          <Book className="w-5 h-5" />
-          <span className="text-[9px] font-bold tracking-wider">JAMINI</span>
-        </button>
-      </div>
     </div>
     );
   };
@@ -4640,9 +4614,9 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-2 md:space-y-4 text-center"
+            className="space-y-1 md:space-y-4 text-center px-4"
           >
-            <div className="relative inline-block">
+            <div className="relative inline-block scale-75 md:scale-100 transition-transform">
               <div className="absolute inset-0 bg-white/10 blur-[20px] rounded-full animate-pulse" />
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
@@ -4652,16 +4626,15 @@ export default function App() {
               />
             </div>
             <div className="space-y-0.5 md:space-y-1">
-              <h2 className="text-lg md:text-2xl lg:text-4xl font-black uppercase tracking-tighter text-white drop-shadow-2xl">
+              <h2 className="text-sm md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
-              <div className="h-0.5 w-10 md:w-14 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
-              <p className="text-white/40 max-w-md mx-auto text-[8px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
+              <div className="h-0.5 w-8 md:w-14 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
+              <p className="text-white/40 max-w-xs md:max-w-md mx-auto text-[7px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
                 JAMINI Multi-modal Interface • v4.0 <br/>
                 Deploy specialized AI clusters below.
               </p>
             </div>
-
           </motion.div>
 
           {/* Objective Cards */}
@@ -4759,12 +4732,68 @@ export default function App() {
         ) : (
           <motion.div 
             key="studio" 
-            initial={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }} 
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="h-full w-full"
+            className="h-[100dvh] w-full flex flex-col overflow-hidden bg-[#0E0E11]"
           >
-            {renderContent()}
+            <div className="flex-1 min-h-0 relative overflow-hidden">
+              {renderContent()}
+            </div>
+            
+            {/* Global Mobile Bottom Navigation (2026 App Style) */}
+            <div className="lg:hidden h-[calc(64px+env(safe-area-inset-bottom))] bg-[#0a0a0a]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-4 z-[100] pb-safe shrink-0">
+              <button 
+                onClick={() => { setCurrentView('editor'); if(currentView === 'editor') setActiveStep(1); }} 
+                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", (currentView === 'editor' && activeStep <= 3) ? "text-indigo-400 scale-110" : "text-white/30")}
+              >
+                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep <= 3) ? "bg-indigo-500/10" : "")}>
+                  <LayoutIcon className="w-5 h-5" />
+                </div>
+                <span className="text-[8px] font-black tracking-[0.1em]">STUDIO</span>
+              </button>
+              
+              <button 
+                onClick={() => { setGenerationObjective(null); setCurrentView('editor'); }} 
+                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all text-white/30")}
+              >
+                <div className="p-1.5 rounded-xl">
+                  <PlusCircle className="w-5 h-5" />
+                </div>
+                <span className="text-[8px] font-black tracking-[0.1em]">NEW</span>
+              </button>
+
+              <button 
+                onClick={() => { setCurrentView('gallery'); }} 
+                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", currentView === 'gallery' ? "text-indigo-400 scale-110" : "text-white/30")}
+              >
+                <div className={cn("p-1.5 rounded-xl transition-colors", currentView === 'gallery' ? "bg-indigo-500/10" : "")}>
+                  <History className="w-5 h-5" />
+                </div>
+                <span className="text-[8px] font-black tracking-[0.1em]">VAULT</span>
+              </button>
+
+              <button 
+                onClick={() => { setCurrentView('editor'); setActiveStep(4); }} 
+                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all relative", (currentView === 'editor' && activeStep === 4) ? "text-indigo-400 scale-110" : "text-white/30")}
+              >
+                {(generatedImage || generatedVideo) && <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-fuchsia-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(217,70,239,1)]" />}
+                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep === 4) ? "bg-indigo-500/10" : "")}>
+                  <MonitorPlay className="w-5 h-5" />
+                </div>
+                <span className="text-[8px] font-black tracking-[0.1em]">PREVIEW</span>
+              </button>
+
+              <button 
+                onClick={() => { setCurrentView('editor'); setActiveStep(5); }} 
+                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", (currentView === 'editor' && activeStep === 5) ? "text-indigo-400 scale-110" : "text-white/30")}
+              >
+                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep === 5) ? "bg-indigo-500/10" : "")}>
+                  <Book className="w-5 h-5" />
+                </div>
+                <span className="text-[8px] font-black tracking-[0.1em]">GUIDE</span>
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

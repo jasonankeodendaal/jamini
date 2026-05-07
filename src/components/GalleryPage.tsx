@@ -54,19 +54,21 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<GenerationRecord | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const stored = await localforage.getItem<GenerationRecord[]>('jamini_history');
-        if (stored) {
-          setGenerations(stored.sort((a, b) => b.date - a.date));
-        }
-      } catch (err) {
-        console.error("Error loading history", err);
-      } finally {
-        setLoading(false);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const stored = await localforage.getItem<GenerationRecord[]>('jamini_history');
+      if (stored) {
+        setGenerations(stored.sort((a, b) => b.date - a.date));
       }
-    };
+    } catch (err) {
+      console.error("Error loading history", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -125,12 +127,21 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
     return matchesFolder && matchesSearch;
   });
 
+  const refreshVault = () => {
+    setLoading(true);
+    loadData();
+  };
+
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#0E0E11] text-white font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-[#0E0E11] text-white font-sans overflow-hidden">
       <header className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#18181C] shrink-0 z-10">
         <div className="flex items-center gap-4">
           <button onClick={onBack} className="text-white/50 hover:text-white transition-colors uppercase text-[10px] tracking-widest font-bold flex items-center gap-2">
             <ArrowLeft className="w-3 h-3" /> Back to Studio
+          </button>
+          <div className="h-4 w-px bg-white/10 mx-2" />
+          <button onClick={refreshVault} className="text-white/30 hover:text-indigo-400 transition-colors uppercase text-[10px] tracking-widest font-bold flex items-center gap-2">
+            <Zap className={cn("w-3 h-3", loading && "animate-spin")} /> Refresh Sync
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -185,7 +196,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        <div className="flex-1 p-4 md:p-8 xl:p-12 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 p-4 md:p-8 xl:p-12 overflow-y-auto custom-scrollbar pb-24">
             {loading ? (
               <div className="flex h-full items-center justify-center text-white/40 text-[10px] font-bold uppercase tracking-widest animate-pulse">Synchronizing vault...</div>
             ) : filtered.length === 0 ? (

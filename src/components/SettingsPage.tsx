@@ -84,7 +84,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#050505] text-white font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-[#050505] text-white font-sans overflow-hidden">
       {/* Dynamic Background */}
       <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 to-transparent pointer-events-none" />
       

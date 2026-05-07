@@ -22,10 +22,16 @@ export default defineConfig(({mode}) => {
           display: 'standalone',
           icons: [
             {
-              src: 'icon.svg',
-              sizes: '192x192 512x512',
-              type: 'image/svg+xml',
-              purpose: 'any maskable'
+              src: 'https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: 'https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         }
