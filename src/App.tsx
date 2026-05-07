@@ -3023,6 +3023,17 @@ export default function App() {
                     </div>
                     <AutoResizeTextarea value={assetPrompt} onChange={(e) => setAssetPrompt(e.target.value)} placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" className="w-full min-h-[6rem] bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none" />
                   </div>
+
+                  {/* Mobile Mobile Next Button: Step 1 -> 2 */}
+                  <div className="lg:hidden pt-8 pb-12">
+                    <button 
+                      onClick={() => setActiveStep(2)} 
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
+                    >
+                      <span>Next: Design Style</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </motion.div>
             </div>
           </div>
@@ -3569,6 +3580,17 @@ export default function App() {
                       </div>
                     )}
                   </div>
+
+                  {/* Mobile Next Button: Step 2 -> 3 */}
+                  <div className="lg:hidden pt-8 pb-12">
+                    <button 
+                      onClick={() => setActiveStep(3)} 
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
+                    >
+                      <span>Next: Tweak Properties</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </motion.div>
               </div>
 
@@ -3675,6 +3697,18 @@ export default function App() {
                         ))}
                       </div>
                     )}
+                  </div>
+
+                  {/* Mobile Final Action Button: Step 3 -> Generate */}
+                  <div className="lg:hidden pt-8 pb-12">
+                    <button 
+                      onClick={() => { handleGenerate(); setActiveStep(4); }} 
+                      disabled={isGenerating}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                      {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      <span>{isGenerating ? 'Synthesizing...' : 'Generate Masterpiece'}</span>
+                    </button>
                   </div>
                 </motion.div>
               </div>
@@ -4401,8 +4435,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* CTA */}
-                  <div className="text-center pt-12 pb-8 sticky bottom-[-20px] bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent z-20">
+                  <div className="text-center pt-12 pb-8 lg:pb-32 sticky bottom-[-20px] bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent z-20">
                     <button 
                       onClick={() => setActiveStep(1)}
                       className="px-10 md:px-14 py-5 md:py-6 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white font-black text-sm md:text-lg uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_20px_60px_rgba(99,102,241,0.5)] active:scale-95 transition-all shadow-[0_10px_40px_rgba(99,102,241,0.3)] group overflow-hidden relative"
@@ -4465,6 +4498,31 @@ export default function App() {
                   <p className="text-sm text-white/40 leading-relaxed">
                     {isGenerating ? (imageEngine.includes('Veo') ? (videoStatus || "JAMINI is orchestrating cinematic frames, physical simulations, and lighting matrices.") : "JAMINI is analyzing your layout choice, typography, and assets to create a professional advertisement spread.") : "Complete the steps to generate your stunning advertisement."}
                   </p>
+                </motion.div>
+              )}
+
+              {/* Mobile Preview Navigation: Only show if and results are ready */}
+              {activeStep === 4 && (generatedImage || generatedVideo) && !isGenerating && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="lg:hidden mt-12 mb-24 space-y-4"
+                >
+                  <div className="h-px w-full bg-white/5 mb-8" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => setActiveStep(2)}
+                      className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center justify-center gap-2"
+                    >
+                      <ArrowLeft className="w-4 h-4" /> Back to Studio
+                    </button>
+                    <button 
+                      onClick={() => setActiveStep(5)}
+                      className="flex-1 py-4 bg-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2"
+                    >
+                      Meet Jamini <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
