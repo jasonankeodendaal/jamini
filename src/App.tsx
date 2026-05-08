@@ -168,22 +168,28 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, message: string = "Req
 
 const getTextModelString = (engine: string) => {
   if (engine.includes('models/')) {
-    const split = engine.split(' ');
-    // usually in the format: Display Name (models/xxx)
     const match = engine.match(/\((models\/.*?)\)/);
     if (match) return match[1].replace('models/', '');
   }
 
-  if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash-exp';
-  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-2.5-flash-preview-12-2025';
-  if (engine.includes('2.5') && engine.includes('Pro')) return 'gemini-2.5-pro-preview';
+  // --- Map to Gemini API Skill Source of Truth ---
+  if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash'; // Standard 2.0 Alias
+  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-3-flash-preview'; // Stable text model
   if (engine.includes('3.2') && engine.includes('Flash')) return 'gemini-3.2-flash-preview';
-  if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite-preview';
+  if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite';
   if (engine.includes('3.1') && engine.includes('Flash') && !engine.includes('Lite')) return 'gemini-3.1-flash-preview';
   if (engine.includes('3.1') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
   if (engine.includes('3') && engine.includes('Flash')) return 'gemini-3-flash-preview';
-  if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-1.5-flash';
-  if (engine.includes('1.5') && engine.includes('Pro')) return 'gemini-1.5-pro';
+  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview';
+  if (engine.includes('Nano Banana')) return 'gemini-2.5-flash-image';
+  if (engine.includes('Image')) return 'gemini-2.5-flash-image'; // Default image mapping
+  
+  // Fallbacks
+  if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-3-flash-preview';
+  if (engine.includes('1.5') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
+  
+  if (engine.includes('gemini-1.5-pro')) return 'gemini-3.1-pro-preview';
+  if (engine.includes('gemini-1.5-flash')) return 'gemini-3-flash-preview';
   
   // Custom API models matcher fallback
   if (engine.includes('(')) {
@@ -1324,7 +1330,10 @@ export default function App() {
     } catch (e) { }
 
     // 2. Collect from Environment (supports comma-separated list)
-    const envValue = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+    const envValue = import.meta.env.VITE_GEMINI_API_KEY || 
+                     import.meta.env.VITE_API_KEY || 
+                     (import.meta as any).env?.GEMINI_API_KEY;
+
     if (envValue && typeof envValue === 'string') {
       const keys = envValue.split(',').map((k: string) => k.trim()).filter(Boolean);
       availableKeys = [...availableKeys, ...keys];
@@ -1332,7 +1341,9 @@ export default function App() {
     
     // 3. Check node process environment
     if (typeof process !== 'undefined' && process.env) {
-      const procValue = process.env.GEMINI_API_KEY || process.env.API_KEY;
+      const procValue = (process.env as any).VITE_GEMINI_API_KEY || 
+                        process.env.GEMINI_API_KEY || 
+                        process.env.API_KEY;
       if (procValue && typeof procValue === 'string') {
         const keys = procValue.split(',').map((k: string) => k.trim()).filter(Boolean);
         availableKeys = [...availableKeys, ...keys];
@@ -1626,7 +1637,7 @@ export default function App() {
       const ai = new GoogleGenAI({ apiKey });
       
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.1-pro-preview',
         contents: [
           { role: 'user', parts: [
             { inlineData: { data: asset.data, mimeType: asset.mimeType } },
@@ -1713,9 +1724,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to Gemini 2.0 Flash or 1.5 Flash.`;
       }
       setError(errorMessage);
     } finally {
@@ -1885,7 +1896,7 @@ export default function App() {
       const ai = new GoogleGenAI({ apiKey });
       
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-3.1-pro-preview',
         contents: [
           { role: 'user', parts: [
             { inlineData: { data: base64Data, mimeType } },
@@ -2068,7 +2079,7 @@ export default function App() {
        }, ...]`;
 
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-3.1-pro-preview',
         contents: prompt,
       }), 60000, "Refinement timed out.");
       
@@ -2132,9 +2143,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. Please wait a moment before generating a suggestion.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.0 Flash'.";
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to Gemini 2.0 Flash or 1.5 Flash.`;
       }
       setError(errorMessage);
     } finally {
@@ -2196,9 +2207,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.5 Flash'.";
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.5 Flash'.";
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to a standard engine like Gemini 1.5 Flash.`;
       }
       setError(errorMessage);
     } finally {
@@ -2224,7 +2235,7 @@ export default function App() {
       if (characterAsset) parts.push({ inlineData: { data: characterAsset.data, mimeType: characterAsset.mimeType } });
 
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-3.1-pro-preview',
         contents: parts,
       }), 60000, "Extract colors timed out.");
 
@@ -2565,9 +2576,9 @@ export default function App() {
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
         errorMessage = "Rate limit exceeded. You have made too many requests. Please wait a few minutes and try again.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-        errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.5 Flash Image (Free)'.";
+        errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.0 Flash'.";
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = "Model not found. Try switching to 'Gemini 2.5 Flash Image (Free)'.";
+        errorMessage = `Model not found (${getTextModelString(imageEngine)}). Please try switching back to Gemini 2.0 Flash.`;
       }
       setError(errorMessage);
     } finally {

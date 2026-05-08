@@ -43,7 +43,8 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
     // Check for system provided keys (Vercel / Vite Env)
     const envKey = import.meta.env.VITE_GEMINI_API_KEY || 
                    import.meta.env.VITE_API_KEY || 
-                   (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : '');
+                   (import.meta as any).env?.GEMINI_API_KEY ||
+                   (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY || (process.env as any).VITE_GEMINI_API_KEY) : '');
     
     if (envKey && typeof envKey === 'string') {
       setSystemKey(envKey);
