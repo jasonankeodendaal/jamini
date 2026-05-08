@@ -6,12 +6,14 @@ export interface LogoOptions {
   style?: string;
   format?: 'png' | 'jpg';
   referenceImages?: string[]; // base64 strings
+  model?: string;
 }
 
 export const generateLogo = async (
   ai: GoogleGenAI,
   options: LogoOptions
 ) => {
+  const modelToUse = options.model || 'gemini-2.0-flash';
   const referenceContext = options.referenceImages && options.referenceImages.length > 0 
     ? ` Influence the design using the visual style, shapes, or concepts from the provided reference images.`
     : '';
@@ -20,7 +22,7 @@ export const generateLogo = async (
 
   const generate = async (bgPrompt: string) => {
     const payload: any = {
-      model: 'gemini-3.1-flash-image-preview',
+      model: modelToUse,
       prompt: `${basePrompt} Background: ${bgPrompt}.`,
     };
 

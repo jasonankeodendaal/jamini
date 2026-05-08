@@ -173,23 +173,25 @@ const getTextModelString = (engine: string) => {
   }
 
   // --- Map to Gemini API Skill Source of Truth ---
-  if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash'; // Standard 2.0 Alias
-  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-3-flash-preview'; // Stable text model
+  if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash'; // Standard 2.0
+  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-2.5-flash-image'; // nano banana
   if (engine.includes('3.2') && engine.includes('Flash')) return 'gemini-3.2-flash-preview';
   if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite';
   if (engine.includes('3.1') && engine.includes('Flash') && !engine.includes('Lite')) return 'gemini-3.1-flash-preview';
   if (engine.includes('3.1') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
   if (engine.includes('3') && engine.includes('Flash')) return 'gemini-3-flash-preview';
-  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview';
+  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview'; // High quality image
   if (engine.includes('Nano Banana')) return 'gemini-2.5-flash-image';
   if (engine.includes('Image')) return 'gemini-2.5-flash-image'; // Default image mapping
   
-  // Fallbacks
-  if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-3-flash-preview';
+  // Fallbacks for common strings
+  if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-3.1-flash-preview';
   if (engine.includes('1.5') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
   
   if (engine.includes('gemini-1.5-pro')) return 'gemini-3.1-pro-preview';
-  if (engine.includes('gemini-1.5-flash')) return 'gemini-3-flash-preview';
+  if (engine.includes('gemini-1.5-flash')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('gemini-2.5-flash-preview')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('gemini-2.5-pro')) return 'gemini-3.1-pro-preview';
   
   // Custom API models matcher fallback
   if (engine.includes('(')) {
@@ -2288,7 +2290,8 @@ export default function App() {
 
       const { darkLogoUrl, lightLogoUrl } = await generateLogo(ai, {
         prompt: finalLogoPrompt,
-        referenceImages
+        referenceImages,
+        model: getTextModelString(imageEngine)
       });
 
       if (darkLogoUrl) setBrandLogoAsset({ id: 'logo-dark', name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
@@ -2300,7 +2303,13 @@ export default function App() {
 
     } catch (err: any) {
       console.error("Logo Generation Error:", err);
-      setError("Failed to generate logo: " + err.message);
+      let errorMessage = err.message || String(err);
+      if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getTextModelString(imageEngine)}). The selected model may not be available in your region or tier. Try switching to 'Gemini 2.5 Flash Image (Free)'.`;
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. Please verify your API key and project permissions.";
+      }
+      setError("Failed to generate logo: " + errorMessage);
     } finally {
       setIsGenerating(false);
     }
