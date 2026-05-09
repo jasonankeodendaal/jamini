@@ -10,7 +10,7 @@ export default defineConfig(({mode}) => {
     plugins: [
       react(), 
       tailwindcss(),
-      VitePWA({
+    VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
         workbox: {
@@ -20,11 +20,22 @@ export default defineConfig(({mode}) => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
           runtimeCaching: [
             {
-              urlPattern: ({ request }) => request.destination === 'document',
+              urlPattern: ({ request }) => request.destination === 'document' || request.destination === 'script',
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'documents',
+                cacheName: 'app-assets',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60, // Very short cache for main assets
+                }
               },
+            },
+            {
+              urlPattern: /index.*\.js$/,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'main-bundle',
+              }
             },
             {
               urlPattern: /\.(?:js|css)$/,
@@ -68,6 +79,7 @@ export default defineConfig(({mode}) => {
       })
     ],
     define: {
+      'process.env.VITE_APP_VERSION': JSON.stringify(`${Date.now()}`),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || ''),
       'process.env.API_KEY': JSON.stringify(env.API_KEY || env.VITE_API_KEY || ''),
       ...Object.fromEntries(

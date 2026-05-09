@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 import localforage from 'localforage';
 import SettingsPage from './components/SettingsPage';
 import GalleryPage from './components/GalleryPage';
+import StoryboardView from './components/StoryboardView';
 import { 
   Image as ImageIcon, Sparkles, Download, Maximize, Minimize, Info, History,
   CheckCircle2, AlertCircle, Loader2, Upload, X, Type, Layout as LayoutIcon, Plus,
@@ -12,7 +13,7 @@ import {
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
   Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
   Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink,
-  Database, Box
+  Film, Database, Box
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -282,32 +283,43 @@ const PRESET_COLORS = [
 
 // --- Components ---
 
-const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", onClick }: { showText?: boolean, className?: string, size?: "sm" | "md" | "lg", onClick?: () => void }) => {
+const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", onClick }: { showText?: boolean, className?: string, size?: "xs" | "sm" | "md" | "lg", onClick?: () => void }) => {
   const [isHovered, setIsHovered] = useState(false);
   const sizeClasses = {
+    xs: "h-5 w-auto min-w-[20px]",
     sm: "h-6 md:h-8 w-auto min-w-[32px]",
     md: "h-10 md:h-12 w-auto min-w-[48px]",
     lg: "h-20 md:h-28 w-auto min-w-[80px]"
   };
   const textClasses = {
+    xs: "text-lg",
     sm: "text-xl",
     md: "text-2xl lg:text-3xl",
     lg: "text-4xl lg:text-5xl"
   };
   const subTextClasses = {
+    xs: "text-[8px]",
     sm: "text-[9px]",
     md: "text-[10px] lg:text-xs",
     lg: "text-xs lg:text-sm"
   };
   const jClasses = {
+    xs: "text-xl",
     sm: "text-2xl",
     md: "text-3xl lg:text-4xl",
     lg: "text-5xl lg:text-6xl"
   };
 
+  const containerGaps = {
+    xs: "gap-1.5",
+    sm: "gap-2",
+    md: "gap-4",
+    lg: "gap-8"
+  };
+
   return (
     <div 
-      className={`flex items-center gap-4 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`flex items-center ${containerGaps[size]} ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
@@ -1353,7 +1365,7 @@ const AutoResizeTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
 
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
-  const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery'>('editor');
+  const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery' | 'storyboard'>('editor');
   const [keyRotationIndex, setKeyRotationIndex] = useState<number>(0);
 
   const getApiKey = (type: 'paid' | 'free') => {
@@ -1393,6 +1405,8 @@ export default function App() {
     // 3. Check process.env (Polyfill/Define support)
     // We use explicit static names here so Vite's 'define' can replace them
     const staticKeys = [
+      (import.meta as any).env?.VITE_GEMINI_API_KEY,
+      (import.meta as any).env?.GEMINI_API_KEY,
       process.env.GEMINI_API_KEY,
       process.env.VITE_GEMINI_API_KEY,
       process.env.API_KEY,
@@ -1404,16 +1418,21 @@ export default function App() {
     ];
     
     staticKeys.forEach(k => {
-      if (k && typeof k === 'string') {
-        const parts = k.split(',').map(p => p.trim()).filter(Boolean);
+      if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') {
+        const parts = k.split(',').map(p => p.trim()).filter(p => p.length > 5);
         availableKeys.push(...parts);
       }
     });
 
     // Remove duplicates and empty strings
-    const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(Boolean);
+    const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(k => k && k.length > 5);
     
-    if (uniqueKeys.length === 0) return '';
+    if (uniqueKeys.length === 0) {
+      if (keyRotationIndex === 0) {
+        console.warn("[JAMINI] No active Gemini API keys found. Please check deployment environment variables.");
+      }
+      return '';
+    }
     
     // 4. Shifting Logic: Use Round Robin based on rotation index
     const index = Math.abs(keyRotationIndex) % uniqueKeys.length;
@@ -2714,6 +2733,14 @@ export default function App() {
     if (currentView === 'guide') return <SetupGuide onBack={() => setCurrentView('editor')} />;
     if (currentView === 'settings') return <SettingsPage onBack={() => setCurrentView('editor')} />;
     if (currentView === 'gallery') return <GalleryPage onBack={() => setCurrentView('editor')} />;
+    if (currentView === 'storyboard') return (
+      <StoryboardView 
+        onBack={() => setCurrentView('editor')} 
+        editorState={editorState}
+        getApiKey={getApiKey}
+        onUpdateState={(newState) => setEditorState(newState)}
+      />
+    );
 
     if (!generationObjective) return <ObjectiveSelector />;
 
@@ -2761,47 +2788,124 @@ export default function App() {
         </div>
 
         {/* Desktop Header */}
-        <header className="hidden lg:flex h-12 border-b border-white/5 bg-[#121214] shrink-0 items-center justify-between px-4 z-50 transform-gpu">
+        <header className="hidden lg:flex h-12 border-b border-white/5 bg-[#0E0E11] shrink-0 items-center justify-between px-4 z-50 transform-gpu shadow-xl">
           <div className="flex items-center gap-4">
             <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
-            <div className="h-4 w-px bg-white/10 mx-2" />
-            <div className="flex items-center gap-1">
-              <button onClick={undo} disabled={historyIndex === 0} className="p-1.5 rounded text-white/50 hover:text-white hover:bg-white/5 disabled:opacity-30 transition-colors"><Undo2 className="w-3.5 h-3.5" /></button>
-              <button onClick={redo} disabled={historyIndex === history.length - 1} className="p-1.5 rounded text-white/50 hover:text-white hover:bg-white/5 disabled:opacity-30 transition-colors"><Redo2 className="w-3.5 h-3.5" /></button>
+            <div className="h-4 w-px bg-white/10 mx-1" />
+            <div className="flex items-center gap-0.5 bg-white/5 rounded-md p-0.5 border border-white/5">
+              <button 
+                onClick={undo} 
+                disabled={historyIndex === 0} 
+                className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-20 transition-all font-mono"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-3 h-3" />
+              </button>
+              <button 
+                onClick={redo} 
+                disabled={historyIndex === history.length - 1} 
+                className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-20 transition-all font-mono"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-3 h-3" />
+              </button>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); }} className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded border border-indigo-500/20 mr-2">
-              <ArrowLeft className="w-3 h-3" /> Change Objective
-            </button>
-            <button onClick={() => setCurrentView('gallery')} className="text-[11px] font-medium text-white/60 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/5">
-              <History className="w-3 h-3" /> Gallery
-            </button>
-            <button onClick={() => setCurrentView('settings')} className="text-[11px] font-medium text-white/60 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/5">
-              <Settings2 className="w-3 h-3" /> Settings
-            </button>
-            <button onClick={() => setCurrentView('guide')} className="text-[11px] font-medium text-white/60 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/5">
-              <Terminal className="w-3 h-3" /> Setup Guide
-            </button>
-            <button onClick={() => downloadImage('png')} disabled={!generatedImage} className="text-[11px] font-bold text-white transition-colors flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/30 px-4 py-1.5 rounded ml-2">
-              Export
+            <nav className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
+              <button 
+                onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter text-indigo-400 hover:bg-indigo-500/10 transition-all"
+              >
+                <ArrowLeft className="w-3 h-3" /> <span className="hidden xl:inline">Goal</span>
+              </button>
+              
+              <div className="w-px h-3 bg-white/10 mx-0.5" />
+
+              <button 
+                onClick={() => setCurrentView('gallery')} 
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
+                  currentView === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                <History className="w-3 h-3" /> <span className="hidden xl:inline">Vault</span>
+              </button>
+
+              <button 
+                onClick={() => setCurrentView('storyboard')} 
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
+                  currentView === 'storyboard' ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.1)]" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                <Film className="w-3 h-3" /> <span className="hidden xl:inline">Motion</span>
+              </button>
+
+              <button 
+                onClick={() => setCurrentView('settings')} 
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
+                  currentView === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                <Settings2 className="w-3 h-3" /> <span className="hidden xl:inline">System</span>
+              </button>
+
+              <button 
+                onClick={() => setCurrentView('guide')} 
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
+                  currentView === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
+                )}
+              >
+                <Terminal className="w-3 h-3" /> <span className="hidden xl:inline">Terminal</span>
+              </button>
+            </nav>
+
+            <button 
+              onClick={() => downloadImage('png')} 
+              disabled={!generatedImage} 
+              className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+            >
+              <Download className="w-3 h-3" /> <span className="hidden 2xl:inline">Export</span>
             </button>
           </div>
         </header>
 
         {/* Mobile Header */}
-        <header className="lg:hidden h-14 border-b border-white/5 bg-[#121214] shrink-0 flex items-center justify-between px-4 z-50 transform-gpu">
-          <div className="flex items-center gap-2">
-            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); }} className="p-1.5 text-indigo-400 bg-indigo-500/10 rounded mr-1" title="Change Objective">
-              <ArrowLeft className="w-4 h-4" />
+        <header className="lg:hidden h-14 border-b border-white/5 bg-[#0E0E11] shrink-0 flex items-center justify-between px-3 z-50 transform-gpu shadow-xl">
+          <div className="flex items-center gap-2 shrink-0">
+            <button 
+              onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
+              className="w-8 h-8 flex items-center justify-center text-indigo-400 bg-indigo-500/10 rounded-lg active:scale-90 transition-transform"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
             </button>
-            <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+            <JaminiLogo size="xs" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setCurrentView('gallery')} className="p-2 text-white/60"><History className="w-4 h-4" /></button>
-            <button onClick={() => setCurrentView('settings')} className="p-2 text-white/60"><Settings2 className="w-4 h-4" /></button>
-            <button onClick={undo} disabled={historyIndex === 0} className="p-2 text-white/60 disabled:opacity-30"><Undo2 className="w-4 h-4" /></button>
-            <button onClick={redo} disabled={historyIndex === history.length - 1} className="p-2 text-white/60 disabled:opacity-30"><Redo2 className="w-4 h-4" /></button>
+
+          <div className="flex-1 flex justify-end">
+            <div className="flex items-center gap-0.5 bg-white/5 rounded-xl p-0.5 border border-white/5 max-w-full overflow-x-auto no-scrollbar">
+              {[
+                { id: 'gallery', icon: History, active: currentView === 'gallery' },
+                { id: 'storyboard', icon: Film, active: currentView === 'storyboard' },
+                { id: 'settings', icon: Settings2, active: currentView === 'settings' },
+                { id: 'guide', icon: Terminal, active: currentView === 'guide' }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setCurrentView(tab.id as any)}
+                  className={cn(
+                    "p-2 rounded-lg transition-all shrink-0",
+                    tab.active ? "bg-white/10 text-white shadow-sm" : "text-white/30 active:scale-95"
+                  )}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
@@ -4729,12 +4833,20 @@ export default function App() {
                     <AlertCircle className="w-3 h-3 shrink-0" /> {error}
                   </motion.div>
                 )}
-                <button onClick={() => { handleGenerate(); setActiveStep(4); }} disabled={isGenerating} className={cn("relative w-full group overflow-hidden rounded-xl p-[1px] transition-all h-16", isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02]")}>
-                  {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500"></span>}
-                  <div className={cn("relative w-full h-full rounded-xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0a] group-hover:bg-transparent text-white")}>
-                    {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Rendering...</> : <><Sparkles className="w-4 h-4" /> Generate</>}
-                  </div>
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => setCurrentView('storyboard')} 
+                    className="w-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Film className="w-4 h-4" /> Motion Simulation
+                  </button>
+                  <button onClick={() => { handleGenerate(); setActiveStep(4); }} disabled={isGenerating} className={cn("relative w-full group overflow-hidden rounded-xl p-[1px] transition-all h-14", isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02]")}>
+                    {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500"></span>}
+                    <div className={cn("relative w-full h-full rounded-xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0a] group-hover:bg-transparent text-white")}>
+                      {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Rendering...</> : <><Sparkles className="w-4 h-4" /> Generate</>}
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
