@@ -73,31 +73,34 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
     const detectKeys = () => {
       let found: string[] = [];
 
-      // 1. Environment Variables Scan
+      // 1. Environment Variables Scan (Vite Client Standard)
       const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
       baseNames.forEach(baseName => {
-        // Standard
         const val = (import.meta as any).env?.[baseName];
         if (val && typeof val === 'string') {
           found.push(...val.split(',').map(m => m.trim()).filter(Boolean));
         }
         
-        // Process fallback (static replacement via define)
-        const pVal = typeof process !== 'undefined' ? (process.env as any)[baseName] : undefined;
-        if (pVal && typeof pVal === 'string') {
-          found.push(...pVal.split(',').map(m => m.trim()).filter(Boolean));
-        }
-
-        // Trace numbered variants (1-4)
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 10; i++) {
            const vN = (import.meta as any).env?.[`${baseName}_${i}`];
-           if (vN) found.push(vN);
-           const pN = typeof process !== 'undefined' ? (process.env as any)[`${baseName}_${i}`] : undefined;
-           if (pN) found.push(pN);
+           if (vN && typeof vN === 'string') found.push(vN.trim());
         }
       });
+      
+      // 2. Static process.env mapping (Replaced by Vite Define)
+      const staticEnv = [
+        process.env.GEMINI_API_KEY, process.env.VITE_GEMINI_API_KEY,
+        process.env.API_KEY, process.env.VITE_API_KEY,
+        process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
+        process.env.GEMINI_API_KEY_6, process.env.GEMINI_API_KEY_7, process.env.GEMINI_API_KEY_8, process.env.GEMINI_API_KEY_9, process.env.GEMINI_API_KEY_10,
+        process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5,
+        process.env.VITE_GEMINI_API_KEY_6, process.env.VITE_GEMINI_API_KEY_7, process.env.VITE_GEMINI_API_KEY_8, process.env.VITE_GEMINI_API_KEY_9, process.env.VITE_GEMINI_API_KEY_10,
+        process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4, process.env.API_KEY_5,
+        process.env.API_KEY_6, process.env.API_KEY_7, process.env.API_KEY_8, process.env.API_KEY_9, process.env.API_KEY_10
+      ];
+      found.push(...staticEnv.filter(k => k && typeof k === 'string') as string[]);
 
-      // 2. Local Storage Scan
+      // 3. Local Storage Scan
       const saved = localStorage.getItem('jamini_api_keys');
       if (saved) {
         try {
@@ -138,7 +141,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
     
     // Initial latency check
     const start = performance.now();
-    fetch('/favicon.ico', { method: 'HEAD' }).then(() => {
+    fetch('/index.html', { method: 'HEAD' }).then(() => {
       setLatency(Math.round(performance.now() - start));
     }).catch(() => setLatency(15));
 
@@ -171,21 +174,29 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     const detectKeysCount = () => {
       let found: string[] = [];
+      
+      // Vite Environment
       const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
       baseNames.forEach(baseName => {
         const val = (import.meta as any).env?.[baseName];
         if (val && typeof val === 'string') found.push(...val.split(',').map(m => m.trim()).filter(Boolean));
-        
-        const pVal = typeof process !== 'undefined' ? (process.env as any)[baseName] : undefined;
-        if (pVal && typeof pVal === 'string') found.push(...pVal.split(',').map(m => m.trim()).filter(Boolean));
-
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 10; i++) {
            const vN = (import.meta as any).env?.[`${baseName}_${i}`];
-           if (vN) found.push(vN);
-           const pN = typeof process !== 'undefined' ? (process.env as any)[`${baseName}_${i}`] : undefined;
-           if (pN) found.push(pN);
+           if (vN && typeof vN === 'string') found.push(vN.trim());
         }
       });
+
+      // Static Define
+      const staticEnv = [
+        process.env.GEMINI_API_KEY, process.env.VITE_GEMINI_API_KEY,
+        process.env.API_KEY, process.env.VITE_API_KEY,
+        process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4,
+        process.env.GEMINI_API_KEY_5, process.env.GEMINI_API_KEY_6, process.env.GEMINI_API_KEY_7, process.env.GEMINI_API_KEY_8,
+        process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4,
+        process.env.VITE_GEMINI_API_KEY_5, process.env.VITE_GEMINI_API_KEY_6, process.env.VITE_GEMINI_API_KEY_7, process.env.VITE_GEMINI_API_KEY_8,
+        process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4
+      ];
+      found.push(...staticEnv.filter(k => k && typeof k === 'string') as string[]);
       found.push(...keys.map(k => k.key).filter(Boolean));
       setDetectedKeyCount(Array.from(new Set(found)).filter(Boolean).length);
     };

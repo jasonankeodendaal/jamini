@@ -1392,24 +1392,23 @@ export default function App() {
 
     // 3. Check process.env (Polyfill/Define support)
     // We use explicit static names here so Vite's 'define' can replace them
-    const p1 = process.env.GEMINI_API_KEY;
-    const p2 = process.env.VITE_GEMINI_API_KEY;
-    const p3 = process.env.API_KEY;
+    const staticKeys = [
+      process.env.GEMINI_API_KEY,
+      process.env.VITE_GEMINI_API_KEY,
+      process.env.API_KEY,
+      process.env.VITE_API_KEY,
+      process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
+      process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5,
+      process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4, process.env.API_KEY_5,
+      process.env.VITE_API_KEY_1, process.env.VITE_API_KEY_2, process.env.VITE_API_KEY_3, process.env.VITE_API_KEY_4, process.env.VITE_API_KEY_5
+    ];
     
-    if (p1) availableKeys.push(p1);
-    if (p2) availableKeys.push(p2);
-    if (p3) availableKeys.push(p3);
-
-    // Numbered variants for rotation
-    const p1_1 = process.env.GEMINI_API_KEY_1; if(p1_1) availableKeys.push(p1_1);
-    const p1_2 = process.env.GEMINI_API_KEY_2; if(p1_2) availableKeys.push(p1_2);
-    const p1_3 = process.env.GEMINI_API_KEY_3; if(p1_3) availableKeys.push(p1_3);
-    const p1_4 = process.env.GEMINI_API_KEY_4; if(p1_4) availableKeys.push(p1_4);
-    
-    const v1_1 = process.env.VITE_GEMINI_API_KEY_1; if(v1_1) availableKeys.push(v1_1);
-    const v1_2 = process.env.VITE_GEMINI_API_KEY_2; if(v1_2) availableKeys.push(v1_2);
-    const v1_3 = process.env.VITE_GEMINI_API_KEY_3; if(v1_3) availableKeys.push(v1_3);
-    const v1_4 = process.env.VITE_GEMINI_API_KEY_4; if(v1_4) availableKeys.push(v1_4);
+    staticKeys.forEach(k => {
+      if (k && typeof k === 'string') {
+        const parts = k.split(',').map(p => p.trim()).filter(Boolean);
+        availableKeys.push(...parts);
+      }
+    });
 
     // Remove duplicates and empty strings
     const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(Boolean);
