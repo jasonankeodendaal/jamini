@@ -20,7 +20,7 @@ import {
   ShieldAlert,
   Terminal
 } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { cn } from '../lib/utils';
 
 interface VoiceAssistantProps {
@@ -49,7 +49,8 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const [isIntroDone, setIsIntroDone] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const synth = window.speechSynthesis;
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const introQuestions = [
     "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Before we begin, please state your full name and the name of the company or client for this project.",
@@ -129,7 +130,12 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     speak(greeting);
 
     return () => {
-      synth.cancel();
+      if (currentSourceRef.current) {
+        currentSourceRef.current.stop();
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
@@ -139,27 +145,70 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     }
   }, [messages]);
 
-  const speak = (text: string) => {
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+  const speak = async (text: string) => {
+    if (currentSourceRef.current) {
+      currentSourceRef.current.stop();
+    }
     
-    // Pick a professional male English voice if available
-    const voices = synth.getVoices();
-    const maleVoice = voices.find(v => 
-      (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('guy') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('daniel')) && 
-      v.lang.startsWith('en')
-    ) || voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || voices[0];
+    setIsSpeaking(true);
     
-    if (maleVoice) utterance.voice = maleVoice;
-    
-    // Natural human-like speech parameters
-    utterance.rate = 0.95;  // Slightly more measured for professional weight
-    utterance.pitch = 0.85; // Lower pitch for a more masculine, authoritative tone
-    utterance.volume = 1;
-    
-    synth.speak(utterance);
+    try {
+      const apiKey = getApiKey('free');
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-tts-preview",
+        contents: [{ parts: [{ text: `Say this in a professional, slightly authoritative yet friendly creative director voice: ${text}` }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
+            },
+          },
+        },
+      });
+
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (base64Audio) {
+        const binaryString = atob(base64Audio);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const pcm16 = new Int16Array(bytes.buffer);
+        const float32 = new Float32Array(pcm16.length);
+        for (let i = 0; i < pcm16.length; i++) {
+          float32[i] = pcm16[i] / 32768;
+        }
+
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        }
+        
+        const ctx = audioContextRef.current;
+        const audioBuffer = ctx.createBuffer(1, float32.length, 24000);
+        audioBuffer.getChannelData(0).set(float32);
+        
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+        
+        source.onended = () => {
+          setIsSpeaking(false);
+          currentSourceRef.current = null;
+        };
+        
+        currentSourceRef.current = source;
+        source.start();
+      } else {
+        setIsSpeaking(false);
+      }
+    } catch (error) {
+      console.error("TTS Error:", error);
+      setIsSpeaking(false);
+    }
   };
 
   const toggleListening = () => {
@@ -260,49 +309,49 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-4 bg-black/90 backdrop-blur-md">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 lg:p-6 bg-black/95 backdrop-blur-xl">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="w-full h-full sm:h-[85vh] sm:max-w-6xl bg-[#0F0F12] sm:rounded-[2.5rem] shadow-[0_0_100px_rgba(99,102,241,0.3)] overflow-hidden flex flex-col lg:flex-row"
+        className="w-full h-[100dvh] lg:h-[85vh] lg:max-w-7xl bg-[#0B0B0E] lg:rounded-[3rem] shadow-[0_0_100px_rgba(99,102,241,0.25)] overflow-hidden flex flex-col lg:flex-row border border-white/5"
       >
         {/* Left Section: Conversation Log */}
-        <div className="flex-1 flex flex-col h-[60vh] lg:h-full border-r border-white/5 order-2 lg:order-1">
+        <div className="flex-1 flex flex-col h-[55vh] lg:h-full border-b lg:border-b-0 lg:border-r border-white/5 order-2 lg:order-1 bg-[#050507]">
           {/* Header (Desktop Only) */}
-          <div className="hidden lg:flex p-6 border-b border-white/5 items-center justify-between bg-black/40 backdrop-blur-2xl">
-            <div className="flex items-center gap-4">
+          <div className="hidden lg:flex p-8 border-b border-white/5 items-center justify-between bg-black/40">
+            <div className="flex items-center gap-5">
               <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 relative z-10">
-                  <Headphones className="w-6 h-6 text-indigo-400" />
+                <div className="w-14 h-14 rounded-[1.5rem] bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                  <Headphones className="w-7 h-7 text-indigo-400" />
                 </div>
               </div>
-              <h3 className="text-xl font-black uppercase tracking-widest text-white">JAMINI <span className="text-[10px] px-2 py-0.5 bg-indigo-500 text-white rounded-full ml-2">Vocal V4</span></h3>
+              <h3 className="text-2xl font-black uppercase tracking-widest text-white leading-none">JAMINI <span className="text-xs px-3 py-1 bg-indigo-500 text-white rounded-full ml-3">CORE V4</span></h3>
             </div>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 custom-scrollbar bg-[#0A0A0C]/50">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 lg:p-10 space-y-4 lg:space-y-8 custom-scrollbar">
             <AnimatePresence initial={false}>
               {messages.map((msg, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, x: msg.role === 'assistant' ? -20 : 20 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className={cn(
-                    "flex items-start gap-4",
+                    "flex items-start gap-3 lg:gap-5",
                     msg.role === 'user' ? "flex-row-reverse" : ""
                   )}
                 >
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                    msg.role === 'assistant' ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30" : "bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30"
+                    "w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 border",
+                    msg.role === 'assistant' ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20"
                   )}>
-                    {msg.role === 'assistant' ? <BrainCircuit className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                    {msg.role === 'assistant' ? <BrainCircuit className="w-4 h-4 lg:w-5 lg:h-5" /> : <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5" />}
                   </div>
                   <div className={cn(
-                    "max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-lg",
-                    msg.role === 'assistant' ? "bg-white/5 text-white/80 rounded-tl-none border border-white/5" : "bg-fuchsia-500/10 text-white rounded-tr-none border border-fuchsia-500/20"
+                    "max-w-[85%] p-4 lg:p-6 rounded-2xl text-xs lg:text-base leading-relaxed tracking-wide shadow-2xl",
+                    msg.role === 'assistant' ? "bg-white/[0.03] text-white/90 border border-white/5" : "bg-fuchsia-500/10 text-white border border-fuchsia-500/20"
                   )}>
                     {msg.text}
                   </div>
@@ -311,126 +360,125 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
             </AnimatePresence>
             {isProcessing && (
               <div className="flex flex-col gap-3 px-12">
-                <div className="flex items-center gap-3 text-indigo-400 font-mono text-[10px] uppercase tracking-[0.2em]">
+                <div className="flex items-center gap-3 text-indigo-400 font-mono text-[9px] lg:text-[10px] uppercase tracking-[0.3em]">
                   <Loader2 className="w-3 h-3 animate-spin" /> 
-                  {isFinished ? analysisSteps[analysisStep] : "Orchestrating Logic..."}
+                  {isFinished ? analysisSteps[analysisStep] : "Processor Online..."}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Section: Visual Status & Controls (40% width on Desktop) */}
-        <div className="w-full lg:w-[400px] flex flex-col h-auto lg:h-full bg-black/40 backdrop-blur-3xl border-t lg:border-t-0 border-white/10 p-6 sm:p-8 order-1 lg:order-2">
-          <div className="flex items-center justify-between mb-8">
-            <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Neural Engine Diagnostics</h4>
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all">
-              <X className="w-5 h-5" />
+        {/* Right Section: Diagnostics & Controls */}
+        <div className="w-full lg:w-[450px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-5 lg:p-10 order-1 lg:order-2">
+          <div className="flex items-center justify-between mb-6 lg:mb-10">
+            <div className="lg:hidden flex items-center gap-3">
+               <Headphones className="w-5 h-5 text-indigo-400" />
+               <h4 className="text-xs font-black text-white/60 uppercase tracking-widest">JAMINI VOICE</h4>
+            </div>
+            <h4 className="hidden lg:block text-[10px] font-black text-white/30 uppercase tracking-[0.5em]">System Diagnostics</h4>
+            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
+              <X className="w-5 h-5 lg:w-6 lg:h-6" />
             </button>
           </div>
 
-          {/* Client Progress Overview */}
-          <div className="space-y-6 mb-auto">
-             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-                      <ShieldAlert className="w-4 h-4 text-indigo-400" />
+          <div className="space-y-4 lg:space-y-8 mb-auto">
+             <div className="bg-white/5 border border-white/10 rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8">
+                <div className="flex items-center gap-4 mb-6">
+                   <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 ring-4 ring-indigo-500/5">
+                      <ShieldAlert className="w-5 h-5 lg:w-7 lg:h-7 text-indigo-400" />
                    </div>
-                   <div>
-                      <p className="text-[10px] font-black text-white/60 uppercase">Project Descriptor</p>
-                      <p className="text-sm font-bold text-white truncate max-w-[200px]">{clientDetails.company || 'Awaiting Identity...'}</p>
+                   <div className="flex-1 min-w-0">
+                      <p className="text-[8px] lg:text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
+                      <p className="text-base lg:text-xl font-black text-white truncate">{clientDetails.company || 'Initializing...'}</p>
                    </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                   <div className="bg-black/40 p-2 rounded-xl text-center">
-                      <p className="text-[8px] font-black text-white/20 uppercase">Lead</p>
-                      <p className="text-[10px] font-bold text-indigo-400 truncate">{clientDetails.name || 'TBD'}</p>
+                <div className="grid grid-cols-2 gap-3">
+                   <div className="bg-black/60 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-white/5 space-y-1">
+                      <p className="text-[7px] lg:text-[9px] font-black text-white/20 uppercase tracking-widest">Creative Lead</p>
+                      <p className="text-[10px] lg:text-xs font-bold text-indigo-400 truncate tracking-tight">{clientDetails.name || 'TBD'}</p>
                    </div>
-                   <div className="bg-black/40 p-2 rounded-xl text-center">
-                      <p className="text-[8px] font-black text-white/20 uppercase">Domain</p>
-                      <p className="text-[10px] font-bold text-fuchsia-400 truncate">{clientDetails.industry || 'TBD'}</p>
+                   <div className="bg-black/60 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-white/5 space-y-1">
+                      <p className="text-[7px] lg:text-[9px] font-black text-white/20 uppercase tracking-widest">Sector Domain</p>
+                      <p className="text-[10px] lg:text-xs font-bold text-fuchsia-400 truncate tracking-tight">{clientDetails.industry || 'TBD'}</p>
                    </div>
                 </div>
              </div>
 
-             <div className="space-y-4">
+             <div className="space-y-3 lg:space-y-4 hidden sm:block">
                 {[
-                  { icon: BrainCircuit, label: 'Neural Link', value: 'Active', color: 'text-indigo-400' },
-                  { icon: Workflow, label: 'Context Buffer', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400' },
-                  { icon: Cpu, label: 'Engine', value: 'Gemini 2.0', color: 'text-amber-400' }
+                  { icon: BrainCircuit, label: 'Neural Link', value: 'Prime', color: 'text-indigo-400' },
+                  { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400' },
+                  { icon: Cpu, label: 'Compute Engine', value: 'Titan v4', color: 'text-amber-400' }
                 ].map((stat, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-                    <div className="flex items-center gap-3">
-                       <stat.icon className={cn("w-4 h-4", stat.color)} />
-                       <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{stat.label}</span>
+                  <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <div className="flex items-center gap-4">
+                       <stat.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", stat.color)} />
+                       <span className="text-[9px] lg:text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{stat.label}</span>
                     </div>
-                    <span className={cn("text-[10px] font-bold uppercase", stat.color)}>{stat.value}</span>
+                    <span className={cn("text-[10px] lg:text-xs font-bold uppercase tracking-widest leading-none", stat.color)}>{stat.value}</span>
                   </div>
                 ))}
              </div>
           </div>
 
-          <div className="flex flex-col items-center gap-6 mt-8">
-            <div className="flex flex-col items-center gap-4 w-full">
-              <AnimatePresence mode="wait">
-                {(isListening || isSpeaking) ? (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    className="flex items-end gap-1 h-12"
-                  >
-                    {[...Array(16)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        animate={{ 
-                          height: isSpeaking ? [10, 40, 15, 35, 10] : [6, 18, 10, 15, 6],
-                          opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
-                        }}
-                        transition={{ duration: 1, repeat: Infinity, delay: i * 0.05 }}
-                        className={cn("w-1 rounded-full", isSpeaking ? "bg-indigo-500" : "bg-fuchsia-500")}
-                      />
-                    ))}
-                  </motion.div>
-                ) : (
-                  <div className="h-12 flex items-center justify-center gap-2 text-white/20">
-                     <Terminal className="w-3 h-3" />
-                     <span className="text-[9px] font-mono uppercase tracking-[0.3em]">Neural Standby</span>
-                  </div>
-                )}
-              </AnimatePresence>
+          <div className="flex flex-col items-center gap-6 lg:gap-10 mt-6 lg:mt-12">
+            <div className="flex flex-col items-center gap-6 w-full">
+              <div className="h-12 lg:h-16 flex items-end gap-1 px-4">
+                <AnimatePresence mode="wait">
+                  {(isListening || isSpeaking) ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-1.5 h-full">
+                      {[...Array(20)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          animate={{ 
+                            height: isSpeaking ? [12, 48, 20, 44, 12] : [8, 24, 12, 20, 8],
+                            opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
+                          }}
+                          transition={{ duration: 1, repeat: Infinity, delay: i * 0.04 }}
+                          className={cn("w-1 lg:w-1.5 rounded-full shadow-[0_0_10px_currentColor]", isSpeaking ? "bg-indigo-500 text-indigo-500" : "bg-fuchsia-500 text-fuchsia-500")}
+                        />
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <div className="flex items-center gap-3 text-white/10">
+                       <Terminal className="w-4 h-4" />
+                       <span className="text-[10px] lg:text-xs font-mono uppercase tracking-[0.5em]">Standby</span>
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <button 
                 onClick={toggleListening}
                 disabled={isSpeaking || isFinished}
                 className={cn(
-                  "w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group",
+                  "w-16 h-16 lg:w-28 lg:h-28 rounded-[2rem] lg:rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group ring-8 ring-white/0 hover:ring-white/5 active:ring-white/10",
                   isListening 
-                    ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/40" 
-                    : "bg-indigo-500 text-white hover:scale-105 active:scale-95 shadow-indigo-500/40",
+                    ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/50 scale-110" 
+                    : "bg-indigo-600 text-white hover:scale-105 active:scale-95 shadow-indigo-600/50",
                   (isSpeaking || isFinished) && "opacity-20 cursor-not-allowed scale-90"
                 )}
               >
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem]" />
-                {isListening ? (
-                  <div className="absolute inset-[-10px] rounded-[2.2rem] border-2 border-fuchsia-500/30 animate-[ping_2s_infinite]" />
-                ) : null}
-                {isListening ? <MicOff className="w-8 h-8 -rotate-90" /> : <Mic className="w-8 h-8" />}
+                {isListening && (
+                  <div className="absolute inset-[-15px] rounded-[3rem] border-2 border-fuchsia-500/40 animate-[ping_2.5s_infinite]" />
+                )}
+                {isListening ? <MicOff className="w-8 h-8 lg:w-12 lg:h-12 -rotate-90" /> : <Mic className="w-8 h-8 lg:w-12 lg:h-12" />}
               </button>
 
-              <div className="text-center">
-                <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-2">
-                  {isListening ? "Listening" : isSpeaking ? "Expressing" : "Initiate Link"}
+              <div className="text-center space-y-2">
+                <div className="text-[10px] lg:text-xs font-black uppercase tracking-[0.6em] text-white/25">
+                  {isListening ? "Transmission" : isSpeaking ? "Orchestrating" : "Voice Link"}
                 </div>
-                <div className="flex justify-center gap-1">
+                <div className="flex justify-center gap-1.5">
                    {[...Array(3)].map((_, i) => (
-                     <div key={i} className={cn("w-1 h-1 rounded-full", (isListening || isSpeaking) ? "bg-indigo-400 animate-pulse" : "bg-white/10")} style={{ animationDelay: `${i * 0.2}s` }} />
+                     <div key={i} className={cn("w-1.5 h-1.5 rounded-full shadow-lg", (isListening || isSpeaking) ? "bg-indigo-400 animate-bounce" : "bg-white/10")} style={{ animationDelay: `${i * 0.15}s` }} />
                    ))}
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-2 gap-4 w-full">
                <button 
                  onClick={() => {
                    setMessages([{ role: 'assistant', text: allQuestions[0] }]);
@@ -438,15 +486,15 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
                    setIsFinished(false);
                    speak(allQuestions[0]);
                  }}
-                 className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/5 rounded-xl text-[9px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                 className="flex items-center justify-center gap-3 py-4 lg:py-5 bg-white/5 border border-white/5 rounded-2xl text-[9px] lg:text-[10px] font-black uppercase text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all group"
                >
-                  <RefreshCcw className="w-3 h-3" /> Reset Session
+                  <RefreshCcw className="w-3 h-3 lg:w-4 lg:h-4 group-hover:rotate-180 transition-transform duration-500" /> Reset Session
                </button>
                <button 
                  onClick={onClose}
-                 className="flex items-center justify-center gap-2 py-3 bg-red-500/5 border border-red-500/10 rounded-xl text-[9px] font-black uppercase text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                 className="flex items-center justify-center gap-3 py-4 lg:py-5 bg-red-500/5 border border-red-500/10 rounded-2xl text-[9px] lg:text-[10px] font-black uppercase text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
                >
-                  <X className="w-3 h-3" /> Terminate
+                  <X className="w-3 h-3 lg:w-4 lg:h-4" /> Terminate
                </button>
             </div>
           </div>

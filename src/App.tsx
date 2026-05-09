@@ -5017,31 +5017,31 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-0.5 md:space-y-4 text-center px-2"
+            className="space-y-2 md:space-y-6 text-center px-4"
           >
-            <div className="relative inline-block scale-[0.6] md:scale-90 lg:scale-100 transition-transform">
-              <div className="absolute inset-0 bg-white/10 blur-[20px] rounded-full animate-pulse" />
+            <div className="relative inline-block transition-transform duration-500 hover:scale-110">
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-white/10 blur-[40px] rounded-full animate-pulse" />
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
                 alt="JAMINI" 
-                className="h-8 md:h-10 lg:h-12 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                className="h-16 md:h-24 lg:h-32 w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="space-y-0.5">
-              <h2 className="text-[14px] md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+            <div className="space-y-1">
+              <h2 className="text-xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
-              <div className="h-0.5 w-8 md:w-14 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
-              <p className="text-white/40 max-w-xs md:max-w-md mx-auto text-[8px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
-                JAMINI Multi-modal Interface • v4.0 <br/>
-                Deploy specialized AI clusters below.
+              <div className="h-1 w-12 md:w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
+              <p className="text-white/40 max-w-xs md:max-w-xl mx-auto text-[10px] md:text-sm lg:text-base font-medium tracking-wide leading-relaxed">
+                JAMINI Multi-modal Interface • v4.0 <br className="hidden md:block"/>
+                Advanced Creative Intelligence. Orchestrate your vision.
               </p>
             </div>
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 lg:gap-12 w-full group/container px-4 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
@@ -5049,37 +5049,38 @@ export default function App() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ 
-                  scale: 1.01, 
-                  y: -2,
-                  boxShadow: `0 10px 40px -10px ${obj.glow}` 
+                  scale: 1.02, 
+                  y: -10,
+                  boxShadow: `0 20px 60px -15px ${obj.glow}` 
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
                 className={cn(
-                  "group relative flex flex-col items-start p-2.5 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-300",
-                  i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
+                  "group relative flex flex-col items-start p-6 md:p-8 lg:p-10 bg-white/5 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
+                  "col-span-1"
                 )}
               >
                 {/* 3D Glass Effect Background */}
-                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-300", obj.color)} />
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
+                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-30 transition-opacity duration-500", obj.color)} />
+                <div className="absolute top-0 right-0 w-32 h-32 md:w-48 lg:w-56 bg-white/5 blur-[50px] md:blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
-                {/* Icon Sphere */}
-                <div className="relative z-10 w-10 h-10 md:w-16 lg:w-20 bg-white/5 rounded-2xl md:rounded-3xl flex items-center justify-center mb-3 md:mb-5 lg:mb-6 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
-                  <div className={cn("absolute inset-0 blur-2xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-5 h-5 md:w-8 lg:w-10 text-white relative z-10" />
+                {/* Icon Sphere - LARGER OBECTIVE LOGOS */}
+                <div className="relative z-10 w-16 h-16 md:w-24 lg:w-32 bg-white/5 rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] flex items-center justify-center mb-6 md:mb-8 lg:mb-12 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500">
+                  <div className={cn("absolute inset-0 blur-3xl opacity-0 group-hover:opacity-60 transition-opacity rounded-full", obj.color)} />
+                  <obj.icon className="w-8 h-8 md:w-12 lg:w-16 text-white relative z-10" />
                 </div>
 
-                <div className="relative z-10 flex-1 space-y-0.5 md:space-y-2 lg:space-y-3">
-                  <div className="space-y-0 text-left">
-                    <h3 className="text-[12px] md:text-lg lg:text-2xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors">{obj.title}</h3>
-                    <p className="text-indigo-400 font-bold text-[7px] md:text-[9px] lg:text-[10px] uppercase tracking-widest">{obj.desc}</p>
+                <div className="relative z-10 flex-1 space-y-2 md:space-y-4 lg:space-y-6">
+                  <div className="space-y-1 text-left">
+                    <h3 className="text-xl md:text-2xl lg:text-4xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
+                    <p className="text-indigo-400 font-black text-[10px] md:text-sm lg:text-base uppercase tracking-[0.2em]">{obj.desc}</p>
                   </div>
                   
-                  <p className="text-[8px] md:text-[11px] lg:text-xs text-white/40 text-left leading-snug font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
+                  <p className="text-xs md:text-sm lg:text-base text-white/40 text-left leading-relaxed font-medium group-hover:text-white/60 transition-colors">
                     {obj.longDesc}
                   </p>
                 </div>
+
 
 
                 {/* Progress Indicator Decorations */}
