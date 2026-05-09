@@ -13,7 +13,7 @@ export const generateLogo = async (
   ai: GoogleGenAI,
   options: LogoOptions
 ) => {
-  const modelToUse = options.model || 'gemini-2.0-flash';
+  const modelToUse = options.model || 'gemini-2.5-flash-image';
   const referenceContext = options.referenceImages && options.referenceImages.length > 0 
     ? ` Influence the design using the visual style, shapes, or concepts from the provided reference images.`
     : '';
@@ -21,20 +21,52 @@ export const generateLogo = async (
   const basePrompt = `Professional minimal logo for JAMINI Studio. Theme: ${options.style || 'Modern, AI-centric'}. Style: Minimalist, sophisticated. Color palette: Indigo, Neon Fuchsia, Deep Black. No text or very clean sans-serif text.${referenceContext}`;
 
   const generate = async (bgPrompt: string) => {
-    const payload: any = {
-      model: modelToUse,
-      prompt: `${basePrompt} Background: ${bgPrompt}.`,
-    };
+    const fullPrompt = `${basePrompt} Background: ${bgPrompt}.`;
+    
+    if (modelToUse.includes('gemini')) {
+      const parts: any[] = [{ text: fullPrompt }];
+      if (options.referenceImages) {
+        options.referenceImages.forEach(ref => {
+          // Extracts the base64 part if it contains the data uri prefix
+          const base64 = ref.includes(',') ? ref.split(',')[1] : ref;
+          parts.push({ inlineData: { data: base64, mimeType: "image/jpeg" } });
+        });
+      }
+      
+      const response = await ai.models.generateContent({
+        model: modelToUse,
+        contents: { parts },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1",
+            imageSize: "1K"
+          }
+        }
+      });
+      
+      let base64 = null;
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          base64 = part.inlineData.data;
+          break;
+        }
+      }
+      return base64 ? `data:image/jpeg;base64,${base64}` : null;
+    } else {
+      const payload: any = {
+        model: modelToUse,
+        prompt: fullPrompt,
+        config: {
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          aspectRatio: '1:1',
+        }
+      };
 
-    if (options.referenceImages && options.referenceImages.length > 0) {
-      // Gemini image models might support conditioning, otherwise we describe them or use them as parts of multi-modal prompt if supported by the SDK
-      // For now, we assume standard image generation but we can pass them if the model supports it.
-      // If generateImages doesn't support seeds/references directly in this SDK version, we at least prepared the prompt.
+      const response = await ai.models.generateImages(payload);
+      const base64 = response.generatedImages?.[0]?.image?.imageBytes;
+      return base64 ? `data:image/jpeg;base64,${base64}` : null;
     }
-
-    const response = await ai.models.generateImages(payload);
-    const base64 = response.generatedImages?.[0]?.image?.imageBytes;
-    return base64 ? `data:image/jpeg;base64,${base64}` : null;
   };
 
   // Generate sequentially to avoid rate limits on free tiers

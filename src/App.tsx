@@ -213,9 +213,9 @@ const getImageModelString = (engine: string) => {
 
   // Map to Image Generation specific models
   if (engine.includes('Veo')) return 'veo-2.0-generate-001';
-  if (engine.includes('Nano Banana 2')) return 'imagen-3.0-generate-002';
-  if (engine.includes('Gemini 3.1 Pro (Paid Image)')) return 'imagen-3.0-generate-002';
-  if (engine.includes('2.5') && engine.includes('Flash Image')) return 'imagen-3.0-fast-generate-001';
+  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview'; // Nano Banana 2 uses generateContent
+  if (engine.includes('Gemini 3.1 Pro (Paid Image)')) return 'imagen-3.0-generate-002'; // Imagen uses generateImages
+  if (engine.includes('2.5') && engine.includes('Flash Image')) return 'gemini-2.5-flash-image'; // Nano Banana 1 uses generateContent
   if (engine.includes('ImageFX (S2)')) return 'imagen-3.0-generate-002';
   
   return 'imagen-3.0-generate-001'; // Safe fallback
@@ -388,13 +388,13 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
         osc.stop(ctx.currentTime + startTime + duration);
       };
 
-      playDramaticNote(55, 0, 2.5, 0.4, 'sawtooth');
-      playDramaticNote(110, 0.5, 2.0, 0.3, 'square');
-      playDramaticNote(220, 0.8, 1.8, 0.25, 'triangle');
-      playDramaticNote(440, 1.2, 1.5, 0.15, 'sine');
-      playDramaticNote(659, 1.4, 1.2, 0.1, 'sine');
+      // Happier, faster "more welcome" melody
+      playDramaticNote(523.25, 0, 0.4, 0.2, 'sine'); // C5
+      playDramaticNote(659.25, 0.15, 0.4, 0.2, 'sine'); // E5
+      playDramaticNote(783.99, 0.3, 0.6, 0.2, 'sine'); // G5
+      playDramaticNote(1046.50, 0.45, 1.0, 0.2, 'sine'); // C6
 
-      setTimeout(() => ctx.close(), 4000);
+      setTimeout(() => ctx.close(), 2000);
     } catch (e) {
       console.warn("Audio Context blocked or failed:", e);
     }
@@ -408,8 +408,8 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
   return (
     <motion.div 
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-      transition={{ duration: 1.5, ease: "easeInOut" }}
+      exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030014] overflow-hidden"
     >
       {/* Background Effects */}
@@ -424,15 +424,15 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 30 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-3 md:mb-6"
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-3 md:mb-4 lg:mb-6"
         >
           <div className="relative">
             <div className="absolute inset-0 bg-indigo-500/15 blur-[40px] md:blur-[80px] animate-pulse" />
             <img 
               src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
               alt="JAMINI Studio" 
-              className="h-16 md:h-36 lg:h-44 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+              className="h-16 md:h-28 lg:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -441,22 +441,22 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="mb-6 md:mb-10 space-y-3 md:space-y-6"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-4 md:mb-6 lg:mb-8 space-y-2 md:space-y-4"
         >
-          <div className="space-y-1 md:space-y-3">
-            <h1 className="text-2xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white uppercase" style={{ fontFamily: 'Space Grotesk' }}>
+          <div className="space-y-1 md:space-y-2">
+            <h1 className="text-xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white uppercase" style={{ fontFamily: 'Space Grotesk' }}>
               Pro Design, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-emerald-400">Rhyme & Fine</span>
             </h1>
             <div className="h-0.5 w-12 md:w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
           </div>
 
-          <div className="max-w-4xl mx-auto space-y-4 md:space-y-8 relative">
+          <div className="max-w-3xl mx-auto space-y-3 md:space-y-6 relative">
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="text-base md:text-2xl lg:text-3xl text-white/70 font-light tracking-tight leading-snug font-sans relative z-10"
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-sm md:text-xl lg:text-2xl text-white/70 font-light tracking-tight leading-snug font-sans relative z-10"
             >
               JAMINI makes the <span className="text-white font-bold">Magic Shine.</span> <br className="hidden md:block" /> Joint Artificial Multi-modal Intelligence Network Interface.
             </motion.p>
@@ -464,21 +464,21 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap justify-center gap-3 md:gap-8 pt-6 md:pt-12 border-t border-white/5"
+              transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-wrap justify-center gap-2 md:gap-6 pt-4 md:pt-8 border-t border-white/5"
             >
               {[
                 { label: 'VEO', sub: '4K Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/10' },
                 { label: 'PRO', sub: 'Neural Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/10' },
                 { label: '9:16', sub: 'Mobile First', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/10' }
               ].map((item, i) => (
-                <div key={i} className="group relative flex flex-col items-center min-w-[100px] md:min-w-[140px] p-2 md:p-4 rounded-3xl transition-all duration-500">
-                  <div className={cn("mb-2 p-2 rounded-xl bg-white/[0.02] border border-white/5 relative z-10", item.color)}>
-                    <item.icon className="w-4 h-4 md:w-6 md:h-6" />
+                <div key={i} className="group relative flex flex-col items-center min-w-[80px] md:min-w-[120px] p-2 md:p-3 rounded-2xl transition-all duration-300">
+                  <div className={cn("mb-1 md:mb-2 p-1.5 md:p-2 rounded-xl bg-white/[0.02] border border-white/5 relative z-10", item.color)}>
+                    <item.icon className="w-3 h-3 md:w-5 md:h-5" />
                   </div>
-                  <div className="flex flex-col items-center gap-0.5 relative z-10">
-                    <span className="text-white font-black text-xl md:text-2xl tracking-tighter leading-none">{item.label}</span>
-                    <span className="text-[8px] md:text-[10px] text-white/30 uppercase tracking-[0.2em] font-black">{item.sub}</span>
+                  <div className="flex flex-col items-center gap-0 relative z-10">
+                    <span className="text-white font-black text-lg md:text-xl tracking-tighter leading-none">{item.label}</span>
+                    <span className="text-[8px] md:text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{item.sub}</span>
                   </div>
                 </div>
               ))}
@@ -486,37 +486,37 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
           </div>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row gap-4 md:gap-6 items-center justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-center justify-center">
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(167, 139, 250, 0.5)" }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(167, 139, 250, 0.4)" }}
             whileTap={{ scale: 0.95 }}
             onClick={handleEnter}
-            className="group relative px-8 md:px-10 py-4 md:py-5 bg-white/5 border border-white/20 rounded-full overflow-hidden cursor-pointer w-64 md:w-auto"
+            className="group relative px-6 md:px-8 py-3 md:py-4 bg-white/5 border border-white/20 rounded-full overflow-hidden cursor-pointer w-56 md:w-auto"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-emerald-500 opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-emerald-500 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-            <div className="relative flex items-center justify-center md:justify-start gap-3">
-              <span className="text-lg md:text-xl font-bold text-white tracking-widest uppercase">Enter Studio</span>
-              <ArrowRight className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:translate-x-2 transition-transform duration-300" />
+            <div className="relative flex items-center justify-center md:justify-start gap-2 md:gap-3">
+              <span className="text-base md:text-lg font-bold text-white tracking-widest uppercase">Enter Studio</span>
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white group-hover:translate-x-2 transition-transform duration-300" />
             </div>
           </motion.button>
 
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 1.4 }}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(99, 102, 241, 0.4)" }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(99, 102, 241, 0.3)" }}
             whileTap={{ scale: 0.95 }}
             onClick={onMeetJamini}
-            className="group relative px-8 md:px-10 py-4 md:py-5 bg-indigo-600 rounded-full overflow-hidden cursor-pointer shadow-lg active:translate-y-1 transition-all w-64 md:w-auto"
+            className="group relative px-6 md:px-8 py-3 md:py-4 bg-indigo-600 rounded-full overflow-hidden cursor-pointer shadow-lg active:translate-y-1 transition-all w-56 md:w-auto"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            <div className="relative flex items-center justify-center md:justify-start gap-3">
-              <span className="text-lg md:text-xl font-bold text-white tracking-widest uppercase flex items-center gap-2">
-                <Cpu className="w-5 h-5 md:w-6 md:h-6" /> Meet JAMINI
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <div className="relative flex items-center justify-center md:justify-start gap-2 md:gap-3">
+              <span className="text-base md:text-lg font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                <Cpu className="w-4 h-4 md:w-5 md:h-5" /> Meet JAMINI
               </span>
             </div>
           </motion.button>
@@ -1001,29 +1001,29 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
         ))}
       </div>
       
-      <div className="absolute top-0 left-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-fuchsia-900/10 to-[#050505] pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-fuchsia-900/10 to-[#050505] pointer-events-none" />
       
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 relative z-10">
-        <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-16 group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 w-fit backdrop-blur-md">
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Studio
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 relative z-10">
+        <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-12 group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 w-fit backdrop-blur-md text-sm">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Studio
         </button>
 
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row items-center gap-16 mb-32">
+        <div className="flex flex-col lg:flex-row items-center gap-10 mb-20">
           <div className="flex-1 text-center lg:text-left relative">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0, rotate: -10 }} 
               animate={{ scale: 1, opacity: 1, rotate: 0 }} 
               transition={{ type: "spring", duration: 1.5 }} 
-              className="inline-block mb-8 relative"
+              className="inline-block mb-6 relative"
             >
               <div className="absolute inset-0 bg-indigo-500/30 blur-2xl rounded-full" />
-              <JaminiLogo size="lg" />
+              <JaminiLogo size="md" />
             </motion.div>
             
             <motion.h1 
               initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
-              className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
+              className="text-4xl md:text-6xl font-black tracking-tighter mb-6 leading-[1.1]"
             >
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-fuchsia-400">Command the Matrix.</span><br/>
               <span className="text-white">Design with JAMINI.</span>
@@ -1031,64 +1031,64 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
             
             <motion.p 
               initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-              className="text-xl md:text-2xl text-white/50 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-10 font-light"
+              className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8 font-light"
             >
               JAMINI Studio is the authoritative platform for enterprise-grade generative synthesis. Elevating raw diffusion models into precision architectural instruments for global advertising.
             </motion.p>
             
             <motion.div 
               initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
-              className="flex flex-wrap gap-4 justify-center lg:justify-start"
+              className="flex flex-wrap gap-3 justify-center lg:justify-start"
             >
-              <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-full px-5 py-2.5 text-sm font-bold text-indigo-300 flex items-center gap-2 shadow-[0_0_15px_rgba(99,102,241,0.2)]"><Wand2 className="w-4 h-4"/> Gemini 3.1 Pro</div>
-              <div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-full px-5 py-2.5 text-sm font-bold text-fuchsia-300 flex items-center gap-2 shadow-[0_0_15px_rgba(217,70,239,0.2)]"><Smartphone className="w-4 h-4"/> PWA Ready</div>
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-full px-5 py-2.5 text-sm font-bold text-emerald-300 flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]"><Download className="w-4 h-4"/> 4K Export</div>
+              <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-indigo-300 flex items-center gap-2 shadow-[0_0_15px_rgba(99,102,241,0.2)]"><Wand2 className="w-3.5 h-3.5"/> Gemini 3.1 Pro</div>
+              <div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-fuchsia-300 flex items-center gap-2 shadow-[0_0_15px_rgba(217,70,239,0.2)]"><Smartphone className="w-3.5 h-3.5"/> PWA Ready</div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-emerald-300 flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]"><Download className="w-3.5 h-3.5"/> 4K Export</div>
             </motion.div>
           </div>
           
           <div className="flex-1 w-full max-w-lg lg:max-w-none relative perspective-1000">
             <motion.div 
               animate={{ 
-                y: [-15, 15, -15], 
-                rotateX: [5, -5, 5],
-                rotateY: [-5, 5, -5]
+                y: [-10, 10, -10], 
+                rotateX: [3, -3, 3],
+                rotateY: [-3, 3, -3]
               }} 
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} 
-              className="relative z-20 rounded-3xl overflow-hidden border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.6)] transform-gpu"
+              className="relative z-20 rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)] transform-gpu"
             >
                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/30 to-fuchsia-500/30 mix-blend-overlay z-10" />
                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" alt="Abstract 3D rendering" className="w-full h-auto object-cover scale-105" />
-               <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent z-20">
-                 <div className="flex items-center gap-3 mb-2">
-                   <span className="px-2 py-1 rounded bg-fuchsia-500 text-white text-[10px] font-bold uppercase tracking-wider">Featured</span>
-                   <span className="text-xs text-white/60 font-mono uppercase tracking-widest">Generated with JAMINI Pro</span>
+               <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-20">
+                 <div className="flex items-center gap-2 mb-2">
+                   <span className="px-2 py-0.5 rounded bg-fuchsia-500 text-white text-[9px] font-bold uppercase tracking-wider">Featured</span>
+                   <span className="text-[10px] text-white/60 font-mono uppercase tracking-widest">Generated with JAMINI Pro</span>
                  </div>
-                 <h3 className="text-4xl font-black tracking-tighter text-white mb-2" style={{ fontFamily: 'Space Grotesk' }}>NEON DREAMS</h3>
+                 <h3 className="text-2xl md:text-3xl font-black tracking-tighter text-white mb-1" style={{ fontFamily: 'Space Grotesk' }}>NEON DREAMS</h3>
                </div>
             </motion.div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gradient-to-tr from-indigo-600/40 to-fuchsia-600/40 blur-[120px] -z-10 rounded-full animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-600/30 to-fuchsia-600/30 blur-[100px] -z-10 rounded-full animate-pulse" />
           </div>
         </div>
 
         {/* Marquee Section */}
-        <div className="mb-32 relative w-full overflow-hidden flex flex-col items-center">
-          <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-8">Supported Visual Styles</p>
-          <div className="flex space-x-8 animate-marquee whitespace-nowrap opacity-50 hover:opacity-100 transition-opacity duration-500">
+        <div className="mb-20 relative w-full overflow-hidden flex flex-col items-center">
+          <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-6">Supported Visual Styles</p>
+          <div className="flex space-x-6 animate-marquee whitespace-nowrap opacity-50 hover:opacity-100 transition-opacity duration-500">
             {[...STYLES, ...STYLES].map((style, i) => (
-              <span key={i} className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/60 uppercase tracking-tighter" style={{ fontFamily: 'Space Grotesk' }}>
-                {style} <span className="text-indigo-500/50 mx-4">•</span>
+              <span key={i} className="text-xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/60 uppercase tracking-tighter" style={{ fontFamily: 'Space Grotesk' }}>
+                {style} <span className="text-indigo-500/50 mx-3">•</span>
               </span>
             ))}
           </div>
         </div>
 
         {/* Core Features Grid */}
-        <div className="mb-16 flex flex-col items-center text-center">
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">Unleash Your Creativity</h2>
-          <p className="text-white/50 max-w-2xl text-lg">Everything you need to build stunning, production-ready assets in seconds.</p>
+        <div className="mb-10 flex flex-col items-center text-center">
+          <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-3">Unleash Your Creativity</h2>
+          <p className="text-white/50 max-w-2xl text-base">Everything you need to build stunning, production-ready assets in seconds.</p>
         </div>
 
-        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
           {[
             { 
               icon: MonitorPlay, 
@@ -1150,10 +1150,10 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
         </motion.div>
 
         {/* Workflow Section */}
-        <div className="mb-32">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">How It Works</h2>
-            <p className="text-white/50 text-lg">A streamlined workflow designed for professionals.</p>
+        <div className="mb-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-4">How It Works</h2>
+            <p className="text-white/50 text-base">A streamlined workflow designed for professionals.</p>
           </div>
           
           <div className="relative max-w-5xl mx-auto">
@@ -1167,7 +1167,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
               {[
                 { step: '01', title: 'Upload Assets', desc: 'Provide your product images, logos, and character models. The AI analyzes their lighting and perspective.', color: 'indigo', icon: Upload },
                 { step: '02', title: 'Define Style', desc: 'Select your layout, lighting, typography, and color palette. Refine your prompt with Gemini 3.1 Pro.', color: 'fuchsia', icon: Palette },
@@ -1175,27 +1175,44 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
               ].map((step, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.2 }} className="relative flex flex-col items-center text-center group">
                   {/* Glowing Node */}
-                  <div className="relative mb-8">
+                  <div className="relative mb-6">
                     <div className={`absolute inset-0 bg-${step.color}-500/30 blur-xl rounded-full group-hover:bg-${step.color}-500/50 transition-colors duration-500`} />
-                    <div className={`w-24 h-24 rounded-full bg-black border border-white/10 flex items-center justify-center relative z-10 shadow-[inset_0_2px_10px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.5)] group-hover:border-${step.color}-500/50 transition-colors duration-500`}>
+                    <div className={`w-20 h-20 rounded-full bg-black border border-white/10 flex items-center justify-center relative z-10 shadow-[inset_0_2px_10px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.5)] group-hover:border-${step.color}-500/50 transition-colors duration-500`}>
                       <div className={`absolute inset-1 rounded-full border border-${step.color}-500/20 border-dashed animate-[spin_10s_linear_infinite]`} />
-                      <step.icon className={`w-8 h-8 text-${step.color}-400 drop-shadow-[0_0_10px_rgba(var(--${step.color}-500),0.8)]`} />
+                      <step.icon className={`w-6 h-6 text-${step.color}-400 drop-shadow-[0_0_10px_rgba(var(--${step.color}-500),0.8)]`} />
                     </div>
-                    <div className={`absolute -top-3 -right-3 w-8 h-8 bg-${step.color}-500 rounded-full flex items-center justify-center text-xs font-black text-white shadow-[0_0_15px_rgba(var(--${step.color}-500),0.8)] z-20`}>
+                    <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${step.color}-500 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-[0_0_15px_rgba(var(--${step.color}-500),0.8)] z-20`}>
                       {step.step}
                     </div>
                   </div>
                   
-                  <h3 className="text-2xl font-bold mb-4 text-white/90">{step.title}</h3>
-                  <p className="text-white/50 leading-relaxed text-base">{step.desc}</p>
+                  <h3 className="text-xl font-bold mb-3 text-white/90">{step.title}</h3>
+                  <p className="text-white/50 leading-relaxed text-sm">{step.desc}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Future Integrations / Roadmap */}
+        <div className="mb-24 bg-indigo-950/10 border border-indigo-500/20 rounded-[2rem] p-8 md:p-12 text-center relative overflow-hidden flex flex-col items-center">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
+           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]" />
+           
+           <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-4 text-white relative z-10">Beyond the Matrix</h2>
+           <p className="text-sm md:text-base text-indigo-200/60 max-w-2xl relative z-10 mb-8 leading-relaxed">
+             JAMINI is constantly evolving. The team is integrating advanced topological data, real-time 3D synthesis, and deeply localized brand-identity pipelines.
+           </p>
+           
+           <div className="flex flex-wrap gap-4 justify-center relative z-10">
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Realtime 3D</div>
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Spatial Audio API</div>
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Auto-Rigging</div>
+           </div>
+        </div>
         
         {/* Engine Explanation Section */}
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="bg-gradient-to-br from-indigo-900/20 to-fuchsia-900/20 border border-white/10 rounded-[3rem] p-8 lg:p-16 text-center relative overflow-hidden shadow-2xl">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="mb-24 bg-gradient-to-br from-indigo-900/20 to-fuchsia-900/20 border border-white/10 rounded-[2rem] p-6 lg:p-12 text-center relative overflow-hidden shadow-2xl">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-fuchsia-500/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
@@ -2547,17 +2564,51 @@ export default function App() {
         const blob = await response.blob();
         videoUrl = URL.createObjectURL(blob);
       } else {
-        // Native Image Generation using generateImages
-        const response = await ai.models.generateImages({
-          model: getImageModelString(imageEngine),
-          prompt: fullPrompt,
-          config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/jpeg',
-            aspectRatio: aspectRatio,
-          },
-        });
-        const base64EncodeString = response.generatedImages?.[0]?.image?.imageBytes;
+        // Evaluate if the model requires generateContent or generateImages
+        const imageModelString = getImageModelString(imageEngine);
+        let base64EncodeString: string | undefined = undefined;
+
+        if (imageModelString.includes('gemini')) {
+          const parts: any[] = [{ text: fullPrompt }];
+          // Note: Full poster generation doesn't use reference images out of the box in this flow currently
+          // but if we had them, we would append inlineData parts here.
+          if (exampleImages.length > 0) {
+            exampleImages.forEach(img => {
+              parts.push({ inlineData: { data: img.data, mimeType: img.mimeType } });
+            });
+          }
+
+          const response = await ai.models.generateContent({
+            model: imageModelString,
+            contents: { parts },
+            config: {
+              imageConfig: {
+                aspectRatio: aspectRatio,
+                imageSize: "1K"
+              }
+            }
+          });
+
+          for (const part of response.candidates?.[0]?.content?.parts || []) {
+            if (part.inlineData) {
+              base64EncodeString = part.inlineData.data;
+              break;
+            }
+          }
+        } else {
+          // Native Image Generation using generateImages for Imagen models
+          const response = await ai.models.generateImages({
+            model: imageModelString,
+            prompt: fullPrompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: aspectRatio,
+            },
+          });
+          base64EncodeString = response.generatedImages?.[0]?.image?.imageBytes;
+        }
+
         if (base64EncodeString) {
           imageUrl = `data:image/jpeg;base64,${base64EncodeString}`;
         }
@@ -2730,23 +2781,22 @@ export default function App() {
         <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-[#0E0E11] items-center">
           
           {/* Top Sub-Nav Workflow (Desktop Only) */}
-          <div className="hidden lg:flex w-full h-14 bg-[#18181C] border-b border-white/5 items-center justify-center gap-2 shrink-0 z-30 px-8 shadow-md relative">
-             <div className="absolute left-0 w-32 h-full bg-gradient-to-r from-indigo-500/10 to-transparent pointer-events-none" />
-             <div className="flex items-center gap-1 bg-[#121214] p-1 rounded-xl border border-white/5">
-                <button onClick={() => setActiveStep(1)} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2", activeStep === 1 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+          <div className="hidden lg:flex w-full h-auto min-h-[3.5rem] bg-[#18181C] border-b border-white/5 items-center justify-center gap-2 shrink-0 z-30 px-4 shadow-md relative py-2">
+             <div className="flex flex-wrap items-center justify-center gap-1 bg-[#121214] p-1 rounded-xl border border-white/5 max-w-full">
+                <button onClick={() => setActiveStep(1)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   <Layers className="w-3.5 h-3.5" /> Media
                 </button>
-                <button onClick={() => setActiveStep(2)} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2", activeStep === 2 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                <button onClick={() => setActiveStep(2)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   <Palette className="w-3.5 h-3.5" /> Design
                 </button>
-                <button onClick={() => setActiveStep(3)} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2", activeStep === 3 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                <button onClick={() => setActiveStep(3)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   <SlidersHorizontal className="w-3.5 h-3.5" /> Properties
                 </button>
-                <button onClick={() => setActiveStep(4)} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 relative", activeStep === 4 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                <button onClick={() => setActiveStep(4)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   {(generatedImage || generatedVideo) && <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse" />}
                   <MonitorPlay className="w-3.5 h-3.5" /> Preview
                 </button>
-                <button onClick={() => setActiveStep(5)} className={cn("px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2", activeStep === 5 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                <button onClick={() => setActiveStep(5)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 5 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   <Book className="w-3.5 h-3.5" /> Meet Jamini
                 </button>
              </div>
@@ -2770,36 +2820,21 @@ export default function App() {
                       </button>
                     </div>
                     <div className="flex flex-col gap-4 mt-2">
-                       {/* Brand Intelligence Card */}
-                       <div className={cn(
-                         "relative overflow-hidden rounded-2xl border transition-all duration-500",
-                         isLogoMode ? "bg-indigo-500/10 border-indigo-500/30 p-5 shadow-[0_0_30px_rgba(99,102,241,0.15)]" : "bg-white/5 border-white/10 p-4"
-                       )}>
-                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                               <div className={cn("p-2 rounded-xl transition-colors", isLogoMode ? "bg-indigo-500 text-white" : "bg-white/5 text-white/40")}>
-                                  <Palette className="w-4 h-4" />
-                               </div>
-                               <div>
-                                  <h4 className="text-[11px] font-black uppercase tracking-wider text-white">Logo Mode</h4>
-                                  <p className="text-[9px] text-white/40">Brand mark focus engine</p>
-                               </div>
-                            </div>
-                            <button 
-                               onClick={() => setIsLogoMode(!isLogoMode)}
-                               className={cn(
-                                 "w-10 h-5 rounded-full relative transition-colors duration-300",
-                                 isLogoMode ? "bg-indigo-500" : "bg-white/10"
-                               )}
-                            >
-                               <motion.div 
-                                 animate={{ x: isLogoMode ? 22 : 2 }}
-                                 className="absolute top-1 left-0 w-3 h-3 bg-white rounded-full shadow-lg" 
-                               />
-                            </button>
-                         </div>
+                       {/* Brand Intelligence Card - ONLY IN LOGO OBJECTIVE */}
+                       {generationObjective === 'logo' && (
+                         <div className="relative overflow-hidden rounded-2xl border transition-all duration-500 bg-indigo-500/10 border-indigo-500/30 p-5 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+                           <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                 <div className="p-2 rounded-xl transition-colors bg-indigo-500 text-white">
+                                    <Palette className="w-4 h-4" />
+                                 </div>
+                                 <div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-wider text-white">Logo Engine</h4>
+                                    <p className="text-[9px] text-white/40">Brand mark focus</p>
+                                 </div>
+                              </div>
+                           </div>
 
-                         {isLogoMode && (
                            <motion.div 
                              initial={{ opacity: 0, height: 0 }}
                              animate={{ opacity: 1, height: 'auto' }}
@@ -2853,8 +2888,8 @@ export default function App() {
                                 </div>
                              </div>
                            </motion.div>
-                         )}
-                       </div>
+                         </div>
+                       )}
                     </div>
 
                     <select 
@@ -2919,163 +2954,163 @@ export default function App() {
                       </button>
                       <input type="file" ref={productInputRef} onChange={(e) => handleFileUpload(e, 'product')} multiple accept="image/*" className="hidden" />
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                      {!isLogoMode ? (
+                    {generationObjective !== 'logo' && (
+                      <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2">
-                          <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Brand Logo (Product Brand)</h3>
-                          {brandLogoAsset ? (
-                        <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
-                            <img src={`data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}`} alt="Brand Logo" className="max-w-full max-h-full object-contain" />
-                            <button onClick={() => removeAsset(brandLogoAsset.id, 'brandLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                          <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-white/50 truncate max-w-[150px]">{brandLogoAsset.name}</span>
-                              <button onClick={() => refineSpecificAssetPrompt(brandLogoAsset.id, 'brandLogo')} disabled={brandLogoAsset.isRefining || !brandLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
-                                {brandLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
-                              </button>
-                            </div>
-                            <input type="text" value={brandLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(brandLogoAsset.id, 'brandLogo', e.target.value)} placeholder="Specific prompt for this brand logo..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
-                            <details className="group">
-                              <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
-                                <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
-                              </summary>
-                              <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
-                                <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={brandLogoAsset.material || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={brandLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Position (e.g. Center foreground)" value={brandLogoAsset.position || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Brand Logo (Product Brand)</h3>
+                            {brandLogoAsset ? (
+                              <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                                  <img src={`data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}`} alt="Brand Logo" className="max-w-full max-h-full object-contain" />
+                                  <button onClick={() => removeAsset(brandLogoAsset.id, 'brandLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] text-white/50 truncate max-w-[150px]">{brandLogoAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(brandLogoAsset.id, 'brandLogo')} disabled={brandLogoAsset.isRefining || !brandLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
+                                      {brandLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={brandLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(brandLogoAsset.id, 'brandLogo', e.target.value)} placeholder="Specific prompt for this brand logo..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
+                                  <details className="group">
+                                    <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
+                                      <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={brandLogoAsset.material || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={brandLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={brandLogoAsset.position || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                    </div>
+                                  </details>
+                                </div>
                               </div>
-                            </details>
+                            ) : (
+                              <button onClick={() => brandLogoInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
+                                <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Brand Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={brandLogoInputRef} onChange={(e) => handleFileUpload(e, 'brandLogo')} accept="image/*" className="hidden" />
                           </div>
-                        </div>
+                      
+                          <div className="space-y-2">
+                            <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Company Logo (Your Retail Brand)</h3>
+                            {companyLogoAsset ? (
+                              <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                                  <img src={`data:${companyLogoAsset.mimeType};base64,${companyLogoAsset.data}`} alt="Company Logo" className="max-w-full max-h-full object-contain" />
+                                  <button onClick={() => removeAsset(companyLogoAsset.id, 'companyLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] text-white/50 truncate max-w-[150px]">{companyLogoAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(companyLogoAsset.id, 'companyLogo')} disabled={companyLogoAsset.isRefining || !companyLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
+                                      {companyLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={companyLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(companyLogoAsset.id, 'companyLogo', e.target.value)} placeholder="Specific prompt for this company logo..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
+                                  <details className="group">
+                                    <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
+                                      <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={companyLogoAsset.material || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={companyLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={companyLogoAsset.position || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => companyLogoInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
+                                <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Company Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={companyLogoInputRef} onChange={(e) => handleFileUpload(e, 'companyLogo')} accept="image/*" className="hidden" />
+                          </div>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {generationObjective !== 'logo' && (
+                        <>
+                          <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Character/Model</h3>
+                          {characterAsset ? (
+                            <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
+                              <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                                <img src={`data:${characterAsset.mimeType};base64,${characterAsset.data}`} alt="Character" className="max-w-full max-h-full object-contain" />
+                                <button onClick={() => removeAsset(characterAsset.id, 'character')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                              </div>
+                              <div className="flex-1 flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-white/50 truncate max-w-[150px]">{characterAsset.name}</span>
+                                  <button onClick={() => refineSpecificAssetPrompt(characterAsset.id, 'character')} disabled={characterAsset.isRefining || !characterAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
+                                    {characterAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                  </button>
+                                </div>
+                                <input type="text" value={characterAsset.prompt || ''} onChange={(e) => updateAssetPrompt(characterAsset.id, 'character', e.target.value)} placeholder="Specific prompt for this character..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
+                                <details className="group">
+                                  <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
+                                    <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                  </summary>
+                                  <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
+                                    <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={characterAsset.material || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                    <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={characterAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                    <input type="text" placeholder="Position (e.g. Center foreground)" value={characterAsset.position || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
+                                  </div>
+                                </details>
+                              </div>
+                            </div>
                           ) : (
-                            <button onClick={() => brandLogoInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
-                              <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Brand Logo</span>
+                            <button onClick={() => characterInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
+                              <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Model</span>
                             </button>
                           )}
-                          <input type="file" ref={brandLogoInputRef} onChange={(e) => handleFileUpload(e, 'brandLogo')} accept="image/*" className="hidden" />
-                        </div>
-                      ) : (
-                         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300">
-                           Logo generating...
-                         </div>
+                          <input type="file" ref={characterInputRef} onChange={(e) => handleFileUpload(e, 'character')} accept="image/*" className="hidden" />
+                        </>
                       )}
-                    <div className="space-y-2">
-                      <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Company Logo (Your Retail Brand)</h3>
-                      {companyLogoAsset ? (
-                        <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
-                            <img src={`data:${companyLogoAsset.mimeType};base64,${companyLogoAsset.data}`} alt="Company Logo" className="max-w-full max-h-full object-contain" />
-                            <button onClick={() => removeAsset(companyLogoAsset.id, 'companyLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                          <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-white/50 truncate max-w-[150px]">{companyLogoAsset.name}</span>
-                              <button onClick={() => refineSpecificAssetPrompt(companyLogoAsset.id, 'companyLogo')} disabled={companyLogoAsset.isRefining || !companyLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
-                                {companyLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
-                              </button>
-                            </div>
-                            <input type="text" value={companyLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(companyLogoAsset.id, 'companyLogo', e.target.value)} placeholder="Specific prompt for this company logo..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
-                            <details className="group">
-                              <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
-                                <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
-                              </summary>
-                              <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
-                                <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={companyLogoAsset.material || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={companyLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Position (e.g. Center foreground)" value={companyLogoAsset.position || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                              </div>
-                            </details>
-                          </div>
-                        </div>
-                      ) : !isLogoMode ? (
-                        <button onClick={() => companyLogoInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
-                          <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Company Logo</span>
-                        </button>
-                      ) : (
-                        <div className="p-3 bg-indigo-500/5 border border-white/10 rounded-xl text-[10px] text-white/40 italic">
-                          System will generate your company logo automatically.
-                        </div>
-                      )}
-                      <input type="file" ref={companyLogoInputRef} onChange={(e) => handleFileUpload(e, 'companyLogo')} accept="image/*" className="hidden" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Character/Model</h3>
-                      {characterAsset ? (
-                        <div className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
-                            <img src={`data:${characterAsset.mimeType};base64,${characterAsset.data}`} alt="Character" className="max-w-full max-h-full object-contain" />
-                            <button onClick={() => removeAsset(characterAsset.id, 'character')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                          <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-white/50 truncate max-w-[150px]">{characterAsset.name}</span>
-                              <button onClick={() => refineSpecificAssetPrompt(characterAsset.id, 'character')} disabled={characterAsset.isRefining || !characterAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
-                                {characterAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
-                              </button>
-                            </div>
-                            <input type="text" value={characterAsset.prompt || ''} onChange={(e) => updateAssetPrompt(characterAsset.id, 'character', e.target.value)} placeholder="Specific prompt for this character..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
-                            <details className="group">
-                              <summary className="text-[10px] text-white/60 cursor-pointer hover:text-white transition-colors flex items-center gap-1 outline-none list-none [&::-webkit-details-marker]:hidden">
-                                <Settings2 className="w-3 h-3" /> Advanced Asset Controls <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform ml-auto" />
-                              </summary>
-                              <div className="mt-2 space-y-2 pl-2 border-l border-white/10">
-                                <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={characterAsset.material || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { material: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={characterAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { lightingInteraction: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                                <input type="text" placeholder="Position (e.g. Center foreground)" value={characterAsset.position || ''} onChange={(e) => updateAssetDetails(characterAsset.id, 'character', { position: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-[10px] text-white outline-none focus:border-indigo-500" />
-                              </div>
-                            </details>
-                          </div>
-                        </div>
-                      ) : (
-                        <button onClick={() => characterInputRef.current?.click()} className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all">
-                          <ImagePlus className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Add Model</span>
-                        </button>
-                      )}
-                      <input type="file" ref={characterInputRef} onChange={(e) => handleFileUpload(e, 'character')} accept="image/*" className="hidden" />
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><Book className="w-3 h-3" /> Company CI (Brand Bible)</h3>
-                      {companyCIAsset ? (
-                        <div className="flex flex-col gap-3 bg-black/40 p-3 rounded-xl border border-white/10">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-indigo-500/20 rounded flex items-center justify-center">
-                                <Book className="w-4 h-4 text-indigo-400" />
+                      {generationObjective !== 'logo' && (
+                        <>
+                          <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><Book className="w-3 h-3" /> Company CI (Brand Bible)</h3>
+                          {companyCIAsset ? (
+                            <div className="flex flex-col gap-3 bg-black/40 p-3 rounded-xl border border-white/10">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 bg-indigo-500/20 rounded flex items-center justify-center">
+                                    <Book className="w-4 h-4 text-indigo-400" />
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-xs text-white truncate max-w-[200px]">{companyCIAsset.name}</span>
+                                    <span className="text-[10px] text-white/40">PDF Document</span>
+                                  </div>
+                                </div>
+                                <button onClick={() => removeAsset(companyCIAsset.id, 'companyCI')} className="p-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
                               </div>
-                              <div className="flex flex-col">
-                                <span className="text-xs text-white truncate max-w-[200px]">{companyCIAsset.name}</span>
-                                <span className="text-[10px] text-white/40">PDF Document</span>
-                              </div>
+                              
+                              {isAnalyzingCI ? (
+                                <div className="flex items-center gap-2 text-[10px] text-indigo-400 bg-indigo-500/10 p-2 rounded">
+                                  <Loader2 className="w-3 h-3 animate-spin" /> Analyzing Brand Guidelines...
+                                </div>
+                              ) : ciSummary ? (
+                                <div className="space-y-1">
+                                  <label className="text-[10px] text-white/40 uppercase tracking-wider">Extracted Guidelines</label>
+                                  <AutoResizeTextarea 
+                                    value={ciSummary}
+                                    onChange={(e) => setCiSummary(e.target.value)}
+                                    className="w-full min-h-[6rem] bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] text-white/80 focus:ring-1 focus:ring-indigo-500 outline-none custom-scrollbar"
+                                    placeholder="Brand guidelines..."
+                                  />
+                                </div>
+                              ) : null}
                             </div>
-                            <button onClick={() => removeAsset(companyCIAsset.id, 'companyCI')} className="p-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                          
-                          {isAnalyzingCI ? (
-                            <div className="flex items-center gap-2 text-[10px] text-indigo-400 bg-indigo-500/10 p-2 rounded">
-                              <Loader2 className="w-3 h-3 animate-spin" /> Analyzing Brand Guidelines...
-                            </div>
-                          ) : ciSummary ? (
-                            <div className="space-y-1">
-                              <label className="text-[10px] text-white/40 uppercase tracking-wider">Extracted Guidelines</label>
-                              <AutoResizeTextarea 
-                                value={ciSummary}
-                                onChange={(e) => setCiSummary(e.target.value)}
-                                className="w-full min-h-[6rem] bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] text-white/80 focus:ring-1 focus:ring-indigo-500 outline-none custom-scrollbar"
-                                placeholder="Brand guidelines..."
-                              />
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <label className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all cursor-pointer">
-                          <Upload className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Upload CI (PDF)</span>
-                          <input type="file" onChange={(e) => handleFileUpload(e, 'companyCI')} accept="application/pdf" className="hidden" />
-                        </label>
+                          ) : (
+                            <label className="w-full h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex items-center justify-center gap-2 text-white/40 hover:text-indigo-400 transition-all cursor-pointer">
+                              <Upload className="w-5 h-5" /> <span className="text-xs font-bold uppercase">Upload CI (PDF)</span>
+                              <input type="file" onChange={(e) => handleFileUpload(e, 'companyCI')} accept="application/pdf" className="hidden" />
+                            </label>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -4710,8 +4745,29 @@ export default function App() {
 
     const selectObjective = (id: 'logo' | 'poster' | 'video') => {
       setGenerationObjective(id);
+      
+      // Reset shared states to prevent bleeding between modes
+      setScenePrompt('');
+      setProductAssets([]);
+      setBrandLogoAsset(null);
+      setCompanyLogoAsset(null);
+      setCharacterAsset(null);
+      setExampleImages([]);
+      setCompanyCIAsset(null);
+      setCiSummary('');
+      setTextElements([]);
+      setVideoScript('');
+      setVideoScenes([]);
+      setVideoStatus('');
+      setGeneratedImage(null);
+      setGeneratedVideo(null);
+      setThemeColors([]);
+      setCustomColorsList([]);
+      setError(null);
+      
       if (id === 'logo') {
         setIsLogoMode(true);
+        setIsAdMode(false);
         setAspectRatio('1:1');
       } else if (id === 'video') {
         setIsLogoMode(false);
@@ -4719,6 +4775,7 @@ export default function App() {
         setImageEngine('Veo Lite (1080p Video)');
       } else {
         setIsLogoMode(false);
+        setIsAdMode(false);
       }
     };
 
