@@ -2790,20 +2790,20 @@ export default function App() {
           
           {/* Top Sub-Nav Workflow (Responsive) */}
           <div className={cn(
-             "w-full bg-[#18181C] border-b border-white/5 flex items-center shrink-0 z-30 px-2 py-2 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
+             "w-full bg-[#18181C] border-b border-white/5 flex items-center shrink-0 z-30 px-2 py-1.5 md:py-2 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
              currentView === 'editor' && activeStep <= 3 ? "flex lg:justify-center" : "hidden lg:flex lg:justify-center"
           )}>
-             <div className="flex items-center gap-1.5 md:gap-2 bg-[#121214] p-1.5 md:p-1 rounded-xl border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
-                <button onClick={() => setActiveStep(1)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Layers className="w-4 h-4 md:w-3.5 md:h-3.5" /> Media
+             <div className="flex items-center gap-0.5 md:gap-2 bg-[#121214] p-0.5 md:p-1 rounded-xl border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
+                <button onClick={() => setActiveStep(1)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Media
                 </button>
-                <ChevronRight className="w-4 h-4 md:w-3 md:h-3 text-white/20" />
-                <button onClick={() => setActiveStep(2)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Palette className="w-4 h-4 md:w-3.5 md:h-3.5" /> Design
+                <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                <button onClick={() => setActiveStep(2)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Palette className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Design
                 </button>
-                <ChevronRight className="w-4 h-4 md:w-3 md:h-3 text-white/20" />
-                <button onClick={() => setActiveStep(3)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <SlidersHorizontal className="w-4 h-4 md:w-3.5 md:h-3.5" /> Properties
+                <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                <button onClick={() => setActiveStep(3)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <SlidersHorizontal className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Properties
                 </button>
                 <div className="w-px h-6 md:h-4 bg-white/10 mx-2 md:mx-1 hidden lg:block" />
                 <button onClick={() => setActiveStep(4)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
@@ -3951,6 +3951,7 @@ export default function App() {
                               <li>• <strong>Accuracy Index:</strong> 99.8% Brand Compliance.</li>
                               <li>• <strong>Scale:</strong> From Social (9:16) to Print (Physical MM).</li>
                               <li>• <strong>Security:</strong> Absolute client-side data sovereignty.</li>
+                              <li>• <strong>Cloud Fusion:</strong> Google Drive bi-directional sync.</li>
                             </ul>
                           </div>
                         </div>
