@@ -2788,24 +2788,30 @@ export default function App() {
         {/* Main Workspace */}
         <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-[#0E0E11] items-center">
           
-          {/* Top Sub-Nav Workflow (Desktop Only) */}
-          <div className="hidden lg:flex w-full h-auto min-h-[3.5rem] bg-[#18181C] border-b border-white/5 items-center justify-center gap-2 shrink-0 z-30 px-4 shadow-md relative py-2">
-             <div className="flex flex-wrap items-center justify-center gap-1 bg-[#121214] p-1 rounded-xl border border-white/5 max-w-full">
-                <button onClick={() => setActiveStep(1)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Layers className="w-3.5 h-3.5" /> Media
+          {/* Top Sub-Nav Workflow (Responsive) */}
+          <div className={cn(
+             "w-full bg-[#18181C] border-b border-white/5 flex items-center shrink-0 z-30 px-2 py-2 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
+             currentView === 'editor' && activeStep <= 3 ? "flex lg:justify-center" : "hidden lg:flex lg:justify-center"
+          )}>
+             <div className="flex items-center gap-1.5 md:gap-2 bg-[#121214] p-1.5 md:p-1 rounded-xl border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
+                <button onClick={() => setActiveStep(1)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Layers className="w-4 h-4 md:w-3.5 md:h-3.5" /> Media
                 </button>
-                <button onClick={() => setActiveStep(2)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Palette className="w-3.5 h-3.5" /> Design
+                <ChevronRight className="w-4 h-4 md:w-3 md:h-3 text-white/20" />
+                <button onClick={() => setActiveStep(2)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Palette className="w-4 h-4 md:w-3.5 md:h-3.5" /> Design
                 </button>
-                <button onClick={() => setActiveStep(3)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <SlidersHorizontal className="w-3.5 h-3.5" /> Properties
+                <ChevronRight className="w-4 h-4 md:w-3 md:h-3 text-white/20" />
+                <button onClick={() => setActiveStep(3)} className={cn("px-4 py-2 md:py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <SlidersHorizontal className="w-4 h-4 md:w-3.5 md:h-3.5" /> Properties
                 </button>
-                <button onClick={() => setActiveStep(4)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                <div className="w-px h-6 md:h-4 bg-white/10 mx-2 md:mx-1 hidden lg:block" />
+                <button onClick={() => setActiveStep(4)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   {(generatedImage || generatedVideo) && <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse" />}
-                  <MonitorPlay className="w-3.5 h-3.5" /> Preview
+                  <MonitorPlay className="w-4 h-4 md:w-3.5 md:h-3.5" /> Preview
                 </button>
-                <button onClick={() => setActiveStep(5)} className={cn("px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap", activeStep === 5 ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Book className="w-3.5 h-3.5" /> Meet Jamini
+                <button onClick={() => setActiveStep(5)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 whitespace-nowrap", activeStep === 5 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Book className="w-4 h-4 md:w-3.5 md:h-3.5" /> Meet Jamini
                 </button>
              </div>
           </div>
@@ -3691,13 +3697,20 @@ export default function App() {
                   </div>
 
                   {/* Mobile Next Button: Step 2 -> 3 */}
-                  <div className="lg:hidden pt-8 pb-12">
+                  <div className="lg:hidden pt-8 pb-12 flex flex-col gap-3">
                     <button 
                       onClick={() => setActiveStep(3)} 
                       className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
                     >
                       <span>Next: Tweak Properties</span>
                       <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => setActiveStep(1)} 
+                      className="w-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest active:scale-[0.98] transition-all"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      <span>Back to Media</span>
                     </button>
                   </div>
                 </motion.div>
@@ -3809,7 +3822,7 @@ export default function App() {
                   </div>
 
                   {/* Mobile Final Action Button: Step 3 -> Generate */}
-                  <div className="lg:hidden pt-8 pb-12">
+                  <div className="lg:hidden pt-8 pb-12 flex flex-col gap-3">
                     <button 
                       onClick={() => { handleGenerate(); setActiveStep(4); }} 
                       disabled={isGenerating}
@@ -3817,6 +3830,13 @@ export default function App() {
                     >
                       {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                       <span>{isGenerating ? 'Synthesizing...' : 'Generate Masterpiece'}</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveStep(2)} 
+                      className="w-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest active:scale-[0.98] transition-all"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      <span>Back to Design</span>
                     </button>
                   </div>
                 </motion.div>
@@ -4811,7 +4831,7 @@ export default function App() {
     };
 
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-2 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
+      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-1 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
         {/* Dynamic Background Effects - Optimized Stack */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[30s] ease-linear animate-pulse" />
@@ -4821,14 +4841,14 @@ export default function App() {
 
 
 
-        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-8 py-2 md:py-4">
+        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-2 md:space-y-6 lg:space-y-8 py-2">
           {/* Brand Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-1 md:space-y-4 text-center px-4"
+            className="space-y-0.5 md:space-y-4 text-center px-2"
           >
-            <div className="relative inline-block scale-75 md:scale-90 lg:scale-100 transition-transform">
+            <div className="relative inline-block scale-[0.6] md:scale-90 lg:scale-100 transition-transform">
               <div className="absolute inset-0 bg-white/10 blur-[20px] rounded-full animate-pulse" />
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
@@ -4837,12 +4857,12 @@ export default function App() {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="space-y-0.5 md:space-y-1">
-              <h2 className="text-xs md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+            <div className="space-y-0.5">
+              <h2 className="text-[14px] md:text-2xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
               <div className="h-0.5 w-8 md:w-14 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
-              <p className="text-white/40 max-w-xs md:max-w-md mx-auto text-[7px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
+              <p className="text-white/40 max-w-xs md:max-w-md mx-auto text-[8px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
                 JAMINI Multi-modal Interface • v4.0 <br/>
                 Deploy specialized AI clusters below.
               </p>
@@ -4850,39 +4870,39 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ 
-                  scale: 1.02, 
-                  y: -5,
-                  boxShadow: `0 20px 80px -20px ${obj.glow}` 
+                  scale: 1.01, 
+                  y: -2,
+                  boxShadow: `0 10px 40px -10px ${obj.glow}` 
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className="group relative flex flex-col items-start p-4 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1.2rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-500"
+                className="group relative flex flex-col items-start p-3 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1.2rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-300"
               >
                 {/* 3D Glass Effect Background */}
-                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-700", obj.color)} />
+                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-300", obj.color)} />
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere */}
-                <div className="relative z-10 w-9 h-9 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-500">
+                <div className="relative z-10 w-8 h-8 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
                   <div className={cn("absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
                   <obj.icon className="w-4 h-4 md:w-6 lg:w-8 text-white relative z-10" />
                 </div>
 
-                <div className="relative z-10 flex-1 space-y-1 md:space-y-2 lg:space-y-3">
-                  <div className="space-y-0.5 text-left">
-                    <h3 className="text-sm md:text-lg lg:text-2xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors">{obj.title}</h3>
+                <div className="relative z-10 flex-1 space-y-0.5 md:space-y-2 lg:space-y-3">
+                  <div className="space-y-0 text-left">
+                    <h3 className="text-[12px] md:text-lg lg:text-2xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors">{obj.title}</h3>
                     <p className="text-indigo-400 font-bold text-[7px] md:text-[9px] lg:text-[10px] uppercase tracking-widest">{obj.desc}</p>
                   </div>
                   
-                  <p className="text-[8px] md:text-[11px] lg:text-xs text-white/40 text-left leading-relaxed font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
+                  <p className="text-[8px] md:text-[11px] lg:text-xs text-white/40 text-left leading-snug font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
                     {obj.longDesc}
                   </p>
                 </div>
@@ -4898,10 +4918,10 @@ export default function App() {
                       className={cn("h-full w-1/2 bg-gradient-to-r from-transparent to-transparent", obj.color.replace('from-', 'via-'))}
                     />
                   </div>
-                  <div className="mt-2 md:mt-4 flex items-center justify-between">
-                    <span className="text-[8px] md:text-[9px] font-black uppercase text-white/20 tracking-tighter">Cluster 0{i+1}</span>
-                    <div className="flex items-center gap-2 text-white font-bold text-[8px] md:text-[9px] lg:text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all">
-                      Initialize <ArrowRight className="w-3 h-3 text-indigo-400" />
+                  <div className="mt-1 md:mt-4 flex items-center justify-between">
+                    <span className="text-[7px] md:text-[9px] font-black uppercase text-white/20 tracking-tighter">Cluster 0{i+1}</span>
+                    <div className="flex items-center gap-1 text-white font-bold text-[7px] md:text-[9px] lg:text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-x-[-5px] group-hover:translate-x-0 transition-all">
+                      Init <ArrowRight className="w-2.5 h-2.5 text-indigo-400" />
                     </div>
                   </div>
                 </div>
@@ -4953,58 +4973,42 @@ export default function App() {
               {renderContent()}
             </div>
             
-            {/* Global Mobile Bottom Navigation (2026 App Style) */}
-            <div className="lg:hidden h-[calc(64px+env(safe-area-inset-bottom))] bg-[#0a0a0a]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-4 z-[100] pb-safe shrink-0">
-              <button 
-                onClick={() => { setCurrentView('editor'); if(currentView === 'editor') setActiveStep(1); }} 
-                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", (currentView === 'editor' && activeStep <= 3) ? "text-indigo-400 scale-110" : "text-white/30")}
-              >
-                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep <= 3) ? "bg-indigo-500/10" : "")}>
-                  <LayoutIcon className="w-5 h-5" />
-                </div>
-                <span className="text-[8px] font-black tracking-[0.1em]">STUDIO</span>
-              </button>
-              
-              <button 
-                onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} 
-                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all text-white/30")}
-              >
-                <div className="p-1.5 rounded-xl">
-                  <PlusCircle className="w-5 h-5" />
-                </div>
-                <span className="text-[8px] font-black tracking-[0.1em]">NEW</span>
-              </button>
-
-              <button 
-                onClick={() => { setCurrentView('gallery'); }} 
-                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", currentView === 'gallery' ? "text-indigo-400 scale-110" : "text-white/30")}
-              >
-                <div className={cn("p-1.5 rounded-xl transition-colors", currentView === 'gallery' ? "bg-indigo-500/10" : "")}>
-                  <History className="w-5 h-5" />
-                </div>
-                <span className="text-[8px] font-black tracking-[0.1em]">VAULT</span>
-              </button>
-
-              <button 
-                onClick={() => { setCurrentView('editor'); setActiveStep(4); }} 
-                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all relative", (currentView === 'editor' && activeStep === 4) ? "text-indigo-400 scale-110" : "text-white/30")}
-              >
-                {(generatedImage || generatedVideo) && <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-fuchsia-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(217,70,239,1)]" />}
-                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep === 4) ? "bg-indigo-500/10" : "")}>
-                  <MonitorPlay className="w-5 h-5" />
-                </div>
-                <span className="text-[8px] font-black tracking-[0.1em]">PREVIEW</span>
-              </button>
-
-              <button 
-                onClick={() => { setCurrentView('editor'); setActiveStep(5); }} 
-                className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all", (currentView === 'editor' && activeStep === 5) ? "text-indigo-400 scale-110" : "text-white/30")}
-              >
-                <div className={cn("p-1.5 rounded-xl transition-colors", (currentView === 'editor' && activeStep === 5) ? "bg-indigo-500/10" : "")}>
-                  <Book className="w-5 h-5" />
-                </div>
-                <span className="text-[8px] font-black tracking-[0.1em]">GUIDE</span>
-              </button>
+            {/* Global Mobile Bottom Navigation (Professional iOS/App Style) */}
+            <div className="lg:hidden h-[calc(64px+env(safe-area-inset-bottom))] bg-[#0a0a0c]/98 backdrop-blur-3xl border-t border-white/5 flex items-center justify-around px-2 z-[100] pb-safe shrink-0 shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
+              {[
+                { id: 'studio', label: 'STUDIO', icon: LayoutIcon, isActive: currentView === 'editor' && activeStep <= 3, action: () => { setCurrentView('editor'); if(currentView === 'editor') setActiveStep(1); } },
+                { id: 'vault', label: 'VAULT', icon: History, isActive: currentView === 'gallery', action: () => { setCurrentView('gallery'); } },
+                { id: 'new', label: 'NEW', icon: Plus, isActive: false, action: () => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }, isAction: true },
+                { id: 'preview', label: 'PREVIEW', icon: MonitorPlay, isActive: currentView === 'editor' && activeStep === 4, action: () => { setCurrentView('editor'); setActiveStep(4); }, hasPing: generatedImage || generatedVideo },
+                { id: 'guide', label: 'GUIDE', icon: Book, isActive: currentView === 'editor' && activeStep === 5, action: () => { setCurrentView('editor'); setActiveStep(5); } }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={tab.action} 
+                  className={cn("flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all relative group pt-1", 
+                    tab.isActive ? "text-indigo-400" : "text-white/40 hover:text-white/80"
+                  )}
+                >
+                  {tab.hasPing && <div className="absolute top-2 right-[25%] w-1.5 h-1.5 bg-fuchsia-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(217,70,239,1)]" />}
+                  
+                  {tab.isActive && !tab.isAction && (
+                    <motion.div layoutId="mobile-nav-indicator" className="absolute top-0 left-[25%] right-[25%] h-[2px] bg-indigo-500 rounded-b-full shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                  )}
+                  
+                  <div className={cn(
+                    "p-1.5 rounded-xl transition-all duration-300", 
+                    tab.isActive && !tab.isAction ? "scale-110" : "",
+                    tab.isAction ? "bg-gradient-to-tr from-indigo-600 to-fuchsia-600 text-white rounded-full p-2.5 -mt-6 shadow-[0_4px_20px_rgba(99,102,241,0.5)] active:scale-95 border-[3px] border-[#0a0a0c]" : ""
+                  )}>
+                    <tab.icon className={cn("w-6 h-6 transition-colors", tab.isActive && !tab.isAction ? "drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "", tab.isAction ? "w-5 h-5" : "")} />
+                  </div>
+                  <span className={cn(
+                    "text-[8px] font-black tracking-widest transition-all",
+                    tab.isActive ? "opacity-100" : "opacity-70",
+                    tab.isAction ? "mt-0" : ""
+                  )}>{tab.label}</span>
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
