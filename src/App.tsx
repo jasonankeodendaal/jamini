@@ -174,7 +174,10 @@ const getTextModelString = (engine: string) => {
 
   // --- Map to Gemini API Skill Source of Truth ---
   if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash'; // Standard 2.0
-  if (engine.includes('2.5') && engine.includes('Flash')) return 'gemini-2.5-flash-image'; // nano banana
+  if (engine.includes('2.5') && engine.includes('Flash')) {
+    if (engine.includes('Image')) return 'gemini-2.5-flash-image';
+    return 'gemini-2.5-flash'; 
+  }
   if (engine.includes('3.2') && engine.includes('Flash')) return 'gemini-3.2-flash-preview';
   if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite';
   if (engine.includes('3.1') && engine.includes('Flash') && !engine.includes('Lite')) return 'gemini-3.1-flash-preview';
@@ -200,6 +203,22 @@ const getTextModelString = (engine: string) => {
   }
   
   return engine.replace(' (Free)', '').replace(' (Paid)', '').toLowerCase().replace(/ /g, '-');
+};
+
+const getImageModelString = (engine: string) => {
+  if (engine.includes('models/')) {
+    const match = engine.match(/\((models\/.*?)\)/);
+    if (match) return match[1].replace('models/', '');
+  }
+
+  // Map to Image Generation specific models
+  if (engine.includes('Veo')) return 'veo-2.0-generate-001';
+  if (engine.includes('Nano Banana 2')) return 'imagen-3.0-generate-002';
+  if (engine.includes('Gemini 3.1 Pro (Paid Image)')) return 'imagen-3.0-generate-002';
+  if (engine.includes('2.5') && engine.includes('Flash Image')) return 'imagen-3.0-fast-generate-001';
+  if (engine.includes('ImageFX (S2)')) return 'imagen-3.0-generate-002';
+  
+  return 'imagen-3.0-generate-001'; // Safe fallback
 };
 
 const DEFAULT_TEXT_ENGINES: string[] = [
@@ -2291,7 +2310,7 @@ export default function App() {
       const { darkLogoUrl, lightLogoUrl } = await generateLogo(ai, {
         prompt: finalLogoPrompt,
         referenceImages,
-        model: getTextModelString(imageEngine)
+        model: getImageModelString(imageEngine)
       });
 
       if (darkLogoUrl) setBrandLogoAsset({ id: 'logo-dark', name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
@@ -2305,7 +2324,7 @@ export default function App() {
       console.error("Logo Generation Error:", err);
       let errorMessage = err.message || String(err);
       if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-        errorMessage = `Model not found (${getTextModelString(imageEngine)}). The selected model may not be available in your region or tier. Try switching to 'Gemini 2.5 Flash Image (Free)'.`;
+        errorMessage = `Model not found (${getImageModelString(imageEngine)}). The selected model may not be available in your region or tier. Try switching to 'Gemini 2.5 Flash Image (Free)'.`;
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = "Permission denied. Please verify your API key and project permissions.";
       }
@@ -2527,9 +2546,10 @@ export default function App() {
         }
         const blob = await response.blob();
         videoUrl = URL.createObjectURL(blob);
-      } else if (imageEngine === 'Imagen 4.0 (Free)' || imageEngine === 'Imagen 3.0 (Free)') {
+      } else {
+        // Native Image Generation using generateImages
         const response = await ai.models.generateImages({
-          model: imageEngine === 'Imagen 4.0 (Free)' ? 'imagen-4.0-generate-001' : 'imagen-3.0-generate-001',
+          model: getImageModelString(imageEngine),
           prompt: fullPrompt,
           config: {
             numberOfImages: 1,
@@ -2540,16 +2560,6 @@ export default function App() {
         const base64EncodeString = response.generatedImages?.[0]?.image?.imageBytes;
         if (base64EncodeString) {
           imageUrl = `data:image/jpeg;base64,${base64EncodeString}`;
-        }
-      } else {
-        const response = await withTimeout(ai.models.generateContent({
-          model: modelName,
-          contents: { parts },
-          config: { imageConfig: { aspectRatio: aspectRatio } }
-        }), 120000, "Image generation timed out.");
-
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-          if (part.inlineData) { imageUrl = `data:image/png;base64,${part.inlineData.data}`; break; }
         }
       }
 
@@ -4713,7 +4723,7 @@ export default function App() {
     };
 
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-2 md:p-8 xl:p-12 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
+      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-2 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
         {/* Dynamic Background Effects - Optimized Stack */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[30s] ease-linear animate-pulse" />
@@ -4723,7 +4733,7 @@ export default function App() {
 
 
 
-        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-4 md:space-y-8 xl:space-y-12 py-4 md:py-8">
+        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-8 py-2 md:py-4">
           {/* Brand Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -4735,7 +4745,7 @@ export default function App() {
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
                 alt="JAMINI" 
-                className="h-8 md:h-12 lg:h-16 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                className="h-8 md:h-10 lg:h-12 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -4752,7 +4762,7 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 lg:gap-8 w-full group/container px-2 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
@@ -4766,14 +4776,14 @@ export default function App() {
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className="group relative flex flex-col items-start p-4 md:p-6 lg:p-8 bg-white/5 border border-white/10 rounded-[1.2rem] md:rounded-[1.8rem] lg:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500"
+                className="group relative flex flex-col items-start p-4 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1.2rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-500"
               >
                 {/* 3D Glass Effect Background */}
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-700", obj.color)} />
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere */}
-                <div className="relative z-10 w-9 h-9 md:w-12 lg:w-16 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-4 lg:mb-6 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-500">
+                <div className="relative z-10 w-9 h-9 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-500">
                   <div className={cn("absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
                   <obj.icon className="w-4 h-4 md:w-6 lg:w-8 text-white relative z-10" />
                 </div>
@@ -4791,7 +4801,7 @@ export default function App() {
 
 
                 {/* Progress Indicator Decorations */}
-                <div className="mt-3 md:mt-6 lg:mt-10 w-full relative z-10">
+                <div className="mt-2 md:mt-4 lg:mt-6 w-full relative z-10">
                   <div className="h-0.5 w-full bg-white/10 overflow-hidden rounded-full">
                     <motion.div 
                       initial={{ x: '-100%' }}

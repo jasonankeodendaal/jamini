@@ -37,10 +37,11 @@ export const generateLogo = async (
     return base64 ? `data:image/jpeg;base64,${base64}` : null;
   };
 
-  const [darkLogoUrl, lightLogoUrl] = await Promise.all([
-    generate("Solid dark black background"),
-    generate("Solid light white background")
-  ]);
+  // Generate sequentially to avoid rate limits on free tiers
+  const darkLogoUrl = await generate("Solid dark black background");
+  // Short delay between requests
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  const lightLogoUrl = await generate("Solid light white background");
 
   return { darkLogoUrl, lightLogoUrl };
 };
