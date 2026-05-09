@@ -1481,6 +1481,9 @@ export default function App() {
   const [videoScenes, setVideoScenes] = useState<VideoScene[]>([]);
   const [isScripting, setIsScripting] = useState<boolean>(false);
   const [videoStatus, setVideoStatus] = useState<string>('');
+  const [clientName, setClientName] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('');
+  const [industry, setIndustry] = useState<string>('');
 
   const [textEnginesList, setTextEnginesList] = useState<string[]>(DEFAULT_TEXT_ENGINES);
   const [imageEnginesList, setImageEnginesList] = useState<string[]>(DEFAULT_IMAGE_ENGINES);
@@ -1664,6 +1667,11 @@ export default function App() {
     if (data.assetPrompt) setAssetPrompt(data.assetPrompt);
     if (data.style) setStyle(data.style);
     if (data.lighting) setLighting(data.lighting);
+    if (data.clientInfo) {
+      setClientName(data.clientInfo.name || '');
+      setCompanyName(data.clientInfo.company || '');
+      setIndustry(data.clientInfo.industry || '');
+    }
     
     // Automatically switch to properties/preview step
     setActiveStep(3);
@@ -2672,23 +2680,41 @@ export default function App() {
         setGeneratedImage(null);
         setActiveStep(4); // PREVIEW Step
         
-        try {
-          const history = await localforage.getItem<any[]>('jamini_history') || [];
-          // We fetch the blob again to ensure we store the actual data, not just the temporary URL
-          const videoBlob = await fetch(videoUrl).then(r => r.blob());
-          history.push({ id: Date.now().toString(), type: 'video', dataUrl: videoBlob, date: Date.now(), prompt: fullPrompt.substring(0, 500) });
-          await localforage.setItem('jamini_history', history);
-        } catch(e) { console.error(e) }
+          try {
+            const history = await localforage.getItem<any[]>('jamini_history') || [];
+            // We fetch the blob again to ensure we store the actual data, not just the temporary URL
+            const videoBlob = await fetch(videoUrl).then(r => r.blob());
+            history.push({ 
+              id: Date.now().toString(), 
+              type: 'video', 
+              dataUrl: videoBlob, 
+              date: Date.now(), 
+              prompt: fullPrompt.substring(0, 500),
+              clientName,
+              companyName,
+              industry
+            });
+            await localforage.setItem('jamini_history', history);
+          } catch(e) { console.error(e) }
       } else if (imageUrl) {
         setGeneratedImage(imageUrl);
         setGeneratedVideo(null);
         setActiveStep(4); // PREVIEW Step
         
-        try {
-          const history = await localforage.getItem<any[]>('jamini_history') || [];
-          history.push({ id: Date.now().toString(), type: 'image', dataUrl: imageUrl, date: Date.now(), prompt: fullPrompt.substring(0, 500) });
-          await localforage.setItem('jamini_history', history);
-        } catch(e) { console.error(e) }
+          try {
+            const history = await localforage.getItem<any[]>('jamini_history') || [];
+            history.push({ 
+              id: Date.now().toString(), 
+              type: 'image', 
+              dataUrl: imageUrl, 
+              date: Date.now(), 
+              prompt: fullPrompt.substring(0, 500),
+              clientName,
+              companyName,
+              industry
+            });
+            await localforage.setItem('jamini_history', history);
+          } catch(e) { console.error(e) }
       } else {
         throw new Error("No output was generated. Please try a different prompt.");
       }
@@ -2839,7 +2865,7 @@ export default function App() {
                 onClick={() => setCurrentView('gallery')} 
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  currentView === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70"
+                  (currentView as string) === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70"
                 )}
               >
                 <History className="w-3 h-3" /> <span className="hidden xl:inline">Vault</span>
@@ -2849,7 +2875,7 @@ export default function App() {
                 onClick={() => setCurrentView('storyboard')} 
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  currentView === 'storyboard' ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.1)]" : "text-white/40 hover:text-white/70"
+                  (currentView as string) === 'storyboard' ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.1)]" : "text-white/40 hover:text-white/70"
                 )}
               >
                 <Film className="w-3 h-3" /> <span className="hidden xl:inline">Motion</span>
@@ -2859,7 +2885,7 @@ export default function App() {
                 onClick={() => setCurrentView('settings')} 
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  currentView === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
+                  (currentView as string) === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
                 )}
               >
                 <Settings2 className="w-3 h-3" /> <span className="hidden xl:inline">System</span>
@@ -2869,7 +2895,7 @@ export default function App() {
                 onClick={() => setCurrentView('guide')} 
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  currentView === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
+                  (currentView as string) === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
                 )}
               >
                 <Terminal className="w-3 h-3" /> <span className="hidden xl:inline">Terminal</span>
@@ -2901,10 +2927,10 @@ export default function App() {
           <div className="flex-1 flex justify-end">
             <div className="flex items-center gap-0.5 bg-white/5 rounded-xl p-0.5 border border-white/5 max-w-full overflow-x-auto no-scrollbar">
               {[
-                { id: 'gallery', icon: History, active: currentView === 'gallery' },
-                { id: 'storyboard', icon: Film, active: currentView === 'storyboard' },
-                { id: 'settings', icon: Settings2, active: currentView === 'settings' },
-                { id: 'guide', icon: Terminal, active: currentView === 'guide' }
+                { id: 'gallery', icon: History, active: (currentView as string) === 'gallery' },
+                { id: 'storyboard', icon: Film, active: (currentView as string) === 'storyboard' },
+                { id: 'settings', icon: Settings2, active: (currentView as string) === 'settings' },
+                { id: 'guide', icon: Terminal, active: (currentView as string) === 'guide' }
               ].map(tab => (
                 <button 
                   key={tab.id}
@@ -5039,9 +5065,9 @@ export default function App() {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere */}
-                <div className="relative z-10 w-7 h-7 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-1.5 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
-                  <div className={cn("absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-3.5 h-3.5 md:w-6 lg:w-8 text-white relative z-10" />
+                <div className="relative z-10 w-10 h-10 md:w-16 lg:w-20 bg-white/5 rounded-2xl md:rounded-3xl flex items-center justify-center mb-3 md:mb-5 lg:mb-6 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
+                  <div className={cn("absolute inset-0 blur-2xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
+                  <obj.icon className="w-5 h-5 md:w-8 lg:w-10 text-white relative z-10" />
                 </div>
 
                 <div className="relative z-10 flex-1 space-y-0.5 md:space-y-2 lg:space-y-3">

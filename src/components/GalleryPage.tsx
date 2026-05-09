@@ -12,6 +12,9 @@ export interface GenerationRecord {
   date: number;
   prompt: string;
   projectName?: string;
+  clientName?: string;
+  companyName?: string;
+  industry?: string;
 }
 
 const MediaPreview = React.memo(({ record, className }: { record: GenerationRecord, className?: string }) => {
@@ -53,6 +56,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
   const [search, setSearch] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<GenerationRecord | null>(null);
+  const [viewMode, setViewMode] = useState<'date' | 'client'>('date');
 
   // Cloud Sync State
   const [cloudSync, setCloudSync] = useState(false);
@@ -77,16 +81,18 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
     loadData();
   }, []);
 
-  const folders = Array.from(new Set(generations.map(g => {
-    if (!g.date) return 'Unknown';
-    try {
-      const d = new Date(g.date);
-      if (isNaN(d.getTime())) return 'Unknown';
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    } catch {
-      return 'Unknown';
-    }
-  }))).filter(f => f !== 'Unknown');
+  const folders = viewMode === 'date' 
+    ? Array.from(new Set(generations.map(g => {
+        if (!g.date) return 'Unknown';
+        try {
+          const d = new Date(g.date);
+          if (isNaN(d.getTime())) return 'Unknown';
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        } catch {
+          return 'Unknown';
+        }
+      }))).filter(f => f !== 'Unknown')
+    : Array.from(new Set(generations.map(g => g.companyName || 'Unassigned'))).filter(f => f);
 
   const handleDownload = (record: GenerationRecord, format: string) => {
     const link = document.createElement("a");
@@ -127,7 +133,11 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
       }
     }
     
-    const matchesFolder = selectedFolder ? folderName === selectedFolder : true;
+    const matchesFolder = selectedFolder ? (
+      viewMode === 'date' 
+        ? folderName === selectedFolder 
+        : (g.companyName || 'Unassigned') === selectedFolder
+    ) : true;
     const matchesSearch = search ? (g.prompt || '').toLowerCase().includes(search.toLowerCase()) : true;
     return matchesFolder && matchesSearch;
   });
@@ -236,6 +246,26 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
           </div>
           
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none w-full md:w-auto pb-2 md:pb-0">
+            <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 mr-2">
+              <button 
+                onClick={() => { setViewMode('date'); setSelectedFolder(null); }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'date' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                Date
+              </button>
+              <button 
+                onClick={() => { setViewMode('client'); setSelectedFolder(null); }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'client' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                Clients
+              </button>
+            </div>
             <button 
               onClick={() => setSelectedFolder(null)}
               className={cn(
@@ -288,8 +318,20 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
                            <button onClick={(e) => { e.stopPropagation(); removeRecord(record.id); }} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg ring-4 ring-black/50 transition-all"><Trash2 className="w-4 h-4" /></button>
                          </div>
                       </div>
-                      <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
-                         <p className="text-[9px] md:text-[10px] font-medium text-white/40 mb-4 md:mb-6 leading-relaxed line-clamp-3 md:line-clamp-4 group-hover:text-white/80 transition-colors" title={record.prompt}>{record.prompt || "No prompt details"}</p>
+                     <div className="p-4 md:p-6 flex-1 flex flex-col justify-between">
+                         <div>
+                           {record.companyName && (
+                             <div className="flex items-center gap-2 mb-2">
+                               <div className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[7px] font-black uppercase tracking-widest text-indigo-400">
+                                 {record.companyName}
+                               </div>
+                               {record.clientName && (
+                                 <span className="text-[7px] text-white/30 uppercase tracking-widest font-black truncate">{record.clientName}</span>
+                               )}
+                             </div>
+                           )}
+                           <p className="text-[9px] md:text-[10px] font-medium text-white/40 mb-4 md:mb-6 leading-relaxed line-clamp-3 md:line-clamp-4 group-hover:text-white/80 transition-colors" title={record.prompt}>{record.prompt || "No prompt details"}</p>
+                         </div>
                          <div className="space-y-4 md:space-y-6">
                            <div className="flex items-center justify-between text-[8px] md:text-[9px] text-white/20 gap-1 md:gap-0 font-black uppercase tracking-widest">
                              <span className="truncate">{new Date(record.date).toLocaleDateString()}</span>
@@ -384,6 +426,28 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
               </div>
               <div className="w-full md:w-[400px] flex flex-col border-l border-white/5 max-h-[50vh] md:max-h-none overflow-y-auto custom-scrollbar">
                 <div className="p-6 space-y-6">
+                  <div>
+                    <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-indigo-400" /> Client Intelligence
+                    </h3>
+                    <div className="space-y-2">
+                       <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Account</span>
+                        <p className="text-sm text-white font-medium mt-1">{selectedRecord.clientName || 'Anonymous'}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Company / Subject</span>
+                        <p className="text-sm text-white font-medium mt-1">{selectedRecord.companyName || 'Unlabeled Project'}</p>
+                      </div>
+                      {selectedRecord.industry && (
+                        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                          <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Sector</span>
+                          <p className="text-sm text-white font-medium mt-1">{selectedRecord.industry}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                       <FileType2 className="w-4 h-4 text-indigo-400" /> Format Details

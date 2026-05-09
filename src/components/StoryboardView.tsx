@@ -4,7 +4,7 @@ import {
   RotateCcw, Camera, MonitorPlay, FileText, Settings2,
   ChevronDown, ChevronUp, GripVertical, Check, AlertCircle,
   Zap, ArrowLeft, Play, Layers, SlidersHorizontal, Eye, Loader2,
-  ExternalLink, Maximize2
+  ExternalLink, Maximize2, Video, Focus, X
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -105,8 +105,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
     setStatus('idle');
 
     try {
-      const genAI = new GoogleGenAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const ai = new GoogleGenAI({ apiKey });
 
       const prompt = `
         As a cinematic storyboard artist and director, break down the following concept into a detailed 4-scene cinematic storyboard.
@@ -129,10 +128,15 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         Format strictly as JSON. No markdown backticks.
       `;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsedScenes = JSON.parse(cleaned);
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash-8b",
+        contents: [{ parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+      
+      const parsedScenes = JSON.parse(response.text || '[]');
 
       const mappedScenes = parsedScenes.map((s: any) => ({
         ...s,
