@@ -13,7 +13,12 @@ import {
   ArrowRight,
   BrainCircuit,
   Headphones,
-  CheckCircle2
+  CheckCircle2,
+  Signal,
+  Workflow,
+  Cpu,
+  ShieldAlert,
+  Terminal
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
@@ -228,24 +233,69 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         className="w-full max-w-2xl bg-[#0F0F12] border border-white/10 rounded-[2.5rem] shadow-[0_0_50px_rgba(99,102,241,0.2)] overflow-hidden flex flex-col h-[80vh]"
       >
         {/* Header */}
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-              <Headphones className="w-5 h-5 text-indigo-400" />
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-2xl">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 relative z-10">
+                <Headphones className="w-6 h-6 text-indigo-400" />
+              </div>
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 bg-indigo-500 blur-xl rounded-full -z-0"
+              />
             </div>
             <div>
-              <h3 className="text-lg font-black uppercase tracking-widest text-white">JAMINI Assistant</h3>
-              <div className="flex items-center gap-2">
-                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isSpeaking ? "bg-indigo-400" : isListening ? "bg-fuchsia-400" : "bg-white/20")} />
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                  {isSpeaking ? "Speaking" : isListening ? "Listening" : "Ready"}
-                </span>
+              <h3 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-2">
+                JAMINI <span className="text-[10px] px-2 py-0.5 bg-indigo-500 text-white rounded-full tracking-tighter">Vocal Engine 4.0</span>
+              </h3>
+              <div className="flex items-center gap-4 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isSpeaking ? "bg-indigo-400" : isListening ? "bg-fuchsia-400" : "bg-white/20")} />
+                  <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">
+                    {isSpeaking ? "Neural Audio Stream Active" : isListening ? "Listening For Intent" : "Standby Mode"}
+                  </span>
+                </div>
+                <div className="h-2 w-px bg-white/10" />
+                <div className="flex items-center gap-1.5">
+                   <Signal className="w-2.5 h-2.5 text-emerald-500" />
+                   <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Signal: Optimal</span>
+                </div>
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex flex-col items-end mr-4">
+               <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Session Logic ID</span>
+               <span className="text-[9px] font-mono text-indigo-400/60 tracking-tighter">X-9942-B-ASSIST</span>
+            </div>
+            <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-2xl text-white/40 hover:text-white transition-all border border-transparent hover:border-white/10">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Neural Dashboard (New) */}
+        <div className="px-6 py-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+           <div className="flex items-center gap-6">
+              {[
+                { icon: BrainCircuit, label: 'Neural Link', value: 'Active', color: 'text-indigo-400' },
+                { icon: Workflow, label: 'Context Buffer', value: Math.round((currentQuestionIndex / questions.length) * 100) + '%', color: 'text-fuchsia-400' },
+                { icon: Cpu, label: 'Engine', value: 'Gemini 2.0', color: 'text-amber-400' }
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-2">
+                   <stat.icon className={cn("w-3 h-3", stat.color)} />
+                   <div className="flex flex-col">
+                      <span className="text-[7px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
+                      <span className={cn("text-[8px] font-bold uppercase", stat.color)}>{stat.value}</span>
+                   </div>
+                </div>
+              ))}
+           </div>
+           <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+              <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Low Latency</span>
+           </div>
         </div>
 
         {/* Messages */}
@@ -297,56 +347,114 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         </div>
 
         {/* Footer / Controls */}
-        <div className="p-8 bg-black/40 border-t border-white/5 flex flex-col items-center gap-6">
-          {/* Waveform Animation */}
-          {(isListening || isSpeaking) && (
-            <div className="flex items-end gap-1 h-8">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  animate={{ 
-                    height: isSpeaking ? [8, 32, 12, 28, 8] : [8, 20, 10, 24, 8],
-                  }}
-                  transition={{ 
-                    duration: 0.8, 
-                    repeat: Infinity, 
-                    delay: i * 0.1,
-                    ease: "easeInOut"
-                  }}
-                  className={cn(
-                    "w-1 rounded-full",
-                    isSpeaking ? "bg-indigo-500" : "bg-fuchsia-500"
-                  )}
-                />
-              ))}
-            </div>
-          )}
+        <div className="p-8 bg-black/60 border-t border-white/10 flex flex-col items-center gap-8 relative overflow-hidden">
+          {/* Neural Waveform Background */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.1),transparent_70%)]" />
+          </div>
 
-          {transcript && (
-            <div className="text-center italic text-white/40 text-sm max-w-md animate-pulse">
-              "{transcript}"
-            </div>
-          )}
+          <div className="flex flex-col items-center gap-4 relative z-10 w-full">
+            <AnimatePresence mode="wait">
+              {(isListening || isSpeaking) ? (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-end gap-1.5 h-12"
+                >
+                  {[...Array(32)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ 
+                        height: isSpeaking ? [12, 48, 20, 40, 12] : [8, 24, 12, 20, 8],
+                        opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
+                      }}
+                      transition={{ 
+                        duration: 1, 
+                        repeat: Infinity, 
+                        delay: i * 0.05,
+                        ease: "linear"
+                      }}
+                      className={cn(
+                        "w-1 rounded-full",
+                        isSpeaking ? "bg-indigo-500" : "bg-fuchsia-500"
+                      )}
+                    />
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="h-12 flex items-center justify-center gap-3 text-white/20"
+                >
+                   <Terminal className="w-4 h-4" />
+                   <span className="text-[10px] font-mono uppercase tracking-[0.4em]">Awaiting Vocal Signal</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <div className="flex items-center gap-4">
+            {transcript && (
+              <motion.div 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center italic text-white/60 text-sm max-w-lg bg-white/5 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md"
+              >
+                <span className="text-[10px] font-black text-indigo-400 not-italic mr-2 uppercase">Input:</span>
+                "{transcript}"
+              </motion.div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-12 relative z-10">
+            <div className="flex flex-col items-center gap-2">
+               <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Voice Synthesis</span>
+               <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                  <Volume2 className="w-4 h-4" />
+               </div>
+            </div>
+
             <button 
               onClick={toggleListening}
               disabled={isSpeaking || isFinished}
               className={cn(
-                "w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl relative group",
+                "w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group",
                 isListening 
-                  ? "bg-fuchsia-500 text-white scale-110 shadow-fuchsia-500/40" 
+                  ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/40" 
                   : "bg-indigo-500 text-white hover:scale-105 active:scale-95 shadow-indigo-500/40",
                 (isSpeaking || isFinished) && "opacity-20 cursor-not-allowed scale-90"
               )}
             >
-              {isListening ? <div className="absolute inset-0 rounded-full border-4 border-fuchsia-400 animate-ping opacity-30" /> : null}
-              {isListening ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem]" />
+              {isListening ? (
+                <div className="absolute inset-[-12px] rounded-[2.5rem] border-2 border-fuchsia-500/30 animate-[ping_2s_infinite]" />
+              ) : null}
+              {isListening ? <MicOff className="w-10 h-10 -rotate-90" /> : <Mic className="w-10 h-10" />}
             </button>
+
+            <div className="flex flex-col items-center gap-2">
+               <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Logic Reset</span>
+               <button 
+                 onClick={() => {
+                   setMessages([]);
+                   setCurrentQuestionIndex(0);
+                 }}
+                 className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+               >
+                  <RefreshCcw className="w-4 h-4" />
+               </button>
+            </div>
           </div>
 
-          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-            {isListening ? "Listening to your vision" : "Tap to speak"}
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/30">
+              {isListening ? "Transmission Active" : isSpeaking ? "Neural Sync in Progress" : "Initiate Vocal Link"}
+            </div>
+            <div className="flex gap-1">
+               {[...Array(3)].map((_, i) => (
+                 <div key={i} className={cn("w-1 h-1 rounded-full", (isListening || isSpeaking) ? "bg-indigo-400 animate-pulse" : "bg-white/10")} style={{ animationDelay: `${i * 0.2}s` }} />
+               ))}
+            </div>
           </div>
         </div>
 

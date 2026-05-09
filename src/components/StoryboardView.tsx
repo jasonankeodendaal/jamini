@@ -3,9 +3,10 @@ import {
   Film, Sparkles, Wand2, Download, Copy, Trash2, Plus, 
   RotateCcw, Camera, MonitorPlay, FileText, Settings2,
   ChevronDown, ChevronUp, GripVertical, Check, AlertCircle,
-  Zap, ArrowLeft, Play, Layers, SlidersHorizontal, Eye
+  Zap, ArrowLeft, Play, Layers, SlidersHorizontal, Eye, Loader2,
+  ExternalLink, Maximize2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { cn } from '../lib/utils';
 import { GoogleGenAI } from "@google/genai";
 
@@ -45,13 +46,16 @@ const TRANSITIONS = [
 export default function StoryboardView({ onBack, editorState, getApiKey, onUpdateState }: StoryboardViewProps) {
   const [scenes, setScenes] = useState<VideoScene[]>(editorState.videoScenes || []);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewProgress, setPreviewProgress] = useState(0);
   const [activeSceneIndex, setActiveSceneIndex] = useState<number | null>(0);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const isLogoMode = editorState.generationObjective === 'logo';
 
   useEffect(() => {
     if (scenes.length === 0) {
-      setScenes([{
+      const initialScenes = [{
         id: crypto.randomUUID(),
         prompt: editorState.scenePrompt || 'New cinematic scene...',
         duration: 3,
@@ -59,9 +63,36 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         lensType: '35mm Narrative',
         lighting: editorState.lighting || 'Cinematic',
         transitionType: 'Cut'
-      }]);
+      }];
+      setScenes(initialScenes);
+      onUpdateState({ ...editorState, videoScenes: initialScenes });
     }
   }, []);
+
+  const handleReorder = (newOrder: VideoScene[]) => {
+    setScenes(newOrder);
+    onUpdateState({ ...editorState, videoScenes: newOrder });
+  };
+
+  const simulateVideoGeneration = () => {
+    setIsPreviewing(true);
+    setPreviewProgress(0);
+    setPreviewUrl(null);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 15;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          // Placeholder video URL - in a real app this would be the actual generated video
+          setPreviewUrl('https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'); 
+        }, 500);
+      }
+      setPreviewProgress(progress);
+    }, 400);
+  };
 
   const generateAIPrompt = async () => {
     const apiKey = getApiKey('paid');
@@ -181,6 +212,14 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
             </motion.div>
           )}
           <button 
+            onClick={simulateVideoGeneration}
+            disabled={isGenerating || isPreviewing}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"
+          >
+            <MonitorPlay className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Master Preview</span>
+          </button>
+          <button 
             onClick={generateAIPrompt}
             disabled={isGenerating}
             className={cn(
@@ -203,18 +242,22 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 <Plus className="w-4 h-4" />
              </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+          <Reorder.Group axis="y" values={scenes} onReorder={handleReorder} className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
             {scenes.map((scene, idx) => (
-              <button
+              <Reorder.Item
                 key={scene.id}
+                value={scene}
                 onClick={() => setActiveSceneIndex(idx)}
                 className={cn(
-                  "w-full p-4 rounded-xl border transition-all text-left group relative overflow-hidden",
+                  "w-full p-4 rounded-xl border transition-all text-left group relative overflow-hidden cursor-grab active:cursor-grabbing",
                   activeSceneIndex === idx 
                     ? "bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)] translate-x-1" 
                     : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
                 )}
               >
+                <div className="absolute top-2 right-2 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <GripVertical className="w-3 h-3" />
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/5 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -264,9 +307,9 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 {activeSceneIndex === idx && (
                   <motion.div layoutId="sceneHighlight" className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500" />
                 )}
-              </button>
+              </Reorder.Item>
             ))}
-          </div>
+          </Reorder.Group>
         </aside>
 
         {/* Main Editor: Scene Details */}
@@ -424,7 +467,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 </div>
 
                 {/* Pro Ability Matrix */}
-                <div className="bg-indigo-500/5 rounded-3xl p-8 border border-indigo-500/10">
+                <div className="bg-indigo-500/5 rounded-3xl p-8 border border-indigo-500/10 mb-8">
                    <div className="flex items-center gap-2 mb-6">
                       <Wand2 className="w-4 h-4 text-indigo-400" />
                       <h3 className="text-sm font-black uppercase tracking-widest">Pro Scene Capabilities</h3>
@@ -449,6 +492,116 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 <Film className="w-12 h-12" />
                 <p className="text-sm font-bold uppercase tracking-widest">Select a scene to direct</p>
               </div>
+            )}
+          </AnimatePresence>
+
+          {/* Video Preview Overlay */}
+          <AnimatePresence>
+            {isPreviewing && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
+              >
+                <div className="w-full max-w-5xl aspect-video bg-[#0A0A0C] border border-white/10 rounded-[2rem] overflow-hidden flex flex-col shadow-[0_0_100px_rgba(99,102,241,0.2)]">
+                  {/* Preview Header */}
+                  <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                        <MonitorPlay className="w-5 h-5 text-indigo-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black uppercase tracking-widest">Cinematic Master Preview</h3>
+                        <div className="flex items-center gap-2 text-[10px] text-white/40 font-mono tracking-widest uppercase">
+                          <span className="text-indigo-400">Status:</span> 
+                          {previewUrl ? 'Render Complete' : `Synthesizing Neural Sequence (${Math.round(previewProgress)}%)`}
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setIsPreviewing(false);
+                        setPreviewUrl(null);
+                      }}
+                      className="p-3 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  {/* Preview Body */}
+                  <div className="flex-1 relative flex items-center justify-center bg-black group">
+                    {!previewUrl ? (
+                      <div className="flex flex-col items-center gap-8">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full border-4 border-indigo-500/20 flex items-center justify-center">
+                            <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+                          </div>
+                          <motion.div 
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full -z-10"
+                          />
+                        </div>
+                        <div className="w-64 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                          <motion.div 
+                            style={{ width: `${previewProgress}%` }}
+                            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500" 
+                          />
+                        </div>
+                        <div className="space-y-2 text-center">
+                           <p className="text-xs font-black uppercase tracking-[0.3em] text-white/60 animate-pulse">Orchestrating VEO Farm Nodes</p>
+                           <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest">Synchronizing Spatial Gradients & Temporal Flow</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <video 
+                          src={previewUrl} 
+                          controls 
+                          autoPlay 
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                           <button className="p-3 bg-black/60 backdrop-blur-md rounded-xl text-white hover:bg-black/80 transition-all border border-white/10">
+                              <Download className="w-5 h-5" />
+                           </button>
+                           <button className="p-3 bg-black/60 backdrop-blur-md rounded-xl text-white hover:bg-black/80 transition-all border border-white/10">
+                              <Maximize2 className="w-5 h-5" />
+                           </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Preview Footer */}
+                  <div className="p-8 border-t border-white/5 bg-black/40 flex items-center justify-between">
+                     <div className="flex items-center gap-8">
+                        <div className="flex flex-col gap-1">
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Total Duration</span>
+                           <span className="text-sm font-mono text-indigo-400">{scenes.reduce((acc, s) => acc + s.duration, 0).toFixed(1)}s</span>
+                        </div>
+                        <div className="flex flex-col gap-1 border-l border-white/5 pl-8">
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Scene Count</span>
+                           <span className="text-sm font-mono text-indigo-400">{scenes.length} Units</span>
+                        </div>
+                        <div className="flex flex-col gap-1 border-l border-white/5 pl-8">
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Resolution</span>
+                           <span className="text-sm font-mono text-fuchsia-400">4K Master (2160p)</span>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        <button className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all">
+                           <ExternalLink className="w-4 h-4" /> Final Export Settings
+                        </button>
+                        <button className="flex items-center gap-2 px-8 py-3 bg-indigo-500 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
+                           Publish Sequence
+                        </button>
+                     </div>
+                  </div>
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </section>
