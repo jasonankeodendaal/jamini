@@ -5024,16 +5024,16 @@ export default function App() {
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
                 alt="JAMINI" 
-                className="h-16 md:h-24 lg:h-32 w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                className="h-12 md:h-24 lg:h-32 w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div className="space-y-1">
-              <h2 className="text-xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+              <h2 className="text-lg md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
               <div className="h-1 w-12 md:w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
-              <p className="text-white/40 max-w-xs md:max-w-xl mx-auto text-[10px] md:text-sm lg:text-base font-medium tracking-wide leading-relaxed">
+              <p className="text-white/40 max-w-[280px] md:max-w-xl mx-auto text-[8px] md:text-sm lg:text-base font-medium tracking-wide leading-relaxed">
                 JAMINI Multi-modal Interface • v4.0 <br className="hidden md:block"/>
                 Advanced Creative Intelligence. Orchestrate your vision.
               </p>
@@ -5041,7 +5041,7 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 lg:gap-12 w-full group/container px-4 md:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-8 lg:gap-12 w-full group/container px-2.5 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
@@ -5056,27 +5056,27 @@ export default function App() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
                 className={cn(
-                  "group relative flex flex-col items-start p-6 md:p-8 lg:p-10 bg-white/5 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
-                  "col-span-1"
+                  "group relative flex flex-col items-start p-4 md:p-8 lg:p-10 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] lg:rounded-[3rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
+                  i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
                 )}
               >
                 {/* 3D Glass Effect Background */}
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-30 transition-opacity duration-500", obj.color)} />
-                <div className="absolute top-0 right-0 w-32 h-32 md:w-48 lg:w-56 bg-white/5 blur-[50px] md:blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
+                <div className="absolute top-0 right-0 w-24 h-24 md:w-48 lg:w-56 bg-white/5 blur-[50px] md:blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere - LARGER OBECTIVE LOGOS */}
-                <div className="relative z-10 w-16 h-16 md:w-24 lg:w-32 bg-white/5 rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] flex items-center justify-center mb-6 md:mb-8 lg:mb-12 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500">
+                <div className="relative z-10 w-10 h-10 md:w-24 lg:w-32 bg-white/5 rounded-xl md:rounded-[2.5rem] lg:rounded-[3rem] flex items-center justify-center mb-3 md:mb-8 lg:mb-12 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500">
                   <div className={cn("absolute inset-0 blur-3xl opacity-0 group-hover:opacity-60 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-8 h-8 md:w-12 lg:w-16 text-white relative z-10" />
+                  <obj.icon className="w-5 h-5 md:w-12 lg:w-16 text-white relative z-10" />
                 </div>
 
-                <div className="relative z-10 flex-1 space-y-2 md:space-y-4 lg:space-y-6">
-                  <div className="space-y-1 text-left">
-                    <h3 className="text-xl md:text-2xl lg:text-4xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
-                    <p className="text-indigo-400 font-black text-[10px] md:text-sm lg:text-base uppercase tracking-[0.2em]">{obj.desc}</p>
+                <div className="relative z-10 flex-1 space-y-1 md:space-y-4 lg:space-y-6">
+                  <div className="space-y-0.5 text-left">
+                    <h3 className="text-xs md:text-2xl lg:text-4xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
+                    <p className="text-indigo-400 font-black text-[7px] md:text-sm lg:text-base uppercase tracking-widest md:tracking-[0.2em]">{obj.desc}</p>
                   </div>
                   
-                  <p className="text-xs md:text-sm lg:text-base text-white/40 text-left leading-relaxed font-medium group-hover:text-white/60 transition-colors">
+                  <p className="text-[9px] md:text-sm lg:text-base text-white/40 text-left leading-tight md:leading-relaxed font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
                     {obj.longDesc}
                   </p>
                 </div>
