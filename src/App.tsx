@@ -6,6 +6,7 @@ import localforage from 'localforage';
 import SettingsPage from './components/SettingsPage';
 import GalleryPage from './components/GalleryPage';
 import StoryboardView from './components/StoryboardView';
+import { VoiceAssistant } from './components/VoiceAssistant';
 import { 
   Image as ImageIcon, Sparkles, Download, Maximize, Minimize, Info, History,
   CheckCircle2, AlertCircle, Loader2, Upload, X, Type, Layout as LayoutIcon, Plus,
@@ -13,7 +14,7 @@ import {
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
   Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
   Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink,
-  Film, Database, Box
+  Film, Database, Box, Headphones, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -1365,7 +1366,8 @@ const AutoResizeTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
 
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
-  const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery' | 'storyboard'>('editor');
+  const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery'| 'storyboard'>('editor');
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [keyRotationIndex, setKeyRotationIndex] = useState<number>(0);
 
   const getApiKey = (type: 'paid' | 'free') => {
@@ -1655,6 +1657,16 @@ export default function App() {
       applyState(nextState);
       setHistoryIndex(historyIndex + 1);
     }
+  };
+
+  const handleVoiceGeneration = (data: any) => {
+    if (data.scenePrompt) setScenePrompt(data.scenePrompt);
+    if (data.assetPrompt) setAssetPrompt(data.assetPrompt);
+    if (data.style) setStyle(data.style);
+    if (data.lighting) setLighting(data.lighting);
+    
+    // Automatically switch to properties/preview step
+    setActiveStep(3);
   };
 
   const toggleDynamic = (key: keyof DynamicSettings) => {
@@ -2736,9 +2748,9 @@ export default function App() {
     if (currentView === 'storyboard') return (
       <StoryboardView 
         onBack={() => setCurrentView('editor')} 
-        editorState={editorState}
+        editorState={currentState}
         getApiKey={getApiKey}
-        onUpdateState={(newState) => setEditorState(newState)}
+        onUpdateState={applyState}
       />
     );
 
@@ -5003,7 +5015,7 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 lg:gap-6 w-full group/container px-2 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
@@ -5017,16 +5029,19 @@ export default function App() {
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className="group relative flex flex-col items-start p-3 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1.2rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-300"
+                className={cn(
+                  "group relative flex flex-col items-start p-2.5 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.5rem] lg:rounded-[1.8rem] overflow-hidden backdrop-blur-xl transition-all duration-300",
+                  i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
+                )}
               >
                 {/* 3D Glass Effect Background */}
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-300", obj.color)} />
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere */}
-                <div className="relative z-10 w-8 h-8 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
+                <div className="relative z-10 w-7 h-7 md:w-11 lg:w-13 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center mb-1.5 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-6 transition-all duration-300">
                   <div className={cn("absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-4 h-4 md:w-6 lg:w-8 text-white relative z-10" />
+                  <obj.icon className="w-3.5 h-3.5 md:w-6 lg:w-8 text-white relative z-10" />
                 </div>
 
                 <div className="relative z-10 flex-1 space-y-0.5 md:space-y-2 lg:space-y-3">
@@ -5063,21 +5078,67 @@ export default function App() {
           </div>
 
           {/* System Status Footer */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 pb-4"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
-              <span>Nodes Active</span>
-            </div>
-            <div className="hidden md:block w-px h-3 bg-white/10" />
-            <span>AI Acceleration On</span>
-            <div className="hidden md:block w-px h-3 bg-white/10" />
-            <span>VEO Farm Ready</span>
-          </motion.div>
+          <div className="flex flex-col items-center gap-6 mt-12 pb-24">
+            <motion.div
+              className="relative"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-fuchsia-500/20 blur-2xl rounded-full opacity-50 animate-pulse" />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsAssistantOpen(true)}
+                className="relative flex items-center gap-4 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-white font-black uppercase tracking-[0.2em] shadow-2xl backdrop-blur-xl group overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-fuchsia-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 group-hover:scale-110 transition-transform">
+                    <Headphones className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <motion.div 
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute inset-0 bg-indigo-400 blur-md rounded-full -z-10" 
+                  />
+                </div>
+
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-xs text-white tracking-[0.3em]">Neural Interface</span>
+                  <span className="text-[10px] text-indigo-400/80 font-mono tracking-normal capitalize">AI Voice Synthesis Mode</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-4 h-6">
+                   {[...Array(5)].map((_, i) => (
+                     <motion.div 
+                       key={i}
+                       animate={{ height: [8, 20, 8] }}
+                       transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
+                       className="w-1 bg-gradient-to-t from-indigo-500 to-fuchsia-400 rounded-full" 
+                     />
+                   ))}
+                </div>
+              </motion.button>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-white/20"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
+                <span>Nodes Active</span>
+              </div>
+              <div className="hidden md:block w-px h-3 bg-white/10" />
+              <span>AI Acceleration On</span>
+              <div className="hidden md:block w-px h-3 bg-white/10" />
+              <span>VEO Farm Ready</span>
+            </motion.div>
+          </div>
         </div>
       </div>
     );
@@ -5144,6 +5205,21 @@ export default function App() {
               ))}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isAssistantOpen && (
+          <VoiceAssistant 
+            onClose={() => setIsAssistantOpen(false)}
+            getApiKey={getApiKey}
+            objective={generationObjective || 'poster'}
+            onGenerate={(data) => {
+              if (!generationObjective) setGenerationObjective('poster');
+              handleVoiceGeneration(data);
+              setIsAssistantOpen(false);
+            }}
+          />
         )}
       </AnimatePresence>
     </>

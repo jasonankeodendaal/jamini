@@ -18,38 +18,32 @@ export default defineConfig(({mode}) => {
           skipWaiting: true,
           clientsClaim: true,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+          navigateFallback: 'index.html',
           runtimeCaching: [
             {
-              urlPattern: ({ request }) => request.destination === 'document' || request.destination === 'script',
-              handler: 'NetworkFirst',
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst', // Ensures we always try the network for the main page
               options: {
-                cacheName: 'app-assets',
+                cacheName: 'pages-cache',
                 expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60, // Very short cache for main assets
+                  maxEntries: 1,
+                  maxAgeSeconds: 0, // Effectively disabling long-term cache for HTML to stay fresh
                 }
-              },
-            },
-            {
-              urlPattern: /index.*\.js$/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'main-bundle',
               }
             },
             {
               urlPattern: /\.(?:js|css)$/,
               handler: 'StaleWhileRevalidate',
               options: {
-                cacheName: 'js-css-cache',
+                cacheName: 'static-resources',
               },
             },
             {
               urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
               handler: 'CacheFirst',
               options: {
-                cacheName: 'images-cache',
-                expiration: { maxEntries: 50 },
+                cacheName: 'image-assets',
+                expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
               },
             },
           ],
