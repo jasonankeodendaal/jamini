@@ -11,7 +11,8 @@ import {
   MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2, PlusCircle,
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
   Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
-  Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink
+  Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink,
+  Database, Box
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -281,7 +282,7 @@ const PRESET_COLORS = [
 
 // --- Components ---
 
-const JaminiLogo = React.memo(({ showText = true, className = "", size = "md" }: { showText?: boolean, className?: string, size?: "sm" | "md" | "lg" }) => {
+const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", onClick }: { showText?: boolean, className?: string, size?: "sm" | "md" | "lg", onClick?: () => void }) => {
   const [isHovered, setIsHovered] = useState(false);
   const sizeClasses = {
     sm: "h-6 md:h-8 w-auto min-w-[32px]",
@@ -306,9 +307,10 @@ const JaminiLogo = React.memo(({ showText = true, className = "", size = "md" }:
 
   return (
     <div 
-      className={`flex items-center gap-4 ${className}`}
+      className={`flex items-center gap-4 ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
     >
       <div className={`relative flex items-center justify-center ${sizeClasses[size]}`} style={{ perspective: '1200px' }}>
         <motion.div 
@@ -2741,7 +2743,7 @@ export default function App() {
         {/* Desktop Header */}
         <header className="hidden lg:flex h-12 border-b border-white/5 bg-[#121214] shrink-0 items-center justify-between px-4 z-50 transform-gpu">
           <div className="flex items-center gap-4">
-            <JaminiLogo size="sm" showText={true} />
+            <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
             <div className="h-4 w-px bg-white/10 mx-2" />
             <div className="flex items-center gap-1">
               <button onClick={undo} disabled={historyIndex === 0} className="p-1.5 rounded text-white/50 hover:text-white hover:bg-white/5 disabled:opacity-30 transition-colors"><Undo2 className="w-3.5 h-3.5" /></button>
@@ -2749,6 +2751,9 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); }} className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded border border-indigo-500/20 mr-2">
+              <ArrowLeft className="w-3 h-3" /> Change Objective
+            </button>
             <button onClick={() => setCurrentView('gallery')} className="text-[11px] font-medium text-white/60 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/5">
               <History className="w-3 h-3" /> Gallery
             </button>
@@ -2766,8 +2771,11 @@ export default function App() {
 
         {/* Mobile Header */}
         <header className="lg:hidden h-14 border-b border-white/5 bg-[#121214] shrink-0 flex items-center justify-between px-4 z-50 transform-gpu">
-          <div className="flex items-center gap-3">
-            <JaminiLogo size="sm" showText={true} />
+          <div className="flex items-center gap-2">
+            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); }} className="p-1.5 text-indigo-400 bg-indigo-500/10 rounded mr-1" title="Change Objective">
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setCurrentView('gallery')} className="p-2 text-white/60"><History className="w-4 h-4" /></button>
@@ -3844,82 +3852,81 @@ export default function App() {
             <div className="flex-1 p-4 lg:p-8 relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
               <AnimatePresence mode="wait">
               {activeStep === 5 ? (
-                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-6xl w-full space-y-16 py-12 px-4 md:px-8 pb-32 mb-16 shadow-2xl bg-[#09090b]/90 backdrop-blur-3xl rounded-3xl border border-white/10 mx-auto mt-4 md:mt-8 min-h-max transform-gpu lg:p-12">
+                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-5xl w-full space-y-8 py-8 px-4 md:px-6 pb-24 mb-10 shadow-2xl bg-[#09090b]/90 backdrop-blur-3xl rounded-3xl border border-white/10 mx-auto mt-4 min-h-max transform-gpu lg:p-8">
                   
                   {/* Hero Section */}
-                  <div className="text-center space-y-6">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-4 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                      <Sparkles className="w-4 h-4 animate-pulse" /> Welcome to the Next Generation of Creative AI
+                  <div className="text-center space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-2 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+                      <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Welcome to the Next Generation of Creative AI
                     </div>
                       <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                        {/* Redundant logo removed as per user request to avoid duplicates with header */}
                       </div>
-                    <p className="text-lg md:text-2xl text-white/70 font-medium italic drop-shadow-lg">Engineering the absolute standard for commercial AI architecture. <span className="text-indigo-400">#Jamini</span></p>
+                    <p className="text-sm md:text-lg text-white/70 font-medium italic drop-shadow-lg">Engineering the absolute standard for commercial AI architecture. <span className="text-indigo-400">#Jamini</span></p>
                     
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-12 md:mt-16 scale-90 md:scale-100">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 md:mt-10 scale-90 md:scale-100">
                       
                       {/* JA Card */}
-                      <div className="p-[1px] rounded-[32px] bg-gradient-to-b from-indigo-500/50 via-indigo-500/0 to-indigo-500/0 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default">
+                      <div className="p-[1px] rounded-[24px] bg-gradient-to-b from-indigo-500/50 via-indigo-500/0 to-indigo-500/0 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default">
                         <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] group-hover:bg-indigo-500/30 transition-colors pointer-events-none" />
-                        <div className="px-6 py-8 md:px-10 md:py-10 rounded-[31px] bg-[#0c0c0e] text-center min-w-[240px] md:min-w-[280px] relative overflow-hidden flex flex-col items-center justify-center h-full">
+                        <div className="px-4 py-6 md:px-6 md:py-8 rounded-[23px] bg-[#0c0c0e] text-center min-w-[200px] md:min-w-[240px] relative overflow-hidden flex flex-col items-center justify-center h-full">
                           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-black/0 to-black/0 opacity-50" />
                           <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay" />
-                          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6 shadow-[inset_0_2px_10px_rgba(99,102,241,0.2)]">
-                            <Layers className="w-8 h-8 text-indigo-400" />
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 shadow-[inset_0_2px_10px_rgba(99,102,241,0.2)]">
+                            <Layers className="w-6 h-6 text-indigo-400" />
                           </div>
-                          <span className="block text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">JA</span>
-                          <span className="text-xs md:text-sm text-indigo-400 uppercase font-black tracking-[0.4em] relative z-10 mt-4 block">Jason (Brain)</span>
-                          <div className="w-8 h-0.5 bg-indigo-500/30 my-4" />
-                          <p className="text-xs md:text-sm text-white/50 relative z-10 leading-relaxed">The creative architect. Providing the vision, layout structure, semantic composition, and aesthetic intuition.</p>
+                          <span className="block text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">JA</span>
+                          <span className="text-[10px] md:text-xs text-indigo-400 uppercase font-black tracking-[0.4em] relative z-10 mt-3 block">Jason (Brain)</span>
+                          <div className="w-6 h-px bg-indigo-500/30 my-3" />
+                          <p className="text-[10px] md:text-xs text-white/50 relative z-10 leading-relaxed">The creative architect. Providing the vision, layout structure, semantic composition, and aesthetic intuition.</p>
                         </div>
                       </div>
 
-                      <div className="text-white/20 text-4xl md:text-6xl font-black px-2">+</div>
+                      <div className="text-white/20 text-3xl md:text-5xl font-black px-2">+</div>
 
                       {/* MINI Card */}
-                      <div className="p-[1px] rounded-[32px] bg-gradient-to-b from-fuchsia-500/50 via-fuchsia-500/0 to-fuchsia-500/0 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default">
+                      <div className="p-[1px] rounded-[24px] bg-gradient-to-b from-fuchsia-500/50 via-fuchsia-500/0 to-fuchsia-500/0 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default">
                         <div className="absolute inset-0 bg-fuchsia-500/20 blur-[100px] group-hover:bg-fuchsia-500/30 transition-colors pointer-events-none" />
-                        <div className="px-6 py-8 md:px-10 md:py-10 rounded-[31px] bg-[#0c0c0e] text-center min-w-[240px] md:min-w-[280px] relative overflow-hidden flex flex-col items-center justify-center h-full">
+                        <div className="px-4 py-6 md:px-6 md:py-8 rounded-[23px] bg-[#0c0c0e] text-center min-w-[200px] md:min-w-[240px] relative overflow-hidden flex flex-col items-center justify-center h-full">
                           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-900/40 via-black/0 to-black/0 opacity-50" />
                           <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay" />
-                          <div className="w-16 h-16 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-6 shadow-[inset_0_2px_10px_rgba(217,70,239,0.2)]">
-                            <Zap className="w-8 h-8 text-fuchsia-400" />
+                          <div className="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-4 shadow-[inset_0_2px_10px_rgba(217,70,239,0.2)]">
+                            <Zap className="w-6 h-6 text-fuchsia-400" />
                           </div>
-                          <span className="block text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">MINI</span>
-                          <span className="text-xs md:text-sm text-fuchsia-400 uppercase font-black tracking-[0.4em] relative z-10 mt-4 block">Gemini (Brawn)</span>
-                          <div className="w-8 h-0.5 bg-fuchsia-500/30 my-4" />
-                          <p className="text-xs md:text-sm text-white/50 relative z-10 leading-relaxed">The computational powerhouse. Rendering complex physics, lighting algorithms, semantic fusion, and infinite variations.</p>
+                          <span className="block text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">MINI</span>
+                          <span className="text-[10px] md:text-xs text-fuchsia-400 uppercase font-black tracking-[0.4em] relative z-10 mt-3 block">Gemini (Brawn)</span>
+                          <div className="w-6 h-px bg-fuchsia-500/30 my-3" />
+                          <p className="text-[10px] md:text-xs text-white/50 relative z-10 leading-relaxed">The computational powerhouse. Rendering complex physics, lighting algorithms, semantic fusion, and infinite variations.</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="text-white/60 max-w-4xl mx-auto leading-relaxed text-sm md:text-base px-6 md:px-8 font-normal mt-16 bg-[#121215] p-8 rounded-3xl border border-white/5 text-left shadow-2xl relative overflow-hidden">
+                    <div className="text-white/60 max-w-4xl mx-auto leading-relaxed text-sm md:text-base px-6 md:px-8 font-normal mt-10 bg-[#121215] p-6 rounded-3xl border border-white/5 text-left shadow-2xl relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500" />
-                      <strong className="text-white font-bold mb-4 block text-xl md:text-2xl font-sans flex items-center gap-3">
-                        <Layers className="w-6 h-6 text-indigo-400" /> The Matrix Engine Architecture
+                      <strong className="text-white font-bold mb-3 block text-lg md:text-xl font-sans flex items-center gap-3">
+                        <Layers className="w-5 h-5 text-indigo-400" /> The Matrix Engine Architecture
                       </strong>
-                      <div className="space-y-6">
-                        <p>
+                      <div className="space-y-4">
+                        <p className="text-xs md:text-sm">
                           JAMINI Studio Edition is an advanced commercial generation workbench. Unlike consumer-grade AI wrappers, JAMINI bypasses "aesthetic guessing" by implementing a formal <strong>Compositional Protocol</strong>. This allows users to treat the generative process as a series of architectural commands rather than a dialogue.
                         </p>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                          <div className="space-y-3">
-                            <h4 className="text-white font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                              <Cpu className="w-4 h-4 text-fuchsia-400" /> Hybrid Compute Bridge
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                          <div className="space-y-2">
+                            <h4 className="text-white font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
+                              <Cpu className="w-3.5 h-3.5 text-fuchsia-400" /> Hybrid Compute Bridge
                             </h4>
-                            <ul className="space-y-2 text-sm text-white/50 bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <ul className="space-y-1 text-xs text-white/50 bg-black/20 p-3 rounded-2xl border border-white/5">
                               <li>• <strong>Token Density:</strong> Optimized for 100% asset fidelity.</li>
                               <li>• <strong>Prompt Orchestration:</strong> Gemini 3.1 Pro integration.</li>
                               <li>• <strong>Temporal Flow:</strong> Veo 3.1 4K Commercial Synthesis.</li>
                               <li>• <strong>Color Science:</strong> CI-Aware LUT mapping (32-bit).</li>
                             </ul>
                           </div>
-                          <div className="space-y-3">
-                            <h4 className="text-white font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-amber-400" /> Synthesis Performance
+                          <div className="space-y-2">
+                            <h4 className="text-white font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
+                              <Zap className="w-3.5 h-3.5 text-amber-400" /> Synthesis Performance
                             </h4>
-                            <ul className="space-y-2 text-sm text-white/50 bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <ul className="space-y-1 text-xs text-white/50 bg-black/20 p-3 rounded-2xl border border-white/5">
                               <li>• <strong>Execution Speed:</strong> Optimized sub-18s rendering.</li>
                               <li>• <strong>Accuracy Index:</strong> 99.8% Brand Compliance.</li>
                               <li>• <strong>Scale:</strong> From Social (9:16) to Print (Physical MM).</li>
@@ -3928,25 +3935,49 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                          <div className="p-6 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-                            <h4 className="text-indigo-400 font-bold mb-2 flex items-center gap-2 italic text-xs md:text-sm"><Sparkles className="w-4 h-4" /> Case Study: Precision Scale</h4>
-                            <p className="text-[11px] md:text-xs text-white/50 italic leading-relaxed">
-                              "By defining exact physical dimensions in millimeters, the Matrix accounts for spatial density—ensuring assets scale with surgical precision across print verticals."
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                          <div className="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+                            <h4 className="text-indigo-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Sparkles className="w-3 h-3" /> Precision Scale</h4>
+                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
+                              "Surgical print-ready generation using physical dimension mapping."
                             </p>
                           </div>
-                          <div className="p-6 bg-fuchsia-500/5 rounded-2xl border border-fuchsia-500/10">
-                            <h4 className="text-fuchsia-400 font-bold mb-2 flex items-center gap-2 italic text-xs md:text-sm"><Video className="w-4 h-4" /> Case Study: Temporal Flow</h4>
-                            <p className="text-[11px] md:text-xs text-white/50 italic leading-relaxed">
-                              "Utilizing Veo 3.1, we synthesized 40 unique 13s variants for a global beverage launch. Each maintained perfect product viscosity and lighting sync across all seasonal variants."
+                          <div className="p-4 bg-fuchsia-500/5 rounded-2xl border border-fuchsia-500/10">
+                            <h4 className="text-fuchsia-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Video className="w-3 h-3" /> Temporal Flow</h4>
+                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
+                              "Synchronized video continuity across dynamic 4K motion logic."
                             </p>
                           </div>
-                          <div className="p-6 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 col-span-1 md:col-span-2">
-                            <h4 className="text-emerald-400 font-bold mb-2 flex items-center gap-2 italic text-xs md:text-sm"><Globe className="w-4 h-4" /> Case Study: Global Localization</h4>
-                            <p className="text-[11px] md:text-xs text-white/50 italic leading-relaxed">
-                              "Instantly resynthesize a single master asset into 50+ languages with synchronized lip-sync and localized cultural aesthetics, bypassing weeks of manual ADR and post-production."
+                          <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                            <h4 className="text-emerald-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Globe className="w-3 h-3" /> Localization</h4>
+                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
+                              "Instant 50+ language resynthesis matching exact mouth phonetics."
                             </p>
                           </div>
+                          <div className="p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10">
+                            <h4 className="text-amber-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Database className="w-3 h-3" /> Data Pipeline</h4>
+                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
+                              "End-to-end integration with enterprise DAMs and CMS platforms."
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Enterprise Integration Expansion */}
+                        <div className="mt-8 space-y-4">
+                           <div className="flex items-center gap-3">
+                              <Box className="w-4 h-4 text-emerald-400" />
+                              <h4 className="text-base font-bold text-white uppercase tracking-[0.2em]">Enterprise Integrations</h4>
+                           </div>
+                           <div className="p-5 bg-black/40 border border-white/5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
+                             <div className="space-y-1">
+                               <h5 className="text-xs font-bold text-white uppercase tracking-wider">RESTful Synthesis API</h5>
+                               <p className="text-[10px] text-white/40 max-w-sm">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides.</p>
+                             </div>
+                             <div className="flex gap-2">
+                               <button className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-white transition-colors">Docs</button>
+                               <button className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-bold transition-colors">API Keys</button>
+                             </div>
+                           </div>
                         </div>
 
                         {/* Video Showcase Section */}
@@ -4935,7 +4966,7 @@ export default function App() {
               </button>
               
               <button 
-                onClick={() => { setGenerationObjective(null); setCurrentView('editor'); }} 
+                onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} 
                 className={cn("flex flex-col items-center justify-center w-14 h-full gap-1.5 transition-all text-white/30")}
               >
                 <div className="p-1.5 rounded-xl">
