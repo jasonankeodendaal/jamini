@@ -1359,7 +1359,7 @@ export default function App() {
   const getApiKey = (type: 'paid' | 'free') => {
     let availableKeys: string[] = [];
 
-    // 1. Collect from LocalStorage
+    // 1. Collect from LocalStorage (User settings)
     try {
       const savedKeys = localStorage.getItem('jamini_api_keys');
       if (savedKeys) {
@@ -1369,34 +1369,55 @@ export default function App() {
       }
     } catch (e) { }
 
-    // 2. Collect from Environment (supports comma-separated list)
-    const envValue = import.meta.env.VITE_GEMINI_API_KEY || 
-                     import.meta.env.VITE_API_KEY || 
-                     (import.meta as any).env?.GEMINI_API_KEY;
-
-    if (envValue && typeof envValue === 'string') {
-      const keys = envValue.split(',').map((k: string) => k.trim()).filter(Boolean);
-      availableKeys = [...availableKeys, ...keys];
-    }
+    // 2. Collect from environment variables (Browser/Vite standard)
+    // We check VITE_ prefex first as it's standard for Vite Client
+    const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
     
-    // 3. Check node process environment
-    if (typeof process !== 'undefined' && process.env) {
-      const procValue = (process.env as any).VITE_GEMINI_API_KEY || 
-                        process.env.GEMINI_API_KEY || 
-                        process.env.API_KEY;
-      if (procValue && typeof procValue === 'string') {
-        const keys = procValue.split(',').map((k: string) => k.trim()).filter(Boolean);
+    baseNames.forEach(baseName => {
+      // Check standard
+      const val = (import.meta as any).env?.[baseName];
+      if (val && typeof val === 'string') {
+        const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
         availableKeys = [...availableKeys, ...keys];
       }
-    }
+      
+      // Check numbered variants (1-10) for rotation
+      for (let i = 1; i <= 10; i++) {
+        const nVal = (import.meta as any).env?.[`${baseName}_${i}`];
+        if (nVal && typeof nVal === 'string') {
+          availableKeys.push(nVal.trim());
+        }
+      }
+    });
 
-    // Remove duplicates
-    const uniqueKeys = Array.from(new Set(availableKeys));
+    // 3. Check process.env (Polyfill/Define support)
+    // We use explicit static names here so Vite's 'define' can replace them
+    const p1 = process.env.GEMINI_API_KEY;
+    const p2 = process.env.VITE_GEMINI_API_KEY;
+    const p3 = process.env.API_KEY;
+    
+    if (p1) availableKeys.push(p1);
+    if (p2) availableKeys.push(p2);
+    if (p3) availableKeys.push(p3);
+
+    // Numbered variants for rotation
+    const p1_1 = process.env.GEMINI_API_KEY_1; if(p1_1) availableKeys.push(p1_1);
+    const p1_2 = process.env.GEMINI_API_KEY_2; if(p1_2) availableKeys.push(p1_2);
+    const p1_3 = process.env.GEMINI_API_KEY_3; if(p1_3) availableKeys.push(p1_3);
+    const p1_4 = process.env.GEMINI_API_KEY_4; if(p1_4) availableKeys.push(p1_4);
+    
+    const v1_1 = process.env.VITE_GEMINI_API_KEY_1; if(v1_1) availableKeys.push(v1_1);
+    const v1_2 = process.env.VITE_GEMINI_API_KEY_2; if(v1_2) availableKeys.push(v1_2);
+    const v1_3 = process.env.VITE_GEMINI_API_KEY_3; if(v1_3) availableKeys.push(v1_3);
+    const v1_4 = process.env.VITE_GEMINI_API_KEY_4; if(v1_4) availableKeys.push(v1_4);
+
+    // Remove duplicates and empty strings
+    const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(Boolean);
     
     if (uniqueKeys.length === 0) return '';
     
     // 4. Shifting Logic: Use Round Robin based on rotation index
-    const index = keyRotationIndex % uniqueKeys.length;
+    const index = Math.abs(keyRotationIndex) % uniqueKeys.length;
     return uniqueKeys[index];
   };
 
@@ -2717,7 +2738,7 @@ export default function App() {
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
             className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-fuchsia-600/20 rounded-full blur-[100px] will-change-transform" 
           />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KICA8ZmlsdGVyIGlkPSdub2lzZSgpJz4KICAgIDxmZVR1cmJ1bGVuY2UgdHlwZT0nZnJhY3RhbE5vaXNlJyBiYXNlRnJlcXVlbmN5PScwLjY1JyBudW1PY3RhdmVzPSczJyBzdGl0Y2hUaWxlcz0nc3RpdGNoJy8+CiAgPC9maWx0ZXI+CiAgPHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsdGVyPSd1cmwoI25vaXNlKCkpJy8+Cjwvc3ZnPg==')] opacity-[0.03] mix-blend-overlay" />
           
           {/* Floating 4D Particles */}
           {[...Array(5)].map((_, i) => (

@@ -68,9 +68,16 @@ export default defineConfig(({mode}) => {
       })
     ],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY_1': JSON.stringify(env.GEMINI_API_KEY_1),
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || ''),
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || env.VITE_API_KEY || ''),
+      ...Object.fromEntries(
+        Array.from({ length: 10 }, (_, i) => [
+          [`process.env.GEMINI_API_KEY_${i + 1}`, JSON.stringify(env[`GEMINI_API_KEY_${i + 1}`] || env[`VITE_GEMINI_API_KEY_${i + 1}`] || '')],
+          [`process.env.VITE_GEMINI_API_KEY_${i + 1}`, JSON.stringify(env[`VITE_GEMINI_API_KEY_${i + 1}`] || env[`GEMINI_API_KEY_${i + 1}`] || '')],
+          [`process.env.API_KEY_${i + 1}`, JSON.stringify(env[`API_KEY_${i + 1}`] || env[`VITE_API_KEY_${i + 1}`] || '')],
+          [`process.env.VITE_API_KEY_${i + 1}`, JSON.stringify(env[`VITE_API_KEY_${i + 1}`] || env[`API_KEY_${i + 1}`] || '')],
+        ]).flat()
+      )
     },
     resolve: {
       alias: {

@@ -57,6 +57,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   const [cloudSync, setCloudSync] = useState(false);
   const [isCloudConnecting, setIsCloudConnecting] = useState(false);
   const [cloudAccount, setCloudAccount] = useState<string | null>(null);
+  const [detectedKeyCount, setDetectedKeyCount] = useState(0);
 
   // Performance Toggles state
   const [prefs, setPrefs] = useState({
@@ -68,15 +69,55 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   });
 
   useEffect(() => {
-    // Check for system provided keys (Vercel / Vite Env)
-    const envKey = import.meta.env.VITE_GEMINI_API_KEY || 
-                   import.meta.env.VITE_API_KEY || 
-                   (import.meta as any).env?.GEMINI_API_KEY ||
-                   (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY || (process.env as any).VITE_GEMINI_API_KEY) : '');
-    
-    if (envKey && typeof envKey === 'string') {
-      setSystemKey(envKey);
-    }
+    // Advanced Key Detection Logic
+    const detectKeys = () => {
+      let found: string[] = [];
+
+      // 1. Environment Variables Scan
+      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      baseNames.forEach(baseName => {
+        // Standard
+        const val = (import.meta as any).env?.[baseName];
+        if (val && typeof val === 'string') {
+          found.push(...val.split(',').map(m => m.trim()).filter(Boolean));
+        }
+        
+        // Process fallback (static replacement via define)
+        const pVal = typeof process !== 'undefined' ? (process.env as any)[baseName] : undefined;
+        if (pVal && typeof pVal === 'string') {
+          found.push(...pVal.split(',').map(m => m.trim()).filter(Boolean));
+        }
+
+        // Trace numbered variants (1-4)
+        for (let i = 1; i <= 4; i++) {
+           const vN = (import.meta as any).env?.[`${baseName}_${i}`];
+           if (vN) found.push(vN);
+           const pN = typeof process !== 'undefined' ? (process.env as any)[`${baseName}_${i}`] : undefined;
+           if (pN) found.push(pN);
+        }
+      });
+
+      // 2. Local Storage Scan
+      const saved = localStorage.getItem('jamini_api_keys');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            found.push(...parsed.map(k => k.key).filter(Boolean));
+          }
+        } catch (e) {}
+      }
+
+      const unique = Array.from(new Set(found)).filter(Boolean);
+      setDetectedKeyCount(unique.length);
+      
+      // Set the first one as system key for display placeholder if needed
+      if (unique.length > 0) {
+        setSystemKey(unique[0]);
+      }
+    };
+
+    detectKeys();
 
     const savedKeys = localStorage.getItem('jamini_api_keys');
     if (savedKeys) {
@@ -125,6 +166,31 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
 
     return () => clearInterval(interval);
   }, [activeSection]);
+
+  // Sync count whenever user keys change
+  useEffect(() => {
+    const detectKeysCount = () => {
+      let found: string[] = [];
+      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      baseNames.forEach(baseName => {
+        const val = (import.meta as any).env?.[baseName];
+        if (val && typeof val === 'string') found.push(...val.split(',').map(m => m.trim()).filter(Boolean));
+        
+        const pVal = typeof process !== 'undefined' ? (process.env as any)[baseName] : undefined;
+        if (pVal && typeof pVal === 'string') found.push(...pVal.split(',').map(m => m.trim()).filter(Boolean));
+
+        for (let i = 1; i <= 4; i++) {
+           const vN = (import.meta as any).env?.[`${baseName}_${i}`];
+           if (vN) found.push(vN);
+           const pN = typeof process !== 'undefined' ? (process.env as any)[`${baseName}_${i}`] : undefined;
+           if (pN) found.push(pN);
+        }
+      });
+      found.push(...keys.map(k => k.key).filter(Boolean));
+      setDetectedKeyCount(Array.from(new Set(found)).filter(Boolean).length);
+    };
+    detectKeysCount();
+  }, [keys]);
 
   // Performance monitoring
   useEffect(() => {
@@ -317,11 +383,22 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
               {activeSection === 'integration' && (
                 <div className="space-y-6 md:space-y-10">
                   <header className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-indigo-500/10 rounded-full border border-indigo-500/20">
-                      <Key className="w-3 h-3 text-indigo-400" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">Identity</span>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-indigo-500/10 rounded-full border border-indigo-500/20">
+                          <Key className="w-3 h-3 text-indigo-400" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">Identity</span>
+                        </div>
+                        <h2 className="text-2xl md:text-4xl font-black tracking-tighter">AI Integration</h2>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                         <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-tighter transition-all ${detectedKeyCount > 0 ? 'bg-green-500/10 border-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-red-500/10 border-red-500/20 text-red-400 animate-pulse'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${detectedKeyCount > 0 ? 'bg-green-400' : 'bg-red-400'}`} />
+                            {detectedKeyCount} {detectedKeyCount === 1 ? 'Active Key' : 'Active Keys'} DETECTED
+                         </div>
+                         <span className="text-[7px] font-mono text-white/20 uppercase tracking-widest">Rotation Cycle: Active</span>
+                      </div>
                     </div>
-                    <h2 className="text-2xl md:text-4xl font-black tracking-tighter">AI Integration</h2>
                     <p className="text-[10px] md:text-sm text-white/40 leading-relaxed max-w-2xl">
                       Configure Gemini clusters. JAMINI auto-switches tiers based on load.
                     </p>
@@ -377,9 +454,15 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                     </div>
 
                     <div className="bg-white/5 border border-white/10 rounded-[1.5rem] p-4 space-y-4">
-                      <h3 className="text-md font-bold flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-indigo-400" /> Active Roster
-                      </h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-md font-bold flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-indigo-400" /> Active Roster
+                        </h3>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md">
+                           <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
+                           <span className="text-[7px] font-black uppercase text-green-400">Live</span>
+                        </div>
+                      </div>
                       <div className="space-y-3">
                         {['paid', 'free'].map((type) => (
                           <div key={type}>
