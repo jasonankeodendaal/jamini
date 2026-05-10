@@ -29,14 +29,11 @@ interface StoryboardViewProps {
 }
 
 const LENS_TYPES = [
-  '24mm Wide Angle', '35mm Narrative', '50mm Prime', '85mm Portrait', 
-  '100mm Macro', 'Ana-morphic', 'Fish-eye', 'Telephoto 200mm'
+  'Wide Angle', 'Telephoto', 'Macro', 'Anamorphic'
 ];
 
 const CAMERA_MOTIONS = [
-  'Static / Lock-off', 'Slow Push-in', 'Pull-back', 'Pan Left-to-Right',
-  'Tilt Up', 'Tracking Side-shot', 'Handheld Shake', 'Drone Orbit', 'Top-down',
-  'Crane Up', 'Dolly Out', 'Orbit Around Subject'
+  'Slow Push-in', 'Dolly Zoom', 'Crane Up', 'Tracking Side-shot', 'Pan', 'Pull-back', 'Static'
 ];
 
 const TRANSITIONS = [
@@ -599,9 +596,22 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                         <button className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all">
                            <ExternalLink className="w-4 h-4" /> Final Export Settings
                         </button>
-                        <button className="flex items-center gap-2 px-8 py-3 bg-indigo-500 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
-                           Publish Sequence
-                        </button>
+                        <div className="flex flex-col gap-2">
+                            <select className="bg-black/90 text-white text-[10px] px-3 py-2 rounded-lg border border-white/20">
+                                <option>.mp4</option>
+                                <option>.mov</option>
+                                <option>.wmv</option>
+                                <option>.avi</option>
+                                <option>.avchd</option>
+                                <option>.flv</option>
+                                <option>.mkv</option>
+                                <option>.webm</option>
+                                <option>.mpg</option>
+                            </select>
+                            <button className="flex items-center gap-2 px-8 py-3 bg-indigo-500 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
+                               Publish Sequence
+                            </button>
+                        </div>
                      </div>
                   </div>
                 </div>

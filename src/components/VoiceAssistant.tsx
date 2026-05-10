@@ -18,7 +18,9 @@ import {
   Workflow,
   Cpu,
   ShieldAlert,
-  Terminal
+  Terminal,
+  UploadCloud,
+  Image as ImageIcon
 } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { cn } from '../lib/utils';
@@ -47,10 +49,18 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const [clientDetails, setClientDetails] = useState({ name: '', company: '', industry: '' });
   const [isFinished, setIsFinished] = useState(false);
   const [isIntroDone, setIsIntroDone] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setUploadedImages(prev => [...prev, ...Array.from(event.target.files!)]);
+    }
+  };
 
   const introQuestions = [
     "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Before we begin, please state your full name and the name of the company or client for this project.",
@@ -422,82 +432,90 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
              </div>
           </div>
 
-          <div className="flex flex-col items-center gap-6 lg:gap-10 mt-6 lg:mt-12">
-            <div className="flex flex-col items-center gap-6 w-full">
-              <div className="h-12 lg:h-16 flex items-end gap-1 px-4">
-                <AnimatePresence mode="wait">
-                  {(isListening || isSpeaking) ? (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-1.5 h-full">
-                      {[...Array(20)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          animate={{ 
-                            height: isSpeaking ? [12, 48, 20, 44, 12] : [8, 24, 12, 20, 8],
-                            opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
-                          }}
-                          transition={{ duration: 1, repeat: Infinity, delay: i * 0.04 }}
-                          className={cn("w-1 lg:w-1.5 rounded-full shadow-[0_0_10px_currentColor]", isSpeaking ? "bg-indigo-500 text-indigo-500" : "bg-fuchsia-500 text-fuchsia-500")}
-                        />
-                      ))}
-                    </motion.div>
-                  ) : (
-                    <div className="flex items-center gap-3 text-white/10">
-                       <Terminal className="w-4 h-4" />
-                       <span className="text-[10px] lg:text-xs font-mono uppercase tracking-[0.5em]">Standby</span>
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            multiple 
+            onChange={handleFileChange}
+          />
 
+          <div className="flex flex-col gap-2 w-full px-2">
+            {uploadedImages.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {uploadedImages.map((file, i) => (
+                  <div key={i} className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                    <ImageIcon className="w-4 h-4 text-indigo-400" />
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex flex-row items-center justify-between gap-2 mt-2 w-full">
               <button 
-                onClick={toggleListening}
-                disabled={isSpeaking || isFinished}
-                className={cn(
-                  "w-16 h-16 lg:w-28 lg:h-28 rounded-[2rem] lg:rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group ring-8 ring-white/0 hover:ring-white/5 active:ring-white/10",
-                  isListening 
-                    ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/50 scale-110" 
-                    : "bg-indigo-600 text-white hover:scale-105 active:scale-95 shadow-indigo-600/50",
-                  (isSpeaking || isFinished) && "opacity-20 cursor-not-allowed scale-90"
-                )}
-              >
-                {isListening && (
-                  <div className="absolute inset-[-15px] rounded-[3rem] border-2 border-fuchsia-500/40 animate-[ping_2.5s_infinite]" />
-                )}
-                {isListening ? <MicOff className="w-8 h-8 lg:w-12 lg:h-12 -rotate-90" /> : <Mic className="w-8 h-8 lg:w-12 lg:h-12" />}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center p-3 bg-indigo-500/10 border border-indigo-500/10 rounded-2xl text-[8px] font-black uppercase text-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/20 transition-all"
+                >
+                  <UploadCloud className="w-4 h-4 mb-1" /> Asset
               </button>
+              
+              <button 
+                  onClick={toggleListening}
+                  disabled={isSpeaking || isFinished}
+                  className={cn(
+                    "w-12 h-12 lg:w-28 lg:h-28 rounded-2xl lg:rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group ring-8 ring-white/0 hover:ring-white/5 active:ring-white/10",
+                    isListening 
+                      ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/50 scale-110" 
+                      : "bg-indigo-600 text-white hover:scale-105 active:scale-95 shadow-indigo-600/50",
+                    (isSpeaking || isFinished) && "opacity-20 cursor-not-allowed scale-90"
+                  )}
+                >
+                  {isListening && (
+                    <>
+                      <div className="absolute inset-[-6px] rounded-2xl lg:rounded-[3rem] border-2 border-fuchsia-500/50 animate-[ping_2s_infinite]" />
+                      <div className="absolute inset-[-12px] rounded-2xl lg:rounded-[3rem] border-2 border-fuchsia-500/20 animate-[ping_2s_infinite_0.5s]" />
+                    </>
+                  )}
+                  {isListening ? <MicOff className="w-5 h-5 lg:w-12 lg:h-12 -rotate-90" /> : <Mic className="w-5 h-5 lg:w-12 lg:h-12" />}
+                </button>
 
-              <div className="text-center space-y-2">
-                <div className="text-[10px] lg:text-xs font-black uppercase tracking-[0.6em] text-white/25">
-                  {isListening ? "Transmission" : isSpeaking ? "Orchestrating" : "Voice Link"}
+                <div className="flex flex-1 items-center gap-2 overflow-hidden bg-white/5 p-2 rounded-xl">
+                  <div className="h-8 flex items-center gap-1 flex-1 px-1">
+                  <AnimatePresence mode="wait">
+                    {(isListening || isSpeaking) ? (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-1 h-full w-full">
+                        {[...Array(10)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ 
+                              height: isSpeaking ? [8, 24, 10, 22, 8] : [4, 12, 6, 10, 4],
+                              opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
+                            }}
+                            transition={{ duration: 1, repeat: Infinity, delay: i * 0.04 }}
+                            className={cn("w-1 rounded-full", isSpeaking ? "bg-indigo-500" : "bg-fuchsia-500")}
+                          />
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-white/10 w-full justify-center">
+                        <Terminal className="w-3 h-3" />
+                        <span className="text-[9px] font-mono uppercase tracking-[0.2em] whitespace-nowrap">Standby</span>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                  </div>
                 </div>
-                <div className="flex justify-center gap-1.5">
-                   {[...Array(3)].map((_, i) => (
-                     <div key={i} className={cn("w-1.5 h-1.5 rounded-full shadow-lg", (isListening || isSpeaking) ? "bg-indigo-400 animate-bounce" : "bg-white/10")} style={{ animationDelay: `${i * 0.15}s` }} />
-                   ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 w-full">
-               <button 
-                 onClick={() => {
-                   setMessages([{ role: 'assistant', text: allQuestions[0] }]);
-                   setCurrentQuestionIndex(0);
-                   setIsFinished(false);
-                   speak(allQuestions[0]);
-                 }}
-                 className="flex items-center justify-center gap-3 py-4 lg:py-5 bg-white/5 border border-white/5 rounded-2xl text-[9px] lg:text-[10px] font-black uppercase text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all group"
-               >
-                  <RefreshCcw className="w-3 h-3 lg:w-4 lg:h-4 group-hover:rotate-180 transition-transform duration-500" /> Reset Session
-               </button>
-               <button 
-                 onClick={onClose}
-                 className="flex items-center justify-center gap-3 py-4 lg:py-5 bg-red-500/5 border border-red-500/10 rounded-2xl text-[9px] lg:text-[10px] font-black uppercase text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
-               >
-                  <X className="w-3 h-3 lg:w-4 lg:h-4" /> Terminate
-               </button>
+                
+                <button 
+                  onClick={onClose}
+                  className="flex flex-col items-center justify-center p-3 bg-red-500/10 border border-red-500/10 rounded-2xl text-[8px] font-black uppercase text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                    <X className="w-4 h-4" /> Exit
+                </button>
             </div>
           </div>
+
         </div>
 
         {isFinished && (
