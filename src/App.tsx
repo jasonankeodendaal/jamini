@@ -1384,45 +1384,27 @@ export default function App() {
     } catch (e) { }
 
     // 2. Collect from environment variables (Browser/Vite standard)
-    // We check VITE_ prefex first as it's standard for Vite Client
-    const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+    const env = (import.meta as any).env;
+    console.log("[JAMINI] Debug: All env keys:", Object.keys(env));
     
-    baseNames.forEach(baseName => {
-      // Check standard
-      const val = (import.meta as any).env?.[baseName];
-      if (val && typeof val === 'string') {
-        const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
-        availableKeys = [...availableKeys, ...keys];
-      }
-      
-      // Check numbered variants (1-10) for rotation
-      for (let i = 1; i <= 10; i++) {
-        const nVal = (import.meta as any).env?.[`${baseName}_${i}`];
-        if (nVal && typeof nVal === 'string') {
-          availableKeys.push(nVal.trim());
+    // Check all keys starting with VITE_GEMINI_API_KEY
+    Object.keys(env).forEach(key => {
+      if (key.startsWith('VITE_GEMINI_API_KEY')) {
+        const val = env[key];
+        if (val && typeof val === 'string') {
+          const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
+          availableKeys = [...availableKeys, ...keys];
         }
       }
     });
 
-    // 3. Check process.env (Polyfill/Define support)
-    // We use explicit static names here so Vite's 'define' can replace them
-    const staticKeys = [
-      (import.meta as any).env?.VITE_GEMINI_API_KEY,
-      (import.meta as any).env?.GEMINI_API_KEY,
-      process.env.GEMINI_API_KEY,
-      process.env.VITE_GEMINI_API_KEY,
-      process.env.API_KEY,
-      process.env.VITE_API_KEY,
-      process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
-      process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5,
-      process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4, process.env.API_KEY_5,
-      process.env.VITE_API_KEY_1, process.env.VITE_API_KEY_2, process.env.VITE_API_KEY_3, process.env.VITE_API_KEY_4, process.env.VITE_API_KEY_5
-    ];
-    
-    staticKeys.forEach(k => {
-      if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') {
-        const parts = k.split(',').map(p => p.trim()).filter(p => p.length > 5);
-        availableKeys.push(...parts);
+    // 3. Keep for backward compatibility/static
+    const staticBaseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+    staticBaseNames.forEach(baseName => {
+      const val = env?.[baseName];
+      if (val && typeof val === 'string') {
+        const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
+        availableKeys = [...availableKeys, ...keys];
       }
     });
 
@@ -1431,13 +1413,15 @@ export default function App() {
     
     if (uniqueKeys.length === 0) {
       if (keyRotationIndex === 0) {
-        console.warn("[JAMINI] No active Gemini API keys found. Please check deployment environment variables.");
+        console.warn("[JAMINI] No active Gemini API keys found. Unique Keys:", uniqueKeys.length, "Available:", availableKeys.length);
       }
       return '';
     }
     
     // 4. Shifting Logic: Use Round Robin based on rotation index
+    console.log("[JAMINI] Rotating keys. Index:", keyRotationIndex, "Available count:", uniqueKeys.length);
     const index = Math.abs(keyRotationIndex) % uniqueKeys.length;
+    console.log("[JAMINI] Using key index:", index);
     return uniqueKeys[index];
   };
 
@@ -1821,7 +1805,8 @@ export default function App() {
       console.error("Error refining asset prompt:", err);
       let errorMessage = err.message || "Failed to refine prompt.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
@@ -1896,7 +1881,8 @@ export default function App() {
       console.error("Error refining text element:", err);
       let errorMessage = err.message || "Failed to refine text.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.0 Flash'.";
       }
@@ -2240,7 +2226,8 @@ export default function App() {
       console.error("Error suggesting scene:", err);
       let errorMessage = err.message || "Failed to suggest scene.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. Please wait a moment before generating a suggestion.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
@@ -2304,7 +2291,8 @@ export default function App() {
       console.error("Error refining prompt text:", err);
       let errorMessage = err.message || "Failed to refine prompt.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. Please wait a moment before refining again.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
@@ -2352,7 +2340,8 @@ export default function App() {
       console.error("Failed to extract colors:", err);
       let errorMessage = err.message || "Failed to extract colors from assets.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. Please wait a moment before extracting colors again.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = "Permission denied. The AI model may not be available on your current API tier.";
       }
@@ -2389,7 +2378,7 @@ export default function App() {
         prompt: finalLogoPrompt,
         referenceImages,
         model: getImageModelString(imageEngine)
-      });
+      }, shiftKey);
 
       if (darkLogoUrl) setBrandLogoAsset({ id: 'logo-dark', name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
       if (lightLogoUrl) setCompanyLogoAsset({ id: 'logo-light', name: 'Light Logo', data: lightLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Light Logo' });
@@ -2723,7 +2712,8 @@ export default function App() {
       console.error("Generation error:", err);
       let errorMessage = err.message || "An unexpected error occurred during generation.";
       if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "Rate limit exceeded. You have made too many requests. Please wait a few minutes and try again.";
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
       } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
         errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.0 Flash'.";
       } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {

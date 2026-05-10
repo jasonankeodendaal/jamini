@@ -11,63 +11,72 @@ export interface LogoOptions {
 
 export const generateLogo = async (
   ai: GoogleGenAI,
-  options: LogoOptions
+  options: LogoOptions,
+  onRateLimit?: () => void
 ) => {
   const modelToUse = options.model || 'gemini-2.5-flash-image';
-  const referenceContext = options.referenceImages && options.referenceImages.length > 0 
+  const referenceContext = options.referenceImages && options.referenceImages.length > 0
     ? ` Influence the design using the visual style, shapes, or concepts from the provided reference images.`
     : '';
 
   const basePrompt = `Professional minimal logo for JAMINI Studio. Theme: ${options.style || 'Modern, AI-centric'}. Style: Minimalist, sophisticated. Color palette: Indigo, Neon Fuchsia, Deep Black. No text or very clean sans-serif text.${referenceContext}`;
 
-  const generate = async (bgPrompt: string) => {
+  const generate = async (bgPrompt: string): Promise<string | null> => {
     const fullPrompt = `${basePrompt} Background: ${bgPrompt}.`;
     
-    if (modelToUse.includes('gemini')) {
-      const parts: any[] = [{ text: fullPrompt }];
-      if (options.referenceImages) {
-        options.referenceImages.forEach(ref => {
-          // Extracts the base64 part if it contains the data uri prefix
-          const base64 = ref.includes(',') ? ref.split(',')[1] : ref;
-          parts.push({ inlineData: { data: base64, mimeType: "image/jpeg" } });
+    try {
+      if (modelToUse.includes('gemini')) {
+        const parts: any[] = [{ text: fullPrompt }];
+        if (options.referenceImages) {
+          options.referenceImages.forEach(ref => {
+            const base64 = ref.includes(',') ? ref.split(',')[1] : ref;
+            parts.push({ inlineData: { data: base64, mimeType: "image/jpeg" } });
+          });
+        }
+        
+        const response = await ai.models.generateContent({
+          model: modelToUse,
+          contents: { parts },
+          config: {
+            imageConfig: {
+              aspectRatio: "1:1",
+              imageSize: "1K"
+            }
+          }
         });
-      }
-      
-      const response = await ai.models.generateContent({
-        model: modelToUse,
-        contents: { parts },
-        config: {
-          imageConfig: {
-            aspectRatio: "1:1",
-            imageSize: "1K"
+        
+        let base64 = null;
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+          if (part.inlineData) {
+            base64 = part.inlineData.data;
+            break;
           }
         }
-      });
-      
-      let base64 = null;
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          base64 = part.inlineData.data;
-          break;
-        }
-      }
-      return base64 ? `data:image/jpeg;base64,${base64}` : null;
-    } else {
-      const payload: any = {
-        model: modelToUse,
-        prompt: fullPrompt,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio: '1:1',
-        }
-      };
+        return base64 ? `data:image/jpeg;base64,${base64}` : null;
+      } else {
+        const payload: any = {
+          model: modelToUse,
+          prompt: fullPrompt,
+          config: {
+            numberOfImages: 1,
+            outputMimeType: 'image/jpeg',
+            aspectRatio: '1:1',
+          }
+        };
 
-      const response = await ai.models.generateImages(payload);
-      const base64 = response.generatedImages?.[0]?.image?.imageBytes;
-      return base64 ? `data:image/jpeg;base64,${base64}` : null;
+        const response = await ai.models.generateImages(payload);
+        const base64 = response.generatedImages?.[0]?.image?.imageBytes;
+        return base64 ? `data:image/jpeg;base64,${base64}` : null;
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('429')) {
+        console.warn("[JAMINI] Rate limit reached. Signaling key rotation.");
+        if (onRateLimit) onRateLimit();
+      }
+      throw err;
     }
   };
+
 
   // Generate sequentially to avoid rate limits on free tiers
   const darkLogoUrl = await generate("Solid dark black background");
