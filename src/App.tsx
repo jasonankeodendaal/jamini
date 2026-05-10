@@ -5012,28 +5012,28 @@ export default function App() {
 
 
 
-        <div className="relative z-10 w-full max-w-7xl flex flex-col items-center space-y-2 md:space-y-6 lg:space-y-8 py-2">
+        <div className="relative z-10 w-full max-w-5xl flex flex-col items-center space-y-1 md:space-y-4 lg:space-y-6 py-2">
           {/* Brand Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-1 md:space-y-6 text-center px-4"
+            className="space-y-1 md:space-y-4 text-center px-4"
           >
             <div className="relative inline-block transition-transform duration-500 hover:scale-110">
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-white/10 blur-[40px] rounded-full animate-pulse" />
               <img 
                 src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
                 alt="JAMINI" 
-                className="h-8 md:h-24 lg:h-32 w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                className="h-10 md:h-[120px] lg:h-[140px] w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div className="space-y-0.5 md:space-y-1">
-              <h2 className="text-base md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+              <h2 className="text-base md:text-3xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
               </h2>
-              <div className="h-0.5 w-8 md:w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
-              <p className="text-white/40 max-w-[240px] md:max-w-xl mx-auto text-[8px] md:text-sm lg:text-base font-medium tracking-wide leading-relaxed">
+              <div className="h-0.5 w-8 md:w-16 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
+              <p className="text-white/40 max-w-[240px] md:max-w-lg mx-auto text-[8px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
                 JAMINI Multi-modal Interface • v4.0 <br className="hidden md:block"/>
                 Advanced Creative Intelligence. Orchestrate your vision.
               </p>
@@ -5041,7 +5041,7 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 md:gap-8 lg:gap-12 w-full group/container px-1.5 md:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 md:gap-6 lg:gap-8 w-full group/container px-1.5 md:px-0">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
@@ -5056,7 +5056,7 @@ export default function App() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
                 className={cn(
-                  "group relative flex flex-col items-start p-2.5 md:p-5 lg:p-6 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
+                  "group relative flex flex-col items-start p-2.5 md:p-4 lg:p-5 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
                   i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
                 )}
               >
