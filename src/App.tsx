@@ -1379,49 +1379,47 @@ export default function App() {
       if (savedKeys) {
         const keysArr = JSON.parse(savedKeys) as any[];
         const typedKeys = keysArr.filter(k => k.type === type && k.key).map(k => k.key);
-        availableKeys = [...availableKeys, ...typedKeys];
+        availableKeys = [...typedKeys];
       }
     } catch (e) { }
 
-    // 2. Collect from environment variables (Browser/Vite standard)
-    const env = (import.meta as any).env;
-    console.log("[JAMINI] Debug: All env keys:", Object.keys(env));
-    
-    // Check all keys starting with VITE_GEMINI_API_KEY
-    Object.keys(env).forEach(key => {
-      if (key.startsWith('VITE_GEMINI_API_KEY')) {
-        const val = env[key];
+    // 2. If no keys found in LocalStorage for this type, fallback to environment variables
+    if (availableKeys.length === 0) {
+      const env = (import.meta as any).env;
+      
+      // Check all keys starting with VITE_GEMINI_API_KEY
+      Object.keys(env).forEach(key => {
+        if (key.startsWith('VITE_GEMINI_API_KEY')) {
+          const val = env[key];
+          if (val && typeof val === 'string') {
+            const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
+            availableKeys = [...availableKeys, ...keys];
+          }
+        }
+      });
+      
+      const staticBaseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      staticBaseNames.forEach(baseName => {
+        const val = env?.[baseName];
         if (val && typeof val === 'string') {
           const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
           availableKeys = [...availableKeys, ...keys];
         }
-      }
-    });
-
-    // 3. Keep for backward compatibility/static
-    const staticBaseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
-    staticBaseNames.forEach(baseName => {
-      const val = env?.[baseName];
-      if (val && typeof val === 'string') {
-        const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
-        availableKeys = [...availableKeys, ...keys];
-      }
-    });
+      });
+    }
 
     // Remove duplicates and empty strings
     const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(k => k && k.length > 5);
     
     if (uniqueKeys.length === 0) {
       if (keyRotationIndex === 0) {
-        console.warn("[JAMINI] No active Gemini API keys found. Unique Keys:", uniqueKeys.length, "Available:", availableKeys.length);
+        console.warn("[JAMINI] No active Gemini API keys found.");
       }
       return '';
     }
     
-    // 4. Shifting Logic: Use Round Robin based on rotation index
-    console.log("[JAMINI] Rotating keys. Index:", keyRotationIndex, "Available count:", uniqueKeys.length);
+    // 3. Shifting Logic: Use Round Robin based on rotation index
     const index = Math.abs(keyRotationIndex) % uniqueKeys.length;
-    console.log("[JAMINI] Using key index:", index);
     return uniqueKeys[index];
   };
 
