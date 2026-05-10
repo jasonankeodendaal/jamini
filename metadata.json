@@ -1,5 +1,8 @@
 {
-  "name": "Remix: JAMINI",
-  "description": "Professional AI advertisement poster generator powered by Gemini.",
-  "requestFramePermissions": []
+  "name": "JAMINI CORE V4",
+  "description": "Multi-modal AI Creative Orchestrator for hyper-specialized branding, cinematic storyboarding, and vision synthesis.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }

@@ -158,12 +158,12 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text: `Say this in a professional, slightly authoritative yet friendly creative director voice: ${text}` }] }],
+        contents: [{ parts: [{ text: `Speak this message as a high-status, charismatic, human creative director. Use natural rhythm, varying pace, and conversational inflections. Do NOT sound robotic or read like a list. Message: ${text}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Kore' },
+              prebuiltVoiceConfig: { voiceName: 'Zephyr' },
             },
           },
         },
