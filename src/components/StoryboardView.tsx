@@ -48,6 +48,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
   const [previewProgress, setPreviewProgress] = useState(0);
   const [activeSceneIndex, setActiveSceneIndex] = useState<number | null>(0);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [viewMode, setViewMode] = useState<'visual' | 'script'>('visual');
   const isLogoMode = editorState.generationObjective === 'logo';
 
   useEffect(() => {
@@ -151,6 +152,79 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
     }
   };
 
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+
+  const generateVideoScript = async () => {
+    const apiKey = getApiKey('paid');
+    if (!apiKey) {
+      alert("API KEY MISSING. PLEASE CHECK SETTINGS.");
+      return;
+    }
+
+    setIsGeneratingScript(true);
+    setStatus('idle');
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `
+        As a world-class Film Director and Script Architect, generate a detailed, professional video storyboard script based on the following parameters:
+        
+        PRODUCTION GOAL: ${editorState.scenePrompt}
+        CINEMATIC STYLE: ${editorState.style}
+        LIGHTING SCHEME: ${editorState.lighting}
+        MASTER ASSETS: ${editorState.assetPrompt}
+        TOTAL DURATION: ${editorState.videoDuration} seconds
+        
+        Requirement: Break this down into exactly 4 precise scenes.
+        For each scene, provide a highly technical description including:
+        1. Visual Description (detailed framing, action, and textures)
+        2. Camera Motion (Technical terms: Dolly, Truck, Pan, Tilt, Pedestal, Zoom)
+        3. Lens Specification (e.g., 24mm Anamorphic, 85mm Prime, 14mm Ultra-Wide)
+        4. Detailed Lighting (Technical: Three-point, Rembrandt, High-key, Moody Chiaroscuro)
+        5. Transition (Technical: Match Cut, J-Cut, L-Cut, Cross-Dissolve, Hard Cut)
+        6. Audio & SFX Cues (Ambient beds, foley, musical stings)
+        7. Exact Duration in seconds.
+        
+        The output must be a valid JSON object with two fields:
+        "fullScript": A long, formatted strings that looks like a professional shooting script.
+        "scenes": An array of 4 objects with keys: prompt, duration, cameraMotion, lensType, lighting, transitionType, audioCue.
+        
+        Format strictly as JSON. No markdown backticks.
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash-8b",
+        contents: [{ parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+      
+      const result = JSON.parse(response.text || '{}');
+      const parsedScenes = result.scenes || [];
+      const scriptText = result.fullScript || "";
+
+      const mappedScenes = parsedScenes.map((s: any) => ({
+        ...s,
+        id: crypto.randomUUID()
+      }));
+
+      setScenes(mappedScenes);
+      onUpdateState({ 
+        ...editorState, 
+        videoScenes: mappedScenes,
+        videoScript: scriptText
+      });
+      setStatus('success');
+    } catch (err) {
+      console.error("Script Architecture failed:", err);
+      setStatus('error');
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+
   const updateScene = (index: number, updates: Partial<VideoScene>) => {
     const newScenes = [...scenes];
     newScenes[index] = { ...newScenes[index], ...updates };
@@ -203,6 +277,27 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex bg-[#0A0A0C] border border-white/10 rounded-lg p-1 mr-4">
+            <button 
+              onClick={() => setViewMode('visual')}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                viewMode === 'visual' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+              )}
+            >
+              <Film className="w-3 h-3" /> Storyboard
+            </button>
+            <button 
+              onClick={() => setViewMode('script')}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                viewMode === 'script' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+              )}
+            >
+              <FileText className="w-3 h-3" /> Master Script
+            </button>
+          </div>
+
           {status === 'success' && (
             <motion.div 
                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
@@ -219,6 +314,17 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
           >
             <MonitorPlay className="w-4 h-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">Master Preview</span>
+          </button>
+          <button 
+            onClick={generateVideoScript}
+            disabled={isGeneratingScript}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all",
+              isGeneratingScript && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {isGeneratingScript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+            <span className="text-[10px] font-black uppercase tracking-widest">Script Architect</span>
           </button>
           <button 
             onClick={generateAIPrompt}
@@ -316,7 +422,57 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         {/* Main Editor: Scene Details */}
         <section className="flex-1 bg-[#0A0A0C] overflow-y-auto p-8 custom-scrollbar">
           <AnimatePresence mode="wait">
-            {activeSceneIndex !== null && scenes[activeSceneIndex] ? (
+            {viewMode === 'script' ? (
+              <motion.div
+                key="full-script"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="max-w-4xl mx-auto space-y-8 pb-20"
+              >
+                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                   <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                         <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                            Official Shooting Script
+                         </div>
+                         <h2 className="text-3xl font-black tracking-tighter">Production Narrative</h2>
+                      </div>
+                      <p className="text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono tracking-widest">MASTER ARCHIVE: {editorState.style}</p>
+                   </div>
+                   <button 
+                     onClick={() => {
+                        const blob = new Blob([editorState.videoScript || ''], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `shooting_script_${Date.now()}.txt`;
+                        a.click();
+                     }}
+                     className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                   >
+                     <Download className="w-4 h-4" /> Download TXT
+                   </button>
+                </div>
+
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-10 min-h-[500px]">
+                   {editorState.videoScript ? (
+                      <div className="prose prose-invert max-w-none">
+                        <pre className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-white/80 font-mono tracking-tight bg-transparent p-0 border-none">
+                          {editorState.videoScript}
+                        </pre>
+                      </div>
+                   ) : (
+                      <div className="flex flex-col items-center justify-center min-h-[400px] text-white/10">
+                         <FileText className="w-20 h-20 mb-6 opacity-20" />
+                         <p className="text-sm font-black uppercase tracking-widest text-center max-w-sm">
+                           No script architecture detected. Use the 'Script Architect' button to synthesize your production narrative.
+                         </p>
+                      </div>
+                   )}
+                </div>
+              </motion.div>
+            ) : activeSceneIndex !== null && scenes[activeSceneIndex] ? (
               <motion.div
                 key={scenes[activeSceneIndex].id}
                 initial={{ opacity: 0, y: 10 }}

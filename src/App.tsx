@@ -1373,7 +1373,7 @@ export default function App() {
   const getApiKey = (type: 'paid' | 'free') => {
     let availableKeys: string[] = [];
 
-    // 1. Collect from LocalStorage (User settings)
+    // 1. Collect from LocalStorage (User settings) locally first
     try {
       const savedKeys = localStorage.getItem('jamini_api_keys');
       if (savedKeys) {
@@ -1383,13 +1383,28 @@ export default function App() {
       }
     } catch (e) { }
 
-    // 2. If no keys found in LocalStorage for this type, fallback to environment variables
+    const isAiStudio = typeof window !== 'undefined' && window.location.hostname.includes('.run.app');
+
+    // 2. If running in AI Studio Builder (.run.app) and NO local keys, strictly use the platform-injected API key.
+    if (availableKeys.length === 0 && isAiStudio) {
+      try {
+        // Vite statically replaces process.env.GEMINI_API_KEY with the string value.
+        const aiStudioKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+        if (aiStudioKey) return aiStudioKey;
+      } catch (err) {
+        // Safe fallback in case Vite static replacement fails and process ReferenceError is thrown.
+        const fallbackAiStudioKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+        if (fallbackAiStudioKey) return fallbackAiStudioKey;
+      }
+    }
+
+    // 3. Deployed system logic (Vercel) / general fallback
     if (availableKeys.length === 0) {
-      const env = (import.meta as any).env;
+      const env = (import.meta as any).env || {};
       
-      // Check all keys starting with VITE_GEMINI_API_KEY
+      // Check all environment keys starting with VITE_GEMINI_API_KEY
       Object.keys(env).forEach(key => {
-        if (key.startsWith('VITE_GEMINI_API_KEY')) {
+        if (key.startsWith('VITE_GEMINI_API_KEY') || key.startsWith('GEMINI_API_KEY')) {
           const val = env[key];
           if (val && typeof val === 'string') {
             const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
@@ -1406,19 +1421,35 @@ export default function App() {
           availableKeys = [...availableKeys, ...keys];
         }
       });
+
+      // Also consider static define mappings (Wrapped in try/catch to avoid ReferenceError if Vite doesn't replace them)
+      try {
+         if (process.env.GEMINI_API_KEY) availableKeys.push(...process.env.GEMINI_API_KEY.split(','));
+         if (process.env.VITE_GEMINI_API_KEY) availableKeys.push(...process.env.VITE_GEMINI_API_KEY.split(','));
+         
+         const staticKeys = [
+           process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
+           process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5
+         ];
+         staticKeys.forEach(k => {
+           if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') {
+             availableKeys.push(...k.split(',').map(p => p.trim()).filter(p => p.length > 5));
+           }
+         });
+      } catch (err) { }
     }
 
     // Remove duplicates and empty strings
     const uniqueKeys = Array.from(new Set(availableKeys.filter(k => k && typeof k === 'string').map(k => k.trim()))).filter(k => k && k.length > 5);
     
     if (uniqueKeys.length === 0) {
-      if (keyRotationIndex === 0) {
+      if (keyRotationIndex === 0 && !isAiStudio) {
         console.warn("[JAMINI] No active Gemini API keys found.");
       }
       return '';
     }
     
-    // 3. Shifting Logic: Use Round Robin based on rotation index
+    // 4. Shifting Logic: Use Round Robin based on rotation index
     const index = Math.abs(keyRotationIndex) % uniqueKeys.length;
     return uniqueKeys[index];
   };
@@ -2060,53 +2091,62 @@ export default function App() {
       if (!apiKey) throw new Error("API key is missing!");
       const ai = new GoogleGenAI({ apiKey });
       
-      const prompt = `You are a world-class Cinematic Commercial Director. Your goal is to write a MASTER Storyboard Script for a ${videoDuration}-second video advertisement.
-      The video must follow a strict "Perfect Ad" structure: 
-      1. Hook (First 2s): High-speed movement or ultra-macro visual.
-      2. Value Proposition (Middle): Demonstrating product usage or utility with emotional lighting.
-      3. Brand Culmination (Final 2s): Clear logo placement and aesthetic satisfaction.
+      const prompt = `You are a world-class Cinematic Commercial Director and Production Architect. 
+      Your goal is to write a MASTER PRODUCTION SCRIPT and Storyboard for a ${videoDuration}-second video advertisement.
 
-      [BRAND IDENTITY]
+      [BRAND IDENTITY & STYLE]
+      Goal: ${scenePrompt}
       Style: ${style}
       Lighting: ${lighting}
-      Product: ${productAssets.map(a => a.name).join(', ')}
-      Guidelines: ${ciSummary || 'Standard high-end commercial'}
+      Product/Assets: ${productAssets.map(a => a.name).join(', ')}
+      Visual Guidelines: ${ciSummary || 'Standard high-end commercial'}
       
-      [TECHNICAL RULES]
-      - Break the video into EXACT SCENES.
-      - Describe the PHYSICAL SIMULATION: Liquid viscosity, fabric flow, particle dynamics.
-      - Describe the CINEMATOGRAPHY: Zoom speed, shutter angle, focal shift.
-      - Specify camera motion, lens type, and lighting for the scene.
-      - Return a JSON array of scenes.
+      [TECHNICAL PRODUCTION RULES]
+      - Break the video into EXACT CINEMATIC SCENES.
+      - Specify TECHNICAL CAMERA MOTION: (e.g., Dolly Zoom, Tracking Orbit, Crane Down, High-Speed Phantom Push).
+      - Specify LENS OPTICS: (e.g., 35mm Anamorphic, 100mm Macro, 14mm Ultra-Wide).
+      - Specify LIGHTING DESIGN: (e.g., Rembrandt, Chiaroscuro, Volumetric God Rays, High-Key Commercial).
+      - Specify TRANSITIONS: (e.g., Match Cut, J-Cut, Zoom Blur Dissolve, Hard Cut).
+      - Specify AUDIO LANDSCAPE: (e.g., Sub-bass swell, mechanical foley, ASMR textures, Orchestral sting).
       
-      [OUTPUT FORMAT]
-      Return ONLY a JSON array of scenes. Each scene object:
+      [OUTPUT REQUIREMENT]
+      You MUST return a JSON object with two fields:
+      1. "fullScript": A beautifully formatted, professional shooting script that tells the whole story in text.
+      2. "scenes": A JSON array of scene objects.
+
+      [SCENE OBJECT SCHEMA]
       { 
         "id": string, 
-        "prompt": string, 
+        "prompt": string (detailed visual direction), 
         "duration": number,
-        "cameraMotion": string (e.g., "Static", "Pan Left", "Dolly In", "Crane Up", "Handheld"),
-        "lensType": string (e.g., "Macro 100mm", "Wide 24mm", "Anamorphic 35mm", "Telephoto 200mm"),
-        "lighting": string (e.g., "Volumetric", "High Contrast Rim", "Soft Box", "Neon Glow"),
-        "transitionType": string (e.g., "Hard Cut", "Crossfade", "Match Cut", "Wipe"),
-        "audioCue": string (e.g., "Bass Drop", "Swoosh", "Silence", "Upbeat Tempo")
+        "cameraMotion": string,
+        "lensType": string,
+        "lighting": string,
+        "transitionType": string,
+        "audioCue": string
       }
-      Total duration must equal ${videoDuration}.
 
+      Total duration of scenes must equal ${videoDuration}.
+      Return ONLY the JSON. No markdown.
+      
       JSON OUTPUT:`;
 
       const response = await withTimeout(ai.models.generateContent({
         model: getTextModelString(textEngine),
         contents: prompt,
-      }), 60000, "Storyboard generation request timed out.");
+      }), 60000, "Script architecture request timed out.");
       
       const text = response.text?.trim() || '';
-      const jsonMatch = text.match(/\[.*\]/s);
+      const jsonMatch = text.match(/\{.*\}/s);
       if (jsonMatch) {
-         const scenes = JSON.parse(jsonMatch[0]);
-         if (Array.isArray(scenes)) {
-            setVideoScenes(scenes);
-            setVideoScript(scenes.map(s => `[${s.duration}s] ${s.prompt}`).join('\n\n'));
+         try {
+           const result = JSON.parse(jsonMatch[0]);
+           if (result.scenes && Array.isArray(result.scenes)) {
+              setVideoScenes(result.scenes);
+              setVideoScript(result.fullScript || result.scenes.map((s: any) => `SCENE ${s.id}: [${s.duration}s]\nVISUAL: ${s.prompt}\nCAMERA: ${s.cameraMotion}\nLENS: ${s.lensType}\nLIGHTING: ${s.lighting}\nAUDIO: ${s.audioCue}`).join('\n\n'));
+           }
+         } catch (e) {
+           setVideoScript(text);
          }
       } else {
          setVideoScript(text);
@@ -3087,8 +3127,8 @@ export default function App() {
                     <div className="flex flex-col gap-3">
                       {productAssets.map(asset => (
                         <div key={asset.id} className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group">
-                            <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Product" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                            <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Product" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                             <button onClick={() => removeAsset(asset.id, 'product')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
                           </div>
                           <div className="flex-1 flex flex-col gap-2">
@@ -3907,8 +3947,8 @@ export default function App() {
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {exampleImages.map(asset => (
-                        <div key={asset.id} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black border border-white/10 group">
-                          <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Reference" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div key={asset.id} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                          <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Reference" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
                           <button onClick={() => removeAsset(asset.id, 'example')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       ))}
@@ -4015,11 +4055,11 @@ export default function App() {
           {/* CENTER COLUMN (Desktop Canvas & Timeline, Mobile Tab 4) */}
           <div className={cn(
             "w-full h-full relative flex-col overflow-hidden z-10",
-            (activeStep === 4 || activeStep === 5) ? "flex" : "hidden"
+            (activeStep === 4 || activeStep === 5) ? "flex lg:flex-row" : "hidden"
           )}>
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
             
-            <div className="flex-1 p-4 lg:p-8 relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
+            <div className="flex-1 w-full h-full p-4 lg:p-0 flex flex-col relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
               <AnimatePresence mode="wait">
               {activeStep === 5 ? (
                 <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-5xl w-full space-y-8 py-8 px-4 md:px-6 pb-24 mb-10 shadow-2xl bg-[#09090b]/90 backdrop-blur-3xl rounded-3xl border border-white/10 mx-auto mt-4 min-h-max transform-gpu lg:p-8">
@@ -4751,47 +4791,64 @@ export default function App() {
                   </div>
 
                 </motion.div>
-              ) : generatedVideo ? (
-                <motion.div key={generatedVideo} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="relative shadow-2xl shadow-black/80 rounded-lg overflow-hidden max-w-full group">
-                  <div className="bg-black flex items-center justify-center min-h-[40vh]">
-                    <video 
-                      src={generatedVideo} 
-                      autoPlay 
-                      loop 
-                      muted
-                      controls 
-                      className="w-auto h-auto max-w-full max-h-[80vh] object-contain"
-                      onError={() => {
-                        console.error("Main video failed to load. Source might be invalid.");
-                      }}
-                    />
-                  </div>
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 pointer-events-none" />
-                  
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
-                    <div className="bg-black/60 backdrop-blur-md rounded-lg p-1 flex flex-col gap-1 shadow-lg border border-white/10">
-                      <span className="text-[10px] text-white/50 uppercase font-bold text-center pb-1 border-b border-white/10 px-2">Download</span>
-                      <button onClick={downloadVideo} className="text-xs font-medium text-white hover:bg-white/20 px-4 py-2 rounded transition-colors text-center flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5" /> MP4 Video
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ) : generatedImage ? (
-                <motion.div key={generatedImage} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="relative shadow-2xl shadow-black/80 rounded-lg overflow-hidden max-w-full group">
-                  <img src={generatedImage} alt="Generated Poster" className="w-auto h-auto max-w-full max-h-[80vh] object-contain" />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 pointer-events-none" />
-                  
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
-                    <div className="bg-black/60 backdrop-blur-md rounded-lg p-1 flex flex-col gap-1 shadow-lg border border-white/10">
-                      <span className="text-[10px] text-white/50 uppercase font-bold text-center pb-1 border-b border-white/10">Download</span>
-                      <button onClick={() => downloadImage('png')} className="text-xs font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">PNG</button>
-                      <button onClick={() => downloadImage('jpg')} className="text-xs font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">JPG</button>
-                      <button onClick={() => downloadImage('pdf')} className="text-xs font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">PDF</button>
-                      <button onClick={() => downloadImage('vif')} className="text-xs font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">VIF (AVIF)</button>
-                    </div>
-                  </div>
-                </motion.div>
+              ) : (generatedVideo || generatedImage) ? (
+                <div className="w-full h-full min-h-[60vh] flex flex-col items-center justify-center lg:p-4">
+                   {/* Desktop Master Toolbar */}
+                   <div className="hidden lg:flex w-full max-w-5xl items-center justify-between px-6 py-4 bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/5 rounded-t-2xl z-50 shadow-lg">
+                      <div className="flex items-center gap-4">
+                         <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                            {generatedVideo ? <MonitorPlay className="w-4 h-4 text-indigo-400" /> : <ImageIcon className="w-4 h-4 text-indigo-400" />}
+                         </div>
+                         <div>
+                           <h3 className="text-xs font-black uppercase tracking-widest text-white/90">Master Render</h3>
+                           <p className="text-[9px] text-white/40 uppercase tracking-[0.2em]">{generatedVideo ? "Temporal Synthesis" : "Static Output"}</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                         {generatedVideo ? (
+                           <button onClick={downloadVideo} className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                             <Download className="w-4 h-4" /> Export Video
+                           </button>
+                         ) : (
+                           <div className="flex bg-[#0a0a0c] border border-white/10 rounded-lg overflow-hidden p-1 gap-1">
+                             <span className="text-[9px] font-bold text-white/40 flex items-center px-2 mr-1">EXPORT:</span>
+                             <button onClick={() => downloadImage('png')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">PNG</button>
+                             <button onClick={() => downloadImage('jpg')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">JPG</button>
+                             <button onClick={() => downloadImage('pdf')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">PDF</button>
+                             <button onClick={() => downloadImage('vif')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">AVIF</button>
+                           </div>
+                         )}
+                      </div>
+                   </div>
+                   
+                   {/* Main Canvas Area */}
+                   <motion.div key={generatedVideo || generatedImage} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full max-w-5xl flex-1 flex items-center justify-center bg-[#050505] lg:border-l lg:border-r lg:border-b lg:border-white/5 lg:rounded-b-2xl relative shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-2 md:p-8 overflow-hidden group">
+                      <div className="absolute inset-0 opacity-[0.4] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-black to-black pointer-events-none" />
+                      
+                      {generatedVideo ? (
+                        <video src={generatedVideo} autoPlay loop muted controls className="relative z-10 w-full h-full max-h-[75vh] object-contain shadow-2xl rounded-lg bg-black/50" onError={() => console.error("Main video failed to load.")} />
+                      ) : (
+                        <img src={generatedImage!} alt="Generated Poster" className="relative z-10 w-full h-full max-h-[75vh] object-contain shadow-2xl rounded-lg bg-black/50" />
+                      )}
+                      
+                      {/* Mobile floating download actions */}
+                      <div className="absolute top-4 right-4 lg:hidden opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                        <div className="bg-black/80 backdrop-blur-md rounded-lg p-1.5 shadow-lg border border-white/10 flex flex-col gap-1">
+                          <span className="text-[8px] text-white/50 uppercase font-bold text-center pb-1 border-b border-white/10">Download</span>
+                          {generatedVideo ? (
+                            <button onClick={downloadVideo} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-center flex items-center gap-1">
+                              <Download className="w-3 h-3" /> MP4
+                            </button>
+                          ) : (
+                            <>
+                              <button onClick={() => downloadImage('png')} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">PNG</button>
+                              <button onClick={() => downloadImage('jpg')} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">JPG</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                   </motion.div>
+                </div>
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4 max-w-md">
                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-inner">
@@ -4831,49 +4888,80 @@ export default function App() {
             </AnimatePresence>
           </div>
           
-          {/* DESKTOP BOTTOM PANEL (Timeline / Prompts) */}
-          <div className={cn("hidden h-[280px] bg-[#18181C] border-t border-white/5 shrink-0 flex-col relative z-20", activeStep === 4 ? "lg:flex" : "lg:hidden")}>
-            <div className="flex items-center px-4 h-10 border-b border-white/5 text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] gap-2 shrink-0">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Generation Sequence
+          {/* RIGHT SIDEBAR (Generation Sequence Desktop) */}
+          <div className={cn("hidden w-[360px] xl:w-[420px] bg-[#0c0c0e]/90 backdrop-blur-3xl border-l border-white/5 shrink-0 flex-col relative z-20 shadow-[-20px_0_40px_rgba(0,0,0,0.5)]", activeStep === 4 ? "lg:flex" : "lg:hidden")}>
+            <div className="flex items-center px-6 h-14 border-b border-white/5 text-[11px] font-black text-white/90 uppercase tracking-[0.2em] gap-2 shrink-0 bg-white/[0.02]">
+              <Sparkles className="w-4 h-4 text-indigo-400" /> Generation Console
             </div>
-            <div className="flex-1 flex p-4 gap-4 overflow-y-auto">
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
-                  {isLogoMode ? <Type className="w-3 h-3" /> : <LayoutIcon className="w-3 h-3" />}
-                  {isLogoMode ? "Brand Name / Style Concept" : "Scene Description"}
-                </label>
+            <div className="flex-1 flex flex-col p-6 gap-6 overflow-y-auto custom-scrollbar">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-2">
+                    {isLogoMode ? <Type className="w-3.5 h-3.5 text-indigo-400" /> : <LayoutIcon className="w-3.5 h-3.5 text-indigo-400" />}
+                    {isLogoMode ? "Brand Name & Concept" : "Scene Description"}
+                  </label>
+                  <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[9px] flex items-center gap-1.5 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500/20 px-2 py-1 rounded transition-colors disabled:opacity-50 font-bold uppercase tracking-wider">
+                    {isSuggestingScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />} Auto
+                  </button>
+                </div>
                 <AutoResizeTextarea 
                   value={scenePrompt} 
                   onChange={(e) => setScenePrompt(e.target.value)} 
                   placeholder={isLogoMode ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : "Describe the environment, mood, and placement..."} 
-                  className="w-full min-h-[4rem] bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar" 
+                  className="w-full min-h-[100px] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar shadow-inner text-white/90 placeholder:text-white/20" 
                 />
               </div>
-              <div className="flex-1 flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><ImageIcon className="w-3 h-3" /> General Asset Instructions</label>
-                <AutoResizeTextarea value={assetPrompt} onChange={(e) => setAssetPrompt(e.target.value)} placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" className="w-full min-h-[4rem] bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar" />
-              </div>
-              <div className="w-[240px] shrink-0 flex flex-col gap-2 justify-end">
-                {error && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] flex items-center gap-2">
-                    <AlertCircle className="w-3 h-3 shrink-0" /> {error}
-                  </motion.div>
-                )}
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={() => setCurrentView('storyboard')} 
-                    className="w-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                  >
-                    <Film className="w-4 h-4" /> Motion Simulation
-                  </button>
-                  <button onClick={() => { handleGenerate(); setActiveStep(4); }} disabled={isGenerating} className={cn("relative w-full group overflow-hidden rounded-xl p-[1px] transition-all h-14", isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02]")}>
-                    {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500"></span>}
-                    <div className={cn("relative w-full h-full rounded-xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0a] group-hover:bg-transparent text-white")}>
-                      {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Rendering...</> : <><Sparkles className="w-4 h-4" /> Generate</>}
-                    </div>
+
+              <div className="w-full h-px bg-white/5" />
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-2">
+                    <ImageIcon className="w-3.5 h-3.5 text-fuchsia-400" /> General Asset Directives
+                  </label>
+                  <button onClick={() => refinePromptText('asset')} disabled={isRefiningAsset || !assetPrompt.trim()} className="text-[9px] flex items-center gap-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 px-2 py-1 rounded transition-colors disabled:opacity-50 font-bold uppercase tracking-wider">
+                    {isRefiningAsset ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
                   </button>
                 </div>
+                <AutoResizeTextarea 
+                  value={assetPrompt} 
+                  onChange={(e) => setAssetPrompt(e.target.value)} 
+                  placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" 
+                  className="w-full min-h-[100px] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar shadow-inner text-white/90 placeholder:text-white/20" 
+                />
               </div>
+            </div>
+
+            <div className="p-6 border-t border-white/5 bg-black/20 shrink-0 flex flex-col gap-4">
+              {error && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[11px] font-medium flex items-start gap-3 shadow-lg">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span className="leading-relaxed">{error}</span>
+                </motion.div>
+              )}
+              
+              <button 
+                onClick={() => setCurrentView('storyboard')} 
+                className="w-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 shadow-sm rounded-xl p-3.5 text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+              >
+                <Film className="w-4 h-4" /> Motion Simulation
+              </button>
+              
+              <button 
+                onClick={() => { handleGenerate(); setActiveStep(4); }} 
+                disabled={isGenerating} 
+                className={cn(
+                  "relative w-full group overflow-hidden rounded-xl p-[1px] transition-all h-14 shadow-lg", 
+                  isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02] shadow-indigo-500/20 hover:shadow-[0_10px_30px_rgba(99,102,241,0.3)]"
+                )}
+              >
+                {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500" />}
+                <div className={cn(
+                  "relative w-full h-full rounded-xl font-black text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", 
+                  isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0c] group-hover:bg-transparent text-white"
+                )}>
+                  {isGenerating ? <><Loader2 className="w-5 h-5 animate-spin" /> Rendering...</> : <><Sparkles className="w-5 h-5" /> Generate Masterpiece</>}
+                </div>
+              </button>
             </div>
           </div>
         </div>
