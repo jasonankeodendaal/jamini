@@ -286,11 +286,11 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-[#050505] text-white font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden">
       {/* Dynamic Background */}
       <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 to-transparent pointer-events-none" />
       
-      <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 border-b border-white/5 bg-black/40 backdrop-blur-xl relative z-10">
+      <header className="h-10 md:h-12 flex items-center justify-between px-4 md:px-8 border-b border-white/5 bg-black/40 backdrop-blur-xl relative z-10">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-2 hover:bg-white/5 rounded-full transition-colors group">
             <Settings className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />

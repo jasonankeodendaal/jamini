@@ -3,7 +3,7 @@ import { Download, Folder, Image as ImageIcon, Trash2, Calendar, FileType2, Sear
 import { motion, AnimatePresence } from 'motion/react';
 import localforage from 'localforage';
 import { cn } from '../lib/utils';
-import { downloadAsSVG, downloadAsEPS, downloadAllFormats } from '../services/logoService';
+import { handleUniversalDownload, zipAllFormats, ALL_ADOBE_FORMATS, ALL_COREL_FORMATS, FORMAT_DESCRIPTIONS } from '../services/exportService';
 
 export interface GenerationRecord {
   id: string;
@@ -162,8 +162,8 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0E0E11] text-white font-sans overflow-hidden">
-      <header className="h-14 md:h-16 flex items-center justify-between px-3 md:px-6 border-b border-white/5 bg-[#18181C] shrink-0 z-10">
+    <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden">
+      <header className="h-10 md:h-12 flex items-center justify-between px-3 md:px-4 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-10">
         <div className="flex items-center gap-2 md:gap-4">
           <button onClick={onBack} className="text-white/50 hover:text-white transition-colors uppercase text-[9px] md:text-[10px] tracking-widest font-bold flex items-center gap-1.5 md:gap-2">
             <ArrowLeft className="w-3 h-3 md:w-3.5 md:h-3.5" /> <span className="hidden xs:inline">Back</span>
@@ -231,9 +231,9 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0C]">
+      <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
         {/* Unified Top Control Bar */}
-        <div className="px-6 py-4 border-b border-white/5 bg-[#0E0E11] flex flex-col md:flex-row items-center gap-4 shrink-0 transition-all">
+        <div className="px-3 py-2 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-col md:flex-row items-center gap-2 shrink-0 transition-all">
           <div className="relative flex-1 w-full max-w-xl">
             <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
             <input 
@@ -356,35 +356,21 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
                                  </button>
                                ) : (
                                  <>
-                                   <div className="grid grid-cols-2 w-full gap-2">
-                                     {['PNG', 'SVG'].map(fmt => (
+                                   <div className="flex flex-wrap w-full gap-1">
+                                     {['PNG', 'SVG', 'EPS', 'CDR'].map(fmt => (
                                        <button 
                                          key={fmt}
                                          onClick={(e) => { 
                                            e.stopPropagation(); 
                                            const url = record.dataUrl instanceof Blob ? URL.createObjectURL(record.dataUrl) : record.dataUrl as string;
-                                           if (fmt === 'SVG') {
-                                              downloadAsSVG(url, `jamini-${record.id}`);
-                                           } else {
-                                              handleDownload(record, fmt.toLowerCase()); 
-                                           }
+                                           handleUniversalDownload(url, `jamini-${record.id}`, fmt.toLowerCase());
                                          }}
-                                         className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter py-2 bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 text-white/30 border border-white/5 rounded-xl transition-all"
+                                         className="flex-1 text-[8px] md:text-[9px] font-black uppercase tracking-tighter py-2 bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 text-white/30 border border-white/5 rounded-xl transition-all"
                                        >
                                          {fmt}
                                        </button>
                                      ))}
                                    </div>
-                                   <button 
-                                     onClick={(e) => {
-                                       e.stopPropagation();
-                                       const url = record.dataUrl instanceof Blob ? URL.createObjectURL(record.dataUrl) : record.dataUrl as string;
-                                       downloadAllFormats(url, `jamini-pack-${record.id}`);
-                                     }}
-                                     className="w-full text-[8px] md:text-[9px] font-black uppercase tracking-widest py-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 rounded-xl transition-all flex items-center justify-center gap-1.5"
-                                   >
-                                     <Zap className="w-3 h-3" /> FULL PACK
-                                   </button>
                                  </>
                                )}
                              </div>
@@ -491,42 +477,65 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
                            <Download className="w-4 h-4" /> Download MP4 Video
                          </button>
                       ) : (
-                        <>
-                          {['PNG', 'JPG', 'PDF', 'SVG'].map(fmt => (
-                            <button 
-                              key={fmt}
-                              onClick={() => {
-                                const url = selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl as string;
-                                if (fmt === 'SVG') {
-                                  downloadAsSVG(url, `jamini-${selectedRecord.id}`);
-                                } else {
-                                  handleDownload(selectedRecord, fmt.toLowerCase());
-                                }
-                              }}
-                              className="flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl transition-colors text-xs font-bold"
-                            >
-                              <Download className="w-3 h-3 text-white/50" /> {fmt}
-                            </button>
-                          ))}
+                        <div className="col-span-2 space-y-4">
+                          <div className="space-y-2">
+                            <h4 className="text-[10px] text-white/40 uppercase tracking-widest font-black">Standard Formats</h4>
+                            <div className="grid grid-cols-4 gap-2">
+                              {['PNG', 'JPG', 'PDF', 'SVG'].map(fmt => (
+                                <button 
+                                  key={fmt}
+                                  onClick={() => handleUniversalDownload(selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl, `jamini-${selectedRecord.id}`, fmt)}
+                                  title={FORMAT_DESCRIPTIONS[fmt.toLowerCase()]}
+                                  className="py-2.5 bg-white/5 hover:bg-indigo-500/20 text-white/80 hover:text-indigo-300 rounded-xl transition-colors text-[10px] font-bold"
+                                >
+                                  {fmt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <h4 className="text-[10px] text-[#FF7C00]/60 uppercase tracking-widest font-black">Adobe Ecosystem</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ALL_ADOBE_FORMATS.map(fmt => (
+                                <button 
+                                  key={fmt}
+                                  onClick={() => handleUniversalDownload(selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl, `jamini-${selectedRecord.id}`, fmt)}
+                                  title={FORMAT_DESCRIPTIONS[fmt]}
+                                  className="px-3 py-2 bg-[#FF7C00]/10 hover:bg-[#FF7C00]/20 text-[#FF7C00] rounded-lg transition-colors text-[9px] font-black uppercase tracking-widest"
+                                >
+                                  .{fmt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <h4 className="text-[10px] text-[#A2E221]/60 uppercase tracking-widest font-black">CorelDRAW Ecosystem</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ALL_COREL_FORMATS.map(fmt => (
+                                <button 
+                                  key={fmt}
+                                  onClick={() => handleUniversalDownload(selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl, `jamini-${selectedRecord.id}`, fmt)}
+                                  title={FORMAT_DESCRIPTIONS[fmt]}
+                                  className="px-3 py-2 bg-[#A2E221]/10 hover:bg-[#A2E221]/20 text-[#A2E221] rounded-lg transition-colors text-[9px] font-black uppercase tracking-widest"
+                                >
+                                  .{fmt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                   
                           <button 
-                            onClick={() => {
+                            onClick={async () => {
                               const url = selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl as string;
-                              downloadAsEPS(url, `jamini-${selectedRecord.id}`);
+                              await zipAllFormats(url, `jamini-${selectedRecord.id}`);
                             }}
-                            className="flex items-center justify-center gap-2 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-xl transition-colors text-[10px] font-black tracking-tighter col-span-1"
+                            className="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors text-xs font-bold w-full"
                           >
-                             ILLUSTRATOR / COREL (EPS)
+                             DOWNLOAD ALL FORMATS (ZIP)
                           </button>
-                          <button 
-                            onClick={() => {
-                              const url = selectedRecord.dataUrl instanceof Blob ? URL.createObjectURL(selectedRecord.dataUrl) : selectedRecord.dataUrl as string;
-                              downloadAllFormats(url, `jamini-pack-${selectedRecord.id}`);
-                            }}
-                            className="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors text-xs font-bold col-span-1"
-                          >
-                             FULL MEDIA PACK
-                          </button>
-                        </>
+                        </div>
                       )}
                       <button 
                         onClick={() => {

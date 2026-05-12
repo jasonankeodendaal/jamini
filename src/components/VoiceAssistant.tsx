@@ -380,37 +380,37 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         </div>
 
         {/* Right Section: Diagnostics & Controls */}
-        <div className="w-full lg:w-[450px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-5 lg:p-10 order-1 lg:order-2">
-          <div className="flex items-center justify-between mb-6 lg:mb-10">
+        <div className="w-full lg:w-[400px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-3 lg:p-6 order-1 lg:order-2">
+          <div className="flex items-center justify-between mb-3 lg:mb-5">
             <div className="lg:hidden flex items-center gap-3">
-               <Headphones className="w-5 h-5 text-indigo-400" />
-               <h4 className="text-xs font-black text-white/60 uppercase tracking-widest">JAMINI VOICE</h4>
+               <Headphones className="w-4 h-4 text-indigo-400" />
+               <h4 className="text-[10px] font-black text-white/60 uppercase tracking-widest">JAMINI VOICE</h4>
             </div>
-            <h4 className="hidden lg:block text-[10px] font-black text-white/30 uppercase tracking-[0.5em]">System Diagnostics</h4>
+            <h4 className="hidden lg:block text-[9px] font-black text-white/30 uppercase tracking-[0.5em]">System Diagnostics</h4>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
-              <X className="w-5 h-5 lg:w-6 lg:h-6" />
+              <X className="w-4 h-4 lg:w-5 lg:h-5" />
             </button>
           </div>
 
-          <div className="space-y-4 lg:space-y-8 mb-auto">
-             <div className="bg-white/5 border border-white/10 rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8">
-                <div className="flex items-center gap-4 mb-6">
-                   <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 ring-4 ring-indigo-500/5">
-                      <ShieldAlert className="w-5 h-5 lg:w-7 lg:h-7 text-indigo-400" />
+          <div className="space-y-3 lg:space-y-6 mb-auto">
+             <div className="bg-white/5 border border-white/10 rounded-[1.2rem] lg:rounded-[1.5rem] p-4 lg:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 ring-4 ring-indigo-500/5">
+                      <ShieldAlert className="w-4 h-4 lg:w-6 lg:h-6 text-indigo-400" />
                    </div>
                    <div className="flex-1 min-w-0">
-                      <p className="text-[8px] lg:text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
-                      <p className="text-base lg:text-xl font-black text-white truncate">{clientDetails.company || 'Initializing...'}</p>
+                      <p className="text-[7px] lg:text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
+                      <p className="text-sm lg:text-lg font-black text-white truncate">{clientDetails.company || 'Initializing...'}</p>
                    </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                   <div className="bg-black/60 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-white/5 space-y-1">
-                      <p className="text-[7px] lg:text-[9px] font-black text-white/20 uppercase tracking-widest">Creative Lead</p>
-                      <p className="text-[10px] lg:text-xs font-bold text-indigo-400 truncate tracking-tight">{clientDetails.name || 'TBD'}</p>
+                   <div className="bg-black/60 p-2 lg:p-3 rounded-xl border border-white/5 space-y-1">
+                      <p className="text-[6px] lg:text-[8px] font-black text-white/20 uppercase tracking-widest">Creative Lead</p>
+                      <p className="text-[9px] lg:text-xs font-bold text-indigo-400 truncate tracking-tight">{clientDetails.name || 'TBD'}</p>
                    </div>
-                   <div className="bg-black/60 p-3 lg:p-4 rounded-xl lg:rounded-2xl border border-white/5 space-y-1">
-                      <p className="text-[7px] lg:text-[9px] font-black text-white/20 uppercase tracking-widest">Sector Domain</p>
-                      <p className="text-[10px] lg:text-xs font-bold text-fuchsia-400 truncate tracking-tight">{clientDetails.industry || 'TBD'}</p>
+                   <div className="bg-black/60 p-2 lg:p-3 rounded-xl border border-white/5 space-y-1">
+                      <p className="text-[6px] lg:text-[8px] font-black text-white/20 uppercase tracking-widest">Sector Domain</p>
+                      <p className="text-[9px] lg:text-xs font-bold text-fuchsia-400 truncate tracking-tight">{clientDetails.industry || 'TBD'}</p>
                    </div>
                 </div>
              </div>

@@ -97,161 +97,264 @@ export const generateCIBible = async (
   const pageHeight = 297;
   const margin = 20;
 
+  const renderHeader = (pageNumber: number, sectionTitle: string) => {
+     pdf.setFontSize(8);
+     pdf.setTextColor(100, 100, 100);
+     pdf.text(`JAMINI STUDIO - AUTOMATED BRAND IDENTITY BIBLE - PAGE ${pageNumber}`, margin, 15);
+     pdf.setDrawColor(255, 255, 255, 0.1);
+     pdf.line(margin, 20, pageWidth - margin, 20);
+  };
+
   // --- PAGE 1: COVER ---
-  pdf.setFillColor(10, 10, 12); // Deep Black
+  pdf.setFillColor(10, 10, 12);
   pdf.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Decorative Accent
-  pdf.setFillColor(79, 70, 229); // Indigo
+  pdf.setFillColor(79, 70, 229);
   pdf.rect(0, 0, 5, pageHeight, 'F');
 
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(48);
   pdf.setFont("helvetica", "bold");
-  pdf.text(brandName, margin, 80);
+  pdf.text(brandName, margin, 140);
   
   pdf.setFontSize(18);
   pdf.setFont("helvetica", "normal");
   pdf.setTextColor(150, 150, 150);
-  pdf.text("CORPORATE IDENTITY BIBLE", margin, 95);
+  pdf.text("CORPORATE IDENTITY BIBLE", margin, 155);
   
   pdf.setDrawColor(255, 255, 255, 0.2);
-  pdf.line(margin, 105, 100, 105);
+  pdf.line(margin, 165, 100, 165);
 
   pdf.setFontSize(10);
-  pdf.text("© 2026 JAMINI DIGITAL SYSTEMS", margin, 270);
-  pdf.text("VERSION 1.0 (AI GENERATED)", margin, 275);
+  pdf.text("© 2026 BRAND SYSTEMS", margin, 270);
+  pdf.text("VERSION 2.0 (AI GENERATED)", margin, 275);
 
-  // --- PAGE 2: LOGO ECOSYSTEM ---
-  pdf.addPage();
-  pdf.setFillColor(15, 23, 42); // Navy Dark
-  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-  
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text("01. THE LOGO ECOSYSTEM", margin, 35);
-  
-  pdf.setFontSize(11);
-  pdf.setTextColor(180, 180, 180);
-  pdf.text("The visual mark represents the convergence of human creativity and synthetic intelligence.", margin, 45);
-
-  // Dark Variant
-  pdf.setFillColor(0, 0, 0);
-  pdf.rect(margin, 60, 80, 80, 'F');
-  if (darkLogoUrl) {
-    pdf.addImage(darkLogoUrl, 'JPEG', margin + 5, 65, 70, 70);
-  }
-  pdf.setTextColor(255, 255, 255);
-  pdf.text("PRIMARY DARK VARIANT", margin, 150);
-
-  // Light Variant
-  pdf.setFillColor(255, 255, 255);
-  pdf.rect(110, 60, 80, 80, 'F');
-  if (lightLogoUrl) {
-    pdf.addImage(lightLogoUrl, 'JPEG', 115, 65, 70, 70);
-  }
-  pdf.setTextColor(255, 255, 255);
-  pdf.text("SECONDARY LIGHT VARIANT", 110, 150);
-
-  // --- PAGE 3: COLOR & TYPE ---
-  pdf.addPage();
-  pdf.setFillColor(10, 10, 12);
-  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-  
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.text("02. VISUAL DNA", margin, 35);
-
-  // Color Palette
-  const colors = [
-    { name: "KINETIC GREEN", hex: "#00B359", r: 0, g: 179, b: 89, desc: "Action & Success" },
-    { name: "NEON LIME", hex: "#A4FF00", r: 164, g: 255, b: 0, desc: "Interaction & Power" },
-    { name: "ELECTRIC YELLOW", hex: "#FFFF00", r: 255, g: 255, b: 0, desc: "Detail & Highlight" },
-    { name: "DEEP PURPLE", hex: "#4B0082", r: 75, g: 0, b: 130, desc: "Shadow & Depth" }
-  ];
-
-  colors.forEach((c, i) => {
-    const y = 60 + (i * 35);
-    pdf.setFillColor(c.r, c.g, c.b);
-    pdf.rect(margin, y, 30, 30, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(12);
-    pdf.text(c.name, margin + 40, y + 10);
-    pdf.setFontSize(10);
-    pdf.setTextColor(150, 150, 150);
-    pdf.text(`${c.hex} | RGB(${c.r}, ${c.g}, ${c.b})`, margin + 40, y + 18);
-    pdf.text(c.desc, margin + 40, y + 25);
-  });
-
-  // Typography Section
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(20);
-  pdf.text("TYPOGRAPHY", margin, 210);
-  pdf.setFontSize(36);
-  pdf.text("SPACE GROTESK", margin, 225);
-  pdf.setFontSize(12);
-  pdf.setTextColor(180, 180, 180);
-  pdf.text("Modern geometric sans-serif. Used for all primary HUD elements", margin, 235);
-  pdf.text("Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz", margin, 245);
-
-  // --- PAGE 4: LOGO CONSTRUCTION ---
+  // --- PAGE 2: LOGO SUITE ---
   pdf.addPage();
   pdf.setFillColor(15, 23, 42);
   pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(2, "LOGO SUITE");
   
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(24);
-  pdf.text("03. GRID & CONSTRUCTION", margin, 35);
-
-  // Simulated Grid
-  pdf.setDrawColor(255, 255, 255, 0.1);
-  for(let i=0; i<10; i++) {
-    pdf.line(margin + (i*17), 60, margin + (i*17), 160);
-    pdf.line(margin, 60 + (i*10), margin + 170, 60 + (i*10));
-  }
-  
-  if (darkLogoUrl) {
-    pdf.addImage(darkLogoUrl, 'JPEG', margin + 35, 75, 100, 70);
-  }
+  pdf.text("01. LOGO SUITE", margin, 40);
   
   pdf.setFontSize(10);
-  pdf.setTextColor(150, 150, 150);
-  pdf.text("The mark is centered on a 170x100 virtual grid. Clear space (X) is defined", margin, 180);
-  pdf.text("as 1/4 of the total logo height on all sides.", margin, 186);
+  pdf.setTextColor(180, 180, 180);
+  pdf.text("Primary logo, secondary variations, and monochrome/reversed versions.", margin, 50);
 
-  // --- PAGE 5: BRAND VOICE ---
+  // Dark/Primary
+  pdf.setFillColor(0, 0, 0);
+  pdf.rect(margin, 60, 60, 60, 'F');
+  if (darkLogoUrl) pdf.addImage(darkLogoUrl, 'JPEG', margin + 5, 65, 50, 50);
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(9);
+  pdf.text("PRIMARY DARK VARIANT", margin, 126);
+
+  // Light/Reversed
+  pdf.setFillColor(255, 255, 255);
+  pdf.rect(100, 60, 60, 60, 'F');
+  if (lightLogoUrl) pdf.addImage(lightLogoUrl, 'JPEG', 105, 65, 50, 50);
+  pdf.text("SECONDARY LIGHT VARIANT", 100, 126);
+
+  // Favicon + Small scale
+  pdf.setFillColor(20, 20, 20);
+  pdf.rect(margin, 140, 20, 20, 'F');
+  if (darkLogoUrl) pdf.addImage(darkLogoUrl, 'JPEG', margin+2, 142, 16, 16);
+  pdf.text("RESPONSIVE FAVICON (32x32px)", margin+25, 152);
+
+  // --- PAGE 3: BRAND BOOK RULES (CLEAR SPACE) ---
   pdf.addPage();
   pdf.setFillColor(10, 10, 12);
   pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-  
+  renderHeader(3, "BRAND BOOK RULES");
+
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(24);
-  pdf.text("04. BRAND VOICE", margin, 35);
-  
-  const voice = [
-    { title: "INNOVATIVE", text: "Pushing the boundaries of generative art." },
-    { title: "SOPHISTICATED", text: "Luxury-tier minimalism for tech elites." },
-    { title: "PRECISE", text: "Pixel-perfect execution in every manifestation." },
-    { title: "DYNAMIC", text: "Always evolving with the latent space." }
-  ];
+  pdf.text("02. BRAND BOOK RULES", margin, 40);
 
-  voice.forEach((v, i) => {
-    pdf.setFontSize(14);
-    pdf.setTextColor(164, 255, 0); // Neon Lime
-    pdf.text(v.title, margin, 70 + (i * 40));
-    pdf.setFontSize(12);
-    pdf.setTextColor(200, 200, 200);
-    pdf.text(v.text, margin, 80 + (i * 40));
-  });
-
-  pdf.setFillColor(79, 70, 229, 0.1);
-  pdf.rect(margin, 230, 170, 40, 'F');
-  pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(14);
-  pdf.text("MISSION STATEMENT", margin + 10, 245);
+  pdf.setTextColor(164, 255, 0);
+  pdf.text("CLEAR SPACE & MINIMUM SIZING", margin, 60);
+  
+  pdf.setDrawColor(255, 255, 255, 0.1);
+  for(let i=0; i<6; i++) {
+    pdf.line(margin + (i*20), 70, margin + (i*20), 150);
+    pdf.line(margin, 70 + (i*16), margin + 100, 70 + (i*16));
+  }
+  if (darkLogoUrl) pdf.addImage(darkLogoUrl, 'JPEG', margin + 20, 86, 60, 48);
+
+  pdf.setFontSize(10);
+  pdf.setTextColor(200, 200, 200);
+  pdf.text("The visual mark must maintain a clear boundary of space equal to 1/4 the logo width.", margin, 165);
+  pdf.text("Minimum digital sizing: 24px. Minimum print sizing: 10mm.", margin, 172);
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(255, 100, 100);
+  pdf.text("PROHIBITED MODIFICATIONS", margin, 200);
   pdf.setFontSize(10);
   pdf.setTextColor(180, 180, 180);
-  pdf.text("To empower creators with an AI-native brand building ecosystem.", margin + 10, 255);
+  pdf.text("1. Do not distort, stretch, or warp the logo.", margin, 215);
+  pdf.text("2. Do not apply drop shadows, glows, or unapproved gradients.", margin, 222);
+  pdf.text("3. Do not change the defined color palette or structural layout.", margin, 229);
+
+
+  // --- PAGE 4: COLOR PALETTE ---
+  pdf.addPage();
+  pdf.setFillColor(15, 23, 42);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(4, "COLOR PALETTE");
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.text("03. COLOR PALETTE", margin, 40);
+
+  const colors = [
+    { name: "KINETIC GREEN", hex: "#00B359", r: 0, g: 179, b: 89, cmyk: "85, 0, 75, 0", pms: "PANTONE 340 C" },
+    { name: "NEON LIME", hex: "#A4FF00", r: 164, g: 255, b: 0, cmyk: "35, 0, 100, 0", pms: "PANTONE 388 C" },
+    { name: "ELECTRIC YELLOW", hex: "#FFFF00", r: 255, g: 255, b: 0, cmyk: "0, 0, 100, 0", pms: "PANTONE Yellow C" },
+    { name: "DEEP PURPLE", hex: "#4B0082", r: 75, g: 0, b: 130, cmyk: "90, 100, 0, 0", pms: "PANTONE 2685 C" }
+  ];
+
+  colors.forEach((c, i) => {
+    const y = 60 + (i * 45);
+    pdf.setFillColor(c.r, c.g, c.b);
+    pdf.rect(margin, y, 35, 35, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(12);
+    pdf.text(c.name, margin + 45, y + 10);
+    pdf.setFontSize(9);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text(`HEX: ${c.hex}  |  RGB: ${c.r}, ${c.g}, ${c.b}`, margin + 45, y + 20);
+    pdf.text(`CMYK: ${c.cmyk}  |  PMS: ${c.pms}`, margin + 45, y + 27);
+  });
+
+  // --- PAGE 5: TYPOGRAPHY ---
+  pdf.addPage();
+  pdf.setFillColor(10, 10, 12);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(5, "TYPOGRAPHY");
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.text("04. TYPOGRAPHY", margin, 40);
+
+  pdf.setFontSize(12);
+  pdf.setTextColor(180, 180, 180);
+  pdf.text("Primary and secondary typefaces with structural rules.", margin, 50);
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text("PRIMARY DISPLAY: SPACE GROTESK (BOLD)", margin, 80);
+  pdf.setFontSize(30);
+  pdf.text("Aa Bb Cc 123", margin, 95);
+  pdf.setFontSize(9);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("Usage: Headers, hero titles. Tracking: +0.02em. Leading: 1.1.", margin, 105);
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text("SECONDARY BODY: INTER (REGULAR)", margin, 130);
+  pdf.setFontSize(20);
+  pdf.setFont("helvetica");
+  pdf.text("Aa Bb Cc Dd Ee Ff Gg 123456789", margin, 145);
+  pdf.setFontSize(9);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("Usage: Body copy, long-form text. Tracking: 0em. Leading: 1.5. Fallback: Arial.", margin, 155);
+
+  // --- PAGE 6: GRAPHIC DEVICES & ICONOGRAPHY ---
+  pdf.addPage();
+  pdf.setFillColor(15, 23, 42);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(6, "ICONOGRAPHY & DEVICES");
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.text("05. ICONOGRAPHY & DEVICES", margin, 40);
+  
+  pdf.setFontSize(14);
+  pdf.setTextColor(164, 255, 0);
+  pdf.text("VECTOR ALIGNMENT & STYLING", margin, 65);
+  
+  pdf.setDrawColor(255, 255, 255);
+  pdf.setLineWidth(1);
+  pdf.circle(margin + 15, 90, 10, 'S');
+  pdf.rect(margin + 40, 80, 20, 20, 'S');
+  pdf.roundedRect(margin + 80, 80, 20, 20, 3, 3, 'S');
+
+  pdf.setFontSize(9);
+  pdf.setTextColor(180, 180, 180);
+  pdf.text("Icons use uniform 2px stroke weights. Border radii match brand typography curves.", margin, 115);
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(164, 255, 0);
+  pdf.text("GRAPHIC DEVICES / TEXTURES", margin, 150);
+  
+  // Custom texture 
+  pdf.setDrawColor(255, 255, 255, 0.05);
+  for(let i=0; i<15; i++) {
+    pdf.line(margin, 160 + (i*4), margin + 60, 160 + (i*4));
+    pdf.line(margin + (i*4), 160, margin + (i*4), 220);
+  }
+  pdf.setTextColor(180, 180, 180);
+  pdf.text("Repeating architectural grid matrices represent technical stability.", margin, 235);
+
+
+  // --- PAGE 7: IMAGERY GUIDELINES ---
+  pdf.addPage();
+  pdf.setFillColor(10, 10, 12);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(7, "IMAGERY GUIDELINES");
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.text("06. IMAGERY GUIDELINES", margin, 40);
+
+  // We'll mimic an image guideline layout
+  pdf.setFillColor(30, 30, 35);
+  pdf.rect(margin, 60, 80, 50, 'F');
+  pdf.rect(110, 60, 80, 50, 'F');
+  
+  pdf.setFontSize(12);
+  pdf.setTextColor(200, 200, 200);
+  pdf.text("PHOTOGRAPHY STYLE:", margin, 130);
+  pdf.setFontSize(10);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("High-contrast, moody lighting, desaturated shadows with neon subject highlights. Composition usually features negative space on the left or top to allow for text.", margin, 140, { maxWidth: 170 });
+
+  // --- PAGE 8: BRAND ASSETS (STATIONERY, DIGITAL, UI) ---
+  pdf.addPage();
+  pdf.setFillColor(15, 23, 42);
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+  renderHeader(8, "BRAND ASSETS KITS");
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.text("07. APPLICATION & ASSETS", margin, 40);
+
+  pdf.setFontSize(12);
+  pdf.setTextColor(0, 179, 89);
+  pdf.text("STATIONERY KIT", margin, 70);
+  pdf.setFontSize(9);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("Business Cards: 85x55mm, Printed on matte black 400gsm with clear spot UV logo.", margin, 80);
+  pdf.text("Letterheads: A4 clean layout, typography anchored to left margin.", margin, 87);
+
+  pdf.setFontSize(12);
+  pdf.setTextColor(0, 179, 89);
+  pdf.text("DIGITAL COLLATERAL", margin, 115);
+  pdf.setFontSize(9);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("Social Avatars: Must use Primary Dark variant on #000000. No text overlays.", margin, 125);
+  pdf.text("Email Signatures: HTML standard Roboto fallback, #A4FF00 accent line.", margin, 132);
+
+  pdf.setFontSize(12);
+  pdf.setTextColor(0, 179, 89);
+  pdf.text("UI/UX COMPONENT LIBRARY", margin, 160);
+  pdf.setFontSize(9);
+  pdf.setTextColor(150, 150, 150);
+  pdf.text("Buttons: Sharp corners (0px radius) for structural, 8px for fluid interactive elements.", margin, 170);
+  pdf.text("Navigation: Glassmorphism / backdrop-blur with 15% white opacity.", margin, 177);
 
   const pdfBlob = pdf.output('blob');
   const link = document.createElement('a');

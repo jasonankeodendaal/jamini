@@ -254,173 +254,85 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0A0A0C] text-white font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden">
       {/* Header */}
-      <header className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0E0E11] shrink-0 z-20">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="text-white/50 hover:text-white transition-colors group flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
-              <ArrowLeft className="w-4 h-4" />
+      <header className="h-9 md:h-10 flex items-center justify-between px-1.5 md:px-2 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-20">
+        <div className="flex items-center gap-1 md:gap-2">
+          <button onClick={onBack} className="text-white/50 hover:text-white transition-colors group flex items-center gap-1">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
+              <ArrowLeft className="w-2.5 h-2.5 md:w-3 md:h-3" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Back to Studio</span>
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest ">Back</span>
           </button>
-          <div className="h-4 w-px bg-white/10 mx-2" />
-          <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
-                <Video className="w-4 h-4 text-indigo-400" />
+          <div className="h-3 md:h-4 w-px bg-white/10 mx-1 md:mx-2" />
+          <div className="flex items-center gap-1.5 md:gap-3">
+             <div className="w-6 h-6 md:w-8 md:h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                <Video className="w-3 h-3 md:w-4 md:h-4 text-indigo-400" />
              </div>
              <div className="flex flex-col">
-                <h1 className="text-xs font-black uppercase tracking-widest text-white/90">Production Storyboard</h1>
-                <span className="text-[8px] text-white/30 font-mono uppercase tracking-[0.2em]">Cinematic Sequence Engine</span>
+                <h1 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/90">Storyboard</h1>
+                <span className="text-[7px] md:text-[8px] text-white/30 font-mono uppercase tracking-[0.2em] hidden xs:inline">Sequence Engine</span>
              </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex bg-[#0A0A0C] border border-white/10 rounded-lg p-1 mr-4">
+        <div className="flex items-center gap-1.5 md:gap-3">
+          <div className="hidden sm:flex bg-[#0A0A0C] border border-white/10 rounded-lg p-0.5 md:p-1 mr-1 md:mr-4">
             <button 
               onClick={() => setViewMode('visual')}
               className={cn(
-                "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                "px-2 py-1 md:px-3 md:py-1.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 md:gap-2",
                 viewMode === 'visual' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
               )}
             >
-              <Film className="w-3 h-3" /> Storyboard
+              <Film className="w-2.5 h-2.5 md:w-3 md:h-3" /> Storyboard
             </button>
             <button 
               onClick={() => setViewMode('script')}
               className={cn(
-                "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                "px-2 py-1 md:px-3 md:py-1.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 md:gap-2",
                 viewMode === 'script' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
               )}
             >
-              <FileText className="w-3 h-3" /> Master Script
+              <FileText className="w-2.5 h-2.5 md:w-3 md:h-3" /> Script
             </button>
           </div>
 
-          {status === 'success' && (
-            <motion.div 
-               initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-               className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full"
-            >
-               <Check className="w-3 h-3 text-green-400" />
-               <span className="text-[9px] font-black text-green-400 uppercase tracking-tighter">Script Sync Ready</span>
-            </motion.div>
-          )}
           <button 
             onClick={simulateVideoGeneration}
             disabled={isGenerating || isPreviewing}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"
+            className="flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"
           >
-            <MonitorPlay className="w-4 h-4" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Master Preview</span>
+            <MonitorPlay className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">Preview</span>
           </button>
           <button 
             onClick={generateVideoScript}
             disabled={isGeneratingScript}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all",
+              "flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all",
               isGeneratingScript && "opacity-50 cursor-not-allowed"
             )}
           >
-            {isGeneratingScript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
-            <span className="text-[10px] font-black uppercase tracking-widest">Script Architect</span>
+            {isGeneratingScript ? <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" /> : <Layers className="w-3 h-3 md:w-4 md:h-4" />}
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">Script</span>
           </button>
           <button 
             onClick={generateAIPrompt}
             disabled={isGenerating}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
+              "flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
               isGenerating && "opacity-50 cursor-not-allowed"
             )}
           >
-            {isGenerating ? <Zap className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            <span className="text-[10px] font-black uppercase tracking-widest">AI Storyboard Gen</span>
+            {isGenerating ? <Zap className="w-3 h-3 md:w-4 md:h-4 animate-spin" /> : <Sparkles className="w-3 h-3 md:w-4 md:h-4" />}
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">AI Gen</span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar: Scene List */}
-        <aside className="w-80 border-r border-white/5 bg-[#0E0E11] flex flex-col shrink-0">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between">
-             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Sequence Logic</h3>
-             <button onClick={addScene} className="p-1.5 hover:bg-white/10 rounded-lg text-white/60 transition-all">
-                <Plus className="w-4 h-4" />
-             </button>
-          </div>
-          <Reorder.Group axis="y" values={scenes} onReorder={handleReorder} className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-            {scenes.map((scene, idx) => (
-              <Reorder.Item
-                key={scene.id}
-                value={scene}
-                onClick={() => setActiveSceneIndex(idx)}
-                className={cn(
-                  "w-full p-4 rounded-xl border transition-all text-left group relative overflow-hidden cursor-grab active:cursor-grabbing",
-                  activeSceneIndex === idx 
-                    ? "bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)] translate-x-1" 
-                    : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
-                )}
-              >
-                <div className="absolute top-2 right-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                  <GripVertical className="w-3 h-3" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/5 to-indigo-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-[9px] font-black w-5 h-5 rounded flex items-center justify-center",
-                      activeSceneIndex === idx ? "bg-indigo-500 text-white" : "bg-white/10 text-white/40"
-                    )}>
-                      {idx + 1}
-                    </span>
-                    <span className="text-[10px] font-bold text-white/80 uppercase">Scene {idx + 1}</span>
-                  </div>
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={scene.duration}
-                      onChange={(e) => {
-                        const val = Math.max(0.5, parseFloat(e.target.value) || 0);
-                        updateScene(idx, { duration: val });
-                      }}
-                      className="w-8 bg-transparent text-[9px] font-mono text-indigo-400/60 text-right focus:text-indigo-400 focus:outline-none focus:ring-0 appearance-none border-b border-white/5 hover:border-indigo-500/30 transition-all"
-                    />
-                    <span className="text-[9px] font-mono text-white/20">s</span>
-                  </div>
-                </div>
-                <p className="text-[10px] text-white/40 line-clamp-2 leading-relaxed mb-3">
-                  {scene.prompt || "No visual direction set..."}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {scene.cameraMotion && (
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-[7px] font-bold text-white/30 uppercase border border-white/5 whitespace-nowrap">
-                      {scene.cameraMotion}
-                    </span>
-                  )}
-                  {scene.transitionType && (
-                    <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-[7px] font-bold text-indigo-400/60 uppercase border border-indigo-500/10 whitespace-nowrap">
-                      {scene.transitionType}
-                    </span>
-                  )}
-                  {scene.audioCue && (
-                    <span className="px-1.5 py-0.5 rounded bg-white/5 text-[7px] font-bold text-white/30 uppercase border border-white/5 whitespace-nowrap flex items-center gap-1">
-                      <Play className="w-1.5 h-1.5" /> {scene.audioCue}
-                    </span>
-                  )}
-                </div>
-                {activeSceneIndex === idx && (
-                  <motion.div layoutId="sceneHighlight" className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500" />
-                )}
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-        </aside>
-
-        {/* Main Editor: Scene Details */}
-        <section className="flex-1 bg-[#0A0A0C] overflow-y-auto p-8 custom-scrollbar">
+      <main className="flex-1 overflow-y-auto bg-transparent custom-scrollbar p-2 md:p-4 lg:p-8 flex flex-col items-center">
+        <div className="max-w-5xl w-full mx-auto space-y-4 md:space-y-6 pb-32">
           <AnimatePresence mode="wait">
             {viewMode === 'script' ? (
               <motion.div
@@ -430,15 +342,15 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-4xl mx-auto space-y-8 pb-20"
               >
-                <div className="flex items-end justify-between border-b border-white/5 pb-6">
+                <div className="flex flex-col lg:flex-row items-start md:items-end justify-between border-b border-white/5 pb-6 gap-4">
                    <div className="space-y-2">
                       <div className="flex items-center gap-3">
                          <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-widest">
                             Official Shooting Script
                          </div>
-                         <h2 className="text-3xl font-black tracking-tighter">Production Narrative</h2>
+                         <h2 className="text-xl md:text-3xl font-black tracking-tighter">Production Narrative</h2>
                       </div>
-                      <p className="text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono tracking-widest">MASTER ARCHIVE: {editorState.style}</p>
+                      <p className="text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono tracking-widest break-all">MASTER ARCHIVE: {editorState.style}</p>
                    </div>
                    <button 
                      onClick={() => {
@@ -449,206 +361,151 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                         a.download = `shooting_script_${Date.now()}.txt`;
                         a.click();
                      }}
-                     className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                     className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all"
                    >
                      <Download className="w-4 h-4" /> Download TXT
                    </button>
                 </div>
 
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-10 min-h-[500px]">
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-10 min-h-[500px]">
                    {editorState.videoScript ? (
                       <div className="prose prose-invert max-w-none">
-                        <pre className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-white/80 font-mono tracking-tight bg-transparent p-0 border-none">
+                        <pre className="text-xs md:text-sm font-medium leading-relaxed whitespace-pre-wrap text-white/80 font-mono tracking-tight bg-transparent p-0 border-none overflow-x-hidden">
                           {editorState.videoScript}
                         </pre>
                       </div>
                    ) : (
-                      <div className="flex flex-col items-center justify-center min-h-[400px] text-white/10">
-                         <FileText className="w-20 h-20 mb-6 opacity-20" />
-                         <p className="text-sm font-black uppercase tracking-widest text-center max-w-sm">
+                      <div className="flex flex-col items-center justify-center min-h-[400px] text-white/10 p-4 text-center">
+                         <FileText className="w-16 h-16 md:w-20 md:h-20 mb-6 opacity-20" />
+                         <p className="text-xs md:text-sm font-black uppercase tracking-widest max-w-sm">
                            No script architecture detected. Use the 'Script Architect' button to synthesize your production narrative.
                          </p>
                       </div>
                    )}
                 </div>
               </motion.div>
-            ) : activeSceneIndex !== null && scenes[activeSceneIndex] ? (
-              <motion.div
-                key={scenes[activeSceneIndex].id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="max-w-4xl mx-auto space-y-12 pb-20"
-              >
-                {/* Scene Header */}
-                <div className="flex items-end justify-between border-b border-white/5 pb-6">
-                   <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                         <div className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded text-[9px] font-black text-indigo-400 uppercase tracking-widest">
-                            Pro Shot Control
-                         </div>
-                         <h2 className="text-3xl font-black tracking-tighter">Director's Script: Scene {activeSceneIndex + 1}</h2>
-                      </div>
-                      <p className="text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono">ID: {scenes[activeSceneIndex].id.split('-')[0]}</p>
-                   </div>
-                   <button 
-                      onClick={() => deleteScene(scenes[activeSceneIndex].id)}
-                      className="p-2 text-white/20 hover:text-red-400 transition-colors"
-                    >
-                     <Trash2 className="w-5 h-5" />
-                   </button>
-                </div>
-
-                {/* Visual Direction */}
-                <div className="space-y-4">
-                   <div className="flex items-center gap-2 text-indigo-400">
-                      <Eye className="w-4 h-4" />
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Visual Prompt & Direction</h4>
-                   </div>
-                   <textarea
-                     value={scenes[activeSceneIndex].prompt}
-                     onChange={(e) => updateScene(activeSceneIndex, { prompt: e.target.value })}
-                     placeholder="Describe the cinematic visual for this scene..."
-                     className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-6 text-sm text-white/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none leading-relaxed"
-                   />
-                </div>
-
-                {/* Pro Controls Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                   {/* Camera Motion */}
-                   <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest">
-                         <Camera className="w-3 h-3" /> Camera Motion
-                      </label>
-                      <select 
-                        value={scenes[activeSceneIndex].cameraMotion}
-                        onChange={(e) => updateScene(activeSceneIndex, { cameraMotion: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-white/80 focus:border-indigo-500"
-                      >
-                         {CAMERA_MOTIONS.map(m => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                   </div>
-
-                   {/* Lens Type */}
-                   <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest">
-                         <Focus className="w-3 h-3" /> Lens Type
-                      </label>
-                      <select 
-                        value={scenes[activeSceneIndex].lensType}
-                        onChange={(e) => updateScene(activeSceneIndex, { lensType: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-white/80 focus:border-indigo-500"
-                      >
-                         {LENS_TYPES.map(l => <option key={l} value={l}>{l}</option>)}
-                      </select>
-                   </div>
-
-                   {/* Duration */}
-                   <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest">
-                         <Zap className="w-3 h-3" /> Duration (Sec)
-                      </label>
-                      <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5">
-                        <input 
-                          type="range" 
-                          min="0.5"
-                          max="15"
-                          step="0.5"
-                          value={scenes[activeSceneIndex].duration}
-                          onChange={(e) => updateScene(activeSceneIndex, { duration: parseFloat(e.target.value) })}
-                          className="flex-1 accent-indigo-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                        />
-                        <div className="flex items-center gap-1 border-l border-white/10 pl-3 w-14 shrink-0">
-                          <input 
-                            type="number" 
-                            min="0.5"
-                            max="60"
-                            step="0.5"
-                            value={scenes[activeSceneIndex].duration}
-                            onChange={(e) => {
-                              const val = Math.max(0.5, parseFloat(e.target.value) || 0);
-                              updateScene(activeSceneIndex, { duration: val });
-                            }}
-                            className="w-full bg-transparent text-[11px] font-bold text-indigo-400 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                   </div>
-
-                   {/* Transition */}
-                   <div className="space-y-3">
-                      <label className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest">
-                         <MonitorPlay className="w-3 h-3" /> Transition
-                      </label>
-                      <select 
-                        value={scenes[activeSceneIndex].transitionType}
-                        onChange={(e) => updateScene(activeSceneIndex, { transitionType: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-white/80 focus:border-indigo-500"
-                      >
-                         {TRANSITIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                   </div>
-                </div>
-
-                {/* Secondary Logic */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
-                   {/* Lighting Cues */}
-                   <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-amber-400">
-                         <Zap className="w-3 h-3" />
-                         <span className="text-[9px] font-black uppercase tracking-widest">Lighting Design</span>
-                      </div>
-                      <input 
-                        type="text" 
-                        value={scenes[activeSceneIndex].lighting || ''}
-                        onChange={(e) => updateScene(activeSceneIndex, { lighting: e.target.value })}
-                        placeholder="e.g., God rays through dust, 4000K warm..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-medium text-white/80"
-                      />
-                   </div>
-
-                   {/* Audio / FX Cues */}
-                   <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-indigo-400">
-                         <Play className="w-3 h-3" />
-                         <span className="text-[9px] font-black uppercase tracking-widest">Audio & SFX Cues</span>
-                      </div>
-                      <input 
-                        type="text" 
-                        value={scenes[activeSceneIndex].audioCue || ''}
-                        onChange={(e) => updateScene(activeSceneIndex, { audioCue: e.target.value })}
-                        placeholder="e.g., Deep sub-bass swell, mechanical click..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-medium text-white/80"
-                      />
-                   </div>
-                </div>
-
-                {/* Pro Ability Matrix */}
-                <div className="bg-indigo-500/5 rounded-3xl p-8 border border-indigo-500/10 mb-8">
-                   <div className="flex items-center gap-2 mb-6">
-                      <Wand2 className="w-4 h-4 text-indigo-400" />
-                      <h3 className="text-sm font-black uppercase tracking-widest">Pro Scene Capabilities</h3>
-                   </div>
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { label: 'Auto-Exposure Lock', active: true },
-                        { label: 'Dynamic Focus Tracking', active: true },
-                        { label: 'Temporal Smoothing', active: false },
-                        { label: 'Global Illumination Sync', active: true },
-                      ].map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 px-3 py-2 bg-black/40 rounded-lg border border-white/5">
-                           <div className={cn("w-1.5 h-1.5 rounded-full", feature.active ? "bg-indigo-400 animate-pulse" : "bg-white/10")} />
-                           <span className="text-[9px] font-bold text-white/40 uppercase whitespace-nowrap">{feature.label}</span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-              </motion.div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-white/20 space-y-4">
-                <Film className="w-12 h-12" />
-                <p className="text-sm font-bold uppercase tracking-widest">Select a scene to direct</p>
-              </div>
+              <motion.div
+                key="visual-storyboard"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-6"
+              >
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-4 lg:p-6 bg-white/[0.02] border border-white/5 rounded-2xl gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] font-black text-indigo-400 uppercase tracking-widest hidden lg:block">
+                      Sequence Logic
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white/80">Storyboard Timeline</h3>
+                      <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Drag cards to reorder scenes</p>
+                    </div>
+                  </div>
+                  <button onClick={addScene} className="w-full lg:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[11px] font-black uppercase tracking-widest text-white shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all active:scale-95">
+                    <Plus className="w-4 h-4" /> Add Scene
+                  </button>
+                </div>
+
+                <Reorder.Group axis="y" values={scenes} onReorder={handleReorder} className="space-y-6">
+                   {scenes.map((scene, activeSceneIndex) => (
+                      <Reorder.Item
+                        key={scene.id}
+                        value={scene}
+                        className="w-full bg-[#0E0E11] border border-white/5 hover:border-white/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-lg group relative"
+                      >
+                         <div className="md:absolute top-6 right-6 opacity-40 group-hover:opacity-80 transition-opacity z-10 hidden md:flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-5 h-5 text-white/40" />
+                         </div>
+
+                         {/* Inline Card Editor */}
+                         <div className="p-3 md:p-8 space-y-4 md:space-y-8">
+                            <div className="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-white/5 pb-4 md:pb-6 gap-4 relative">
+                               <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                     <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                        <GripVertical className="w-3 h-3 md:hidden cursor-grab active:cursor-grabbing text-indigo-400/50" />
+                                        Scene {activeSceneIndex + 1}
+                                     </div>
+                                  </div>
+                                  <p className="text-[10px] md:text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono">ID: {scene.id.split('-')[0]}</p>
+                               </div>
+                               <button onClick={() => deleteScene(scene.id)} className="p-2 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors absolute top-0 right-0 md:relative md:top-auto md:right-auto">
+                                 <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                               </button>
+                            </div>
+
+                            {/* Visual Direction */}
+                            <div className="space-y-3 md:space-y-4">
+                               <div className="flex items-center gap-2 text-indigo-400">
+                                  <Eye className="w-4 h-4" />
+                                  <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Visual Prompt & Direction</h4>
+                               </div>
+                               <textarea
+                                 value={scene.prompt}
+                                 onChange={(e) => updateScene(activeSceneIndex, { prompt: e.target.value })}
+                                 placeholder="Describe the cinematic visual for this scene..."
+                                 className="w-full h-24 md:h-32 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 text-xs md:text-sm text-white/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none leading-relaxed outline-none"
+                               />
+                            </div>
+
+                            {/* Pro Controls Grid */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                               <div className="space-y-2 md:space-y-3">
+                                  <label className="flex items-center gap-2 text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest"><Camera className="w-3 h-3" /> <span className="hidden md:inline">Camera</span> Motion</label>
+                                  <select value={scene.cameraMotion} onChange={(e) => updateScene(activeSceneIndex, { cameraMotion: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-[10px] md:text-[11px] font-bold text-white/80 focus:border-indigo-500 outline-none text-ellipsis">
+                                     {CAMERA_MOTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+                                  </select>
+                               </div>
+
+                               <div className="space-y-2 md:space-y-3">
+                                  <label className="flex items-center gap-2 text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest"><Focus className="w-3 h-3" /> Lens Type</label>
+                                  <select value={scene.lensType} onChange={(e) => updateScene(activeSceneIndex, { lensType: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-[10px] md:text-[11px] font-bold text-white/80 focus:border-indigo-500 outline-none text-ellipsis">
+                                     {LENS_TYPES.map(l => <option key={l} value={l}>{l}</option>)}
+                                  </select>
+                               </div>
+
+                               <div className="space-y-2 md:space-y-3">
+                                  <label className="flex items-center gap-2 text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest"><Zap className="w-3 h-3" /> Duration <span className="hidden md:inline">(Sec)</span></label>
+                                  <div className="flex items-center gap-2 md:gap-4 bg-white/5 border border-white/10 rounded-xl px-3 py-2 md:px-4 md:py-2.5">
+                                    <input type="range" min="0.5" max="15" step="0.5" value={scene.duration} onChange={(e) => updateScene(activeSceneIndex, { duration: parseFloat(e.target.value) })} className="flex-1 accent-indigo-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer" />
+                                    <div className="flex items-center gap-1 border-l border-white/10 pl-2 md:pl-3 w-10 md:w-14 shrink-0">
+                                      <input type="number" min="0.5" max="60" step="0.5" value={scene.duration} onChange={(e) => { const val = Math.max(0.5, parseFloat(e.target.value) || 0); updateScene(activeSceneIndex, { duration: val }); }} className="w-full bg-transparent text-[10px] md:text-[11px] font-bold text-indigo-400 focus:outline-none" />
+                                    </div>
+                                  </div>
+                               </div>
+
+                               <div className="space-y-2 md:space-y-3">
+                                  <label className="flex items-center gap-2 text-[8px] md:text-[9px] font-black text-white/40 uppercase tracking-widest"><MonitorPlay className="w-3 h-3" /> Transition</label>
+                                  <select value={scene.transitionType} onChange={(e) => updateScene(activeSceneIndex, { transitionType: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-[10px] md:text-[11px] font-bold text-white/80 focus:border-indigo-500 outline-none text-ellipsis">
+                                     {TRANSITIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                                  </select>
+                               </div>
+                            </div>
+
+                            {/* Secondary Logic */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 pt-6 md:pt-8 border-t border-white/5">
+                               <div className="space-y-2 md:space-y-4">
+                                  <div className="flex items-center gap-2 text-amber-400">
+                                     <Zap className="w-3 h-3" />
+                                     <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Lighting Design</span>
+                                  </div>
+                                  <input type="text" value={scene.lighting || ''} onChange={(e) => updateScene(activeSceneIndex, { lighting: e.target.value })} placeholder="e.g., God rays through dust..." className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 md:px-4 md:py-4 text-[10px] md:text-xs font-medium text-white/80 outline-none focus:border-amber-500/50 transition-colors" />
+                               </div>
+
+                               <div className="space-y-2 md:space-y-4">
+                                  <div className="flex items-center gap-2 text-indigo-400">
+                                     <Play className="w-3 h-3" />
+                                     <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Audio & SFX</span>
+                                  </div>
+                                  <input type="text" value={scene.audioCue || ''} onChange={(e) => updateScene(activeSceneIndex, { audioCue: e.target.value })} placeholder="e.g., Deep sub-bass swell..." className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 md:px-4 md:py-4 text-[10px] md:text-xs font-medium text-white/80 outline-none focus:border-indigo-500/50 transition-colors" />
+                               </div>
+                            </div>
+                         </div>
+                      </Reorder.Item>
+                   ))}
+                </Reorder.Group>
+              </motion.div>
             )}
           </AnimatePresence>
 
@@ -774,25 +631,25 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
               </motion.div>
             )}
           </AnimatePresence>
-        </section>
+        </div>
       </main>
 
       {/* Footer / Overlay Effects */}
-      <footer className="h-12 border-t border-white/5 bg-[#0E0E11] px-6 flex items-center justify-between z-10 shrink-0">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Engine Live</span>
+      <footer className="h-8 md:h-10 border-t border-white/5 bg-black/40 backdrop-blur-md px-2 md:px-3 flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-2 md:gap-4">
+             <div className="flex items-center gap-1.5 md:gap-2">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500 animate-ping" />
+                <span className="text-[8px] md:text-[9px] font-black uppercase text-indigo-400 tracking-widest">Engine Live</span>
              </div>
              <div className="h-3 w-px bg-white/10" />
-             <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest">Total Duration: {scenes.reduce((acc, s) => acc + s.duration, 0)}s</span>
+             <span className="text-[8px] md:text-[9px] font-mono text-white/20 uppercase tracking-widest hidden xs:inline">Total: {scenes.reduce((acc, s) => acc + s.duration, 0)}s</span>
           </div>
-          <div className="flex items-center gap-4">
-             <button className="text-[9px] font-black text-white/30 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2">
-                <FileText className="w-3 h-3" /> Export Shooting Script
+          <div className="flex items-center gap-3 md:gap-4">
+             <button className="text-[8px] md:text-[9px] font-black text-white/30 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+                <FileText className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden xs:inline">Shoot Script</span><span className="xs:hidden">Script</span>
              </button>
-             <button className="text-[9px] font-black text-white/30 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2">
-                <Download className="w-3 h-3" /> Batch PDF Storyboard
+             <button className="text-[8px] md:text-[9px] font-black text-white/30 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1.5 md:gap-2">
+                <Download className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden xs:inline">PDF Storyboard</span><span className="xs:hidden">PDF</span>
              </button>
           </div>
       </footer>

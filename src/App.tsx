@@ -371,6 +371,15 @@ const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", o
 });
 
 
+const SystemBackground = () => (
+  <div className="fixed inset-0 z-[-1] bg-[#030014] overflow-hidden pointer-events-none">
+    <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+    <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[150px] mix-blend-screen" />
+    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay" />
+  </div>
+);
+
 const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJamini: () => void }) => {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
 
@@ -425,16 +434,8 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030014] overflow-hidden"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-transparent overflow-hidden"
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[150px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay" />
-      </div>
-
       <div className="relative z-10 flex flex-col items-center text-center px-4">
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 30 }}
@@ -624,44 +625,44 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full bg-[#050505] text-white p-6 lg:p-12 overflow-y-auto custom-scrollbar relative">
-      <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-indigo-900/20 via-indigo-900/5 to-transparent pointer-events-none" />
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full bg-[#050505] text-white p-4 lg:p-8 overflow-y-auto custom-scrollbar relative">
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-indigo-900/20 via-indigo-900/5 to-transparent pointer-events-none" />
       
       {/* Abstract Background Noise */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
 
       <div className="max-w-5xl mx-auto relative z-10 pb-32">
-        <div className="flex items-center justify-between mb-12">
-          <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-all group bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl border border-white/10 w-fit backdrop-blur-md">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Studio
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-all group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 w-fit backdrop-blur-md text-[10px]">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Studio
           </button>
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-300">v4.0 Enterprise</span>
-            <span className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-green-300">System Ready</span>
+            <span className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-300">v4.0 Ent</span>
+            <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded-full text-[8px] font-black uppercase tracking-widest text-green-300">Ready</span>
           </div>
         </div>
         
-        <div className="mb-20 text-left">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
-            <div className="space-y-4 max-w-2xl">
+        <div className="mb-10 text-left">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+            <div className="space-y-2 max-w-2xl">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/10 text-white/40 mb-4">
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-mono tracking-widest uppercase">Protocol: Global Deployment</span>
+                <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-white/5 rounded-lg border border-white/10 text-white/40 mb-2">
+                  <Terminal className="w-3 h-3" />
+                  <span className="text-[8px] font-mono tracking-widest uppercase">Protocol: Global Deployment</span>
                 </div>
-                <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-white/20">
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-[0.9] bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-white/20">
                   Engineering <br/> <span className="text-indigo-400">Excellence.</span>
                 </h1>
               </motion.div>
             </div>
             <div className="hidden lg:block">
-              <div className="w-32 h-32 bg-indigo-500/5 rounded-3xl border border-indigo-500/20 flex items-center justify-center p-6 relative">
-                <div className="absolute inset-0 bg-indigo-500/10 blur-2xl rounded-full animate-pulse" />
+              <div className="w-20 h-20 bg-indigo-500/5 rounded-2xl border border-indigo-500/20 flex items-center justify-center p-4 relative">
+                <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full animate-pulse" />
                 <Cpu className="w-full h-full text-indigo-400/50 relative z-10" />
               </div>
             </div>
           </div>
-          <p className="text-xl text-white/40 max-w-3xl leading-relaxed font-medium">
+          <p className="text-sm md:text-lg text-white/40 max-w-3xl leading-relaxed font-medium">
             This guide provides the low-level technical mapping required to move JAMINI from a preview instance to your private infrastructure. Follow these steps to ensure state persistence, high-availability deployments, and secure AI bridging.
           </p>
         </div>
@@ -1363,6 +1364,8 @@ const AutoResizeTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElem
     />
   );
 };
+
+import { handleUniversalDownload, zipAllFormats, ALL_ADOBE_FORMATS, ALL_COREL_FORMATS, FORMAT_DESCRIPTIONS } from './services/exportService';
 
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
@@ -2451,10 +2454,11 @@ export default function App() {
       const colorText = themeColors.length > 0 ? `Use the following color theme: ${themeColors.join(', ')}.` : '';
       
       const specificAssetPrompts = [
-        ...productAssets.filter(a => a.prompt?.trim() || a.material || a.lightingInteraction || a.position).map(a => `Product Asset (${a.name}): ${a.prompt} ${a.material ? `| Material: ${a.material}` : ''} ${a.lightingInteraction ? `| Lighting: ${a.lightingInteraction}` : ''} ${a.position ? `| Position: ${a.position}` : ''} -> CRITICAL: This is a strict product placement. DO NOT regenerate, redraw, or make mistakes on this product. It MUST be identical to the uploaded asset. No changes to uploaded assets are allowed to avoid false advertisement.`),
-        ...(brandLogoAsset?.prompt?.trim() || brandLogoAsset?.material || brandLogoAsset?.lightingInteraction || brandLogoAsset?.position ? [`Brand Logo Asset: ${brandLogoAsset.prompt} ${brandLogoAsset.material ? `| Material: ${brandLogoAsset.material}` : ''} ${brandLogoAsset.lightingInteraction ? `| Lighting: ${brandLogoAsset.lightingInteraction}` : ''} ${brandLogoAsset.position ? `| Position: ${brandLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided.`] : []),
-        ...(companyLogoAsset?.prompt?.trim() || companyLogoAsset?.material || companyLogoAsset?.lightingInteraction || companyLogoAsset?.position ? [`Company Logo Asset: ${companyLogoAsset.prompt} ${companyLogoAsset.material ? `| Material: ${companyLogoAsset.material}` : ''} ${companyLogoAsset.lightingInteraction ? `| Lighting: ${companyLogoAsset.lightingInteraction}` : ''} ${companyLogoAsset.position ? `| Position: ${companyLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided.`] : []),
-        ...(characterAsset?.prompt?.trim() || characterAsset?.material || characterAsset?.lightingInteraction || characterAsset?.position ? [`Character Asset: ${characterAsset.prompt} ${characterAsset.material ? `| Material: ${characterAsset.material}` : ''} ${characterAsset.lightingInteraction ? `| Lighting: ${characterAsset.lightingInteraction}` : ''} ${characterAsset.position ? `| Position: ${characterAsset.position}` : ''}`] : [])
+        ...productAssets.map(a => `Product Asset (${a.name}): ${a.prompt || ''} ${a.material ? `| Material: ${a.material}` : ''} ${a.lightingInteraction ? `| Lighting: ${a.lightingInteraction}` : ''} ${a.position ? `| Position: ${a.position}` : ''} -> CRITICAL: This is a strict product placement. DO NOT regenerate, redraw, or make mistakes on this product. It MUST be identical to the uploaded asset. No changes to uploaded assets are allowed to avoid false advertisement.`),
+        ...(brandLogoAsset ? [`Brand Logo Asset: ${brandLogoAsset.prompt || ''} ${brandLogoAsset.material ? `| Material: ${brandLogoAsset.material}` : ''} ${brandLogoAsset.lightingInteraction ? `| Lighting: ${brandLogoAsset.lightingInteraction}` : ''} ${brandLogoAsset.position ? `| Position: ${brandLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided. uploaded logos should look identical to keep consistency in regenerate logo exactly posters.`] : []),
+        ...(companyLogoAsset ? [`Company Logo Asset: ${companyLogoAsset.prompt || ''} ${companyLogoAsset.material ? `| Material: ${companyLogoAsset.material}` : ''} ${companyLogoAsset.lightingInteraction ? `| Lighting: ${companyLogoAsset.lightingInteraction}` : ''} ${companyLogoAsset.position ? `| Position: ${companyLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided. uploaded logos should look identical to keep consistency in regenerate logo exactly posters.`] : []),
+        ...(characterAsset ? [`Character Asset: ${characterAsset.prompt || ''} ${characterAsset.material ? `| Material: ${characterAsset.material}` : ''} ${characterAsset.lightingInteraction ? `| Lighting: ${characterAsset.lightingInteraction}` : ''} ${characterAsset.position ? `| Position: ${characterAsset.position}` : ''}`] : []),
+        ...(companyCIAsset ? [`COMPANY CI BIBLE ASSET: The user has uploaded a Corporate Identity (CI) / Brand Book documentation. CRITICAL: You MUST strictly conform all typography, colors, padding, logo layout rules, iconography, styling treatments, imagery treatments, and brand voice to exactly match the rules outlined in this CI documentation. Disobeying the CI rulebook is a failure condition.`] : [])
       ].join('\n');
       
       const assetInstruction = specificAssetPrompts 
@@ -2771,26 +2775,9 @@ export default function App() {
     link.click();
   };
 
-  const downloadImage = (format: 'png' | 'jpg' | 'pdf' | 'vif') => {
+  const downloadImage = (format: string) => {
     if (!generatedImage) return;
-    if (format === 'png') {
-      const link = document.createElement('a'); link.href = generatedImage; link.download = `jamini-poster-${Date.now()}.png`; link.click(); return;
-    }
-    const img = new Image();
-    img.onload = () => {
-      if (format === 'pdf') {
-        const pdf = new jsPDF({ orientation: img.width > img.height ? 'landscape' : 'portrait', unit: 'px', format: [img.width, img.height] });
-        pdf.addImage(img, 'PNG', 0, 0, img.width, img.height); pdf.save(`jamini-poster-${Date.now()}.pdf`); return;
-      }
-      const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height;
-      const ctx = canvas.getContext('2d'); if (!ctx) return;
-      if (format === 'jpg') { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-      ctx.drawImage(img, 0, 0);
-      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/avif';
-      const dataUrl = canvas.toDataURL(mimeType, 0.9);
-      const link = document.createElement('a'); link.href = dataUrl; link.download = `jamini-poster-${Date.now()}.${format === 'vif' ? 'avif' : format}`; link.click();
-    };
-    img.src = generatedImage;
+    handleUniversalDownload(generatedImage, `jamini-generation-${Date.now()}`, format);
   };
 
 
@@ -2811,7 +2798,7 @@ export default function App() {
     if (!generationObjective) return <ObjectiveSelector />;
 
     return (
-      <div className="flex flex-col h-full bg-[#0E0E11] text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
+      <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
         {/* 3D/4D Popping Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
@@ -2854,7 +2841,7 @@ export default function App() {
         </div>
 
         {/* Desktop Header */}
-        <header className="hidden lg:flex h-12 border-b border-white/5 bg-[#0E0E11] shrink-0 items-center justify-between px-4 z-50 transform-gpu shadow-xl">
+        <header className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 items-center justify-between px-4 z-50 transform-gpu shadow-xl">
           <div className="flex items-center gap-4">
             <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
             <div className="h-4 w-px bg-white/10 mx-1" />
@@ -2941,7 +2928,7 @@ export default function App() {
         </header>
 
         {/* Mobile Header */}
-        <header className="lg:hidden h-14 border-b border-white/5 bg-[#0E0E11] shrink-0 flex items-center justify-between px-3 z-50 transform-gpu shadow-xl">
+        <header className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 flex items-center justify-between px-2 z-50 transform-gpu shadow-xl">
           <div className="flex items-center gap-2 shrink-0">
             <button 
               onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
@@ -2976,14 +2963,14 @@ export default function App() {
         </header>
 
         {/* Main Workspace */}
-        <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-[#0E0E11] items-center">
+        <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-transparent items-center">
           
           {/* Top Sub-Nav Workflow (Responsive) */}
           <div className={cn(
-             "w-full bg-[#18181C] border-b border-white/5 flex items-center shrink-0 z-30 px-2 py-1.5 md:py-2 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
+             "w-full bg-black/40 backdrop-blur-md border-b border-white/5 flex items-center shrink-0 z-30 px-1 py-1 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
              currentView === 'editor' && activeStep <= 3 ? "flex lg:justify-center" : "hidden lg:flex lg:justify-center"
           )}>
-             <div className="flex items-center gap-0.5 md:gap-2 bg-[#121214] p-0.5 md:p-1 rounded-xl border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
+             <div className="flex items-center gap-0.5 bg-[#121214] p-0.5 rounded-lg border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
                 <button onClick={() => setActiveStep(1)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Media
                 </button>
@@ -3317,16 +3304,21 @@ export default function App() {
                         </>
                       )}
                     </div>
-                  </div>
-
-                  <div className="space-y-2 lg:hidden">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider">General Asset Instructions</label>
-                      <button onClick={() => refinePromptText('asset')} disabled={isRefiningAsset || !assetPrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
-                        {isRefiningAsset ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
-                      </button>
-                    </div>
-                    <AutoResizeTextarea value={assetPrompt} onChange={(e) => setAssetPrompt(e.target.value)} placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" className="w-full min-h-[6rem] bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none" />
+                    
+                    {generationObjective !== 'logo' && (
+                      <div className="flex gap-4 p-4 mt-4 bg-[#18181C] border border-white/5 rounded-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-fuchsia-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-fuchsia-500/20 transition-all"></div>
+                        <div className="w-10 h-10 shrink-0 bg-[#0a0a0c] rounded-lg flex items-center justify-center border border-white/5">
+                          <Wand2 className="w-5 h-5 text-white/40" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider block">Text Content Engine</label>
+                          <select value={textEngine} onChange={(e) => setTextEngine(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs outline-none focus:border-indigo-500 text-white font-medium custom-scrollbar">
+                            {textEnginesList.map(e => <option key={e} value={e} className="bg-[#0a0a0c] text-white py-2">{e}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Mobile Mobile Next Button: Step 1 -> 2 */}
@@ -3908,26 +3900,19 @@ export default function App() {
 
               <div className={cn("space-y-6", activeStep === 3 ? "block" : "hidden")}>
                 <motion.div key="step3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><Wand2 className="w-3 h-3" /> Text Content Engine</label>
-                      <select value={textEngine} onChange={(e) => setTextEngine(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs outline-none focus:border-indigo-500 text-white">
-                        {textEnginesList.map(e => <option key={e} value={e} className="bg-[#0a0a0a] text-white">{e}</option>)}
-                      </select>
-                    </div>
-                  </div>
+                  {/* Text Content Engine relocated to step 1 */}
 
-                  <div className="space-y-2 lg:hidden">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
-                        {isLogoMode ? <Type className="w-3 h-3" /> : <LayoutIcon className="w-3 h-3" />}
+                        {isLogoMode ? <Type className="w-4 h-4" /> : <LayoutIcon className="w-4 h-4" />}
                         {isLogoMode ? "Brand Name / Style Concept" : "Scene Description"}
                       </label>
                       <div className="flex gap-2">
-                        <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[10px] flex items-center gap-1 bg-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
+                        <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[10px] flex items-center gap-1 bg-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
                           {isSuggestingScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />} Auto-Suggest
                         </button>
-                        <button onClick={() => refinePromptText('scene')} disabled={isRefiningScene || !scenePrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50">
+                        <button onClick={() => refinePromptText('scene')} disabled={isRefiningScene || !scenePrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
                           {isRefiningScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
                         </button>
                       </div>
@@ -3936,7 +3921,24 @@ export default function App() {
                       value={scenePrompt} 
                       onChange={(e) => setScenePrompt(e.target.value)} 
                       placeholder={isLogoMode ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : "Describe the environment, mood, and placement..."} 
-                      className="w-full min-h-[8rem] bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none" 
+                      className="w-full min-h-[8rem] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none placeholder:text-white/20" 
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" /> General Asset Directives
+                      </label>
+                      <button onClick={() => refinePromptText('asset')} disabled={isRefiningAsset || !assetPrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                        {isRefiningAsset ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                      </button>
+                    </div>
+                    <AutoResizeTextarea 
+                      value={assetPrompt} 
+                      onChange={(e) => setAssetPrompt(e.target.value)} 
+                      placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" 
+                      className="w-full min-h-[6rem] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none placeholder:text-white/20" 
                     />
                   </div>
 
@@ -4059,9 +4061,10 @@ export default function App() {
           )}>
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
             
-            <div className="flex-1 w-full h-full p-4 lg:p-0 flex flex-col relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
-              <AnimatePresence mode="wait">
-              {activeStep === 5 ? (
+            <div className="flex-1 w-full h-full p-4 lg:p-0 flex flex-col items-center justify-center relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
+              <div className="w-full max-w-5xl mx-auto">
+                <AnimatePresence mode="wait">
+                {activeStep === 5 ? (
                 <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-5xl w-full space-y-8 py-8 px-4 md:px-6 pb-24 mb-10 shadow-2xl bg-[#09090b]/90 backdrop-blur-3xl rounded-3xl border border-white/10 mx-auto mt-4 min-h-max transform-gpu lg:p-8">
                   
                   {/* Hero Section */}
@@ -4810,12 +4813,32 @@ export default function App() {
                              <Download className="w-4 h-4" /> Export Video
                            </button>
                          ) : (
-                           <div className="flex bg-[#0a0a0c] border border-white/10 rounded-lg overflow-hidden p-1 gap-1">
+                           <div className="flex bg-[#0a0a0c] border border-white/10 rounded-lg overflow-hidden p-1 gap-1 items-center">
                              <span className="text-[9px] font-bold text-white/40 flex items-center px-2 mr-1">EXPORT:</span>
                              <button onClick={() => downloadImage('png')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">PNG</button>
-                             <button onClick={() => downloadImage('jpg')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">JPG</button>
-                             <button onClick={() => downloadImage('pdf')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">PDF</button>
-                             <button onClick={() => downloadImage('vif')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">AVIF</button>
+                             <button onClick={() => zipAllFormats(generatedImage!, 'jamini-export')} className="px-3 py-1.5 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] items-center gap-1 font-bold flex"><Download className="w-3 h-3" />ZIP ALL</button>
+                             <button onClick={() => downloadImage('ai')} title={FORMAT_DESCRIPTIONS['ai']} className="px-3 py-1.5 hover:bg-white/10 text-[#FF7C00] rounded text-[10px] font-bold">.AI</button>
+                             <button onClick={() => downloadImage('cdr')} title={FORMAT_DESCRIPTIONS['cdr']} className="px-3 py-1.5 hover:bg-white/10 text-[#A2E221] rounded text-[10px] font-bold">.CDR</button>
+                             <select 
+                               onChange={(e) => { 
+                                 if (e.target.value) { 
+                                    downloadImage(e.target.value); 
+                                    e.target.value = ''; 
+                                 } 
+                               }} 
+                               className="bg-transparent text-white/60 text-[10px] uppercase font-bold outline-none cursor-pointer pl-2 pr-1 child:bg-black child:text-white"
+                             >
+                                <option value="">More ▾</option>
+                                <optgroup label="Standard">
+                                  {['jpg', 'pdf', 'svg', 'vif'].map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f] || ''}>.{f}</option>)}
+                                </optgroup>
+                                <optgroup label="Adobe">
+                                  {ALL_ADOBE_FORMATS.filter(f => f!=='svg'&&f!=='pdf'&&f!=='ai').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                </optgroup>
+                                <optgroup label="CorelDRAW">
+                                  {ALL_COREL_FORMATS.filter(f=>f!=='cdr').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                </optgroup>
+                             </select>
                            </div>
                          )}
                       </div>
@@ -4842,7 +4865,28 @@ export default function App() {
                           ) : (
                             <>
                               <button onClick={() => downloadImage('png')} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">PNG</button>
-                              <button onClick={() => downloadImage('jpg')} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">JPG</button>
+                              <button onClick={() => zipAllFormats(generatedImage!, 'jamini-export')} className="text-[10px] font-bold text-emerald-400 hover:bg-white/20 px-3 py-1.5 rounded transition-colors flex items-center justify-between gap-1">ZIP ALL <Download className="w-3 h-3" /></button>
+                              <button onClick={() => downloadImage('ai')} title={FORMAT_DESCRIPTIONS['ai']} className="text-[10px] font-medium text-[#FF7C00] hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">.AI</button>
+                              <button onClick={() => downloadImage('cdr')} title={FORMAT_DESCRIPTIONS['cdr']} className="text-[10px] font-medium text-[#A2E221] hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">.CDR</button>
+                              <div className="px-3 py-1.5">
+                                <select 
+                                  onChange={(e) => { 
+                                    if (e.target.value) { 
+                                      downloadImage(e.target.value); 
+                                      e.target.value = ''; 
+                                    } 
+                                  }} 
+                                  className="bg-transparent text-white/60 text-[10px] w-full uppercase font-bold outline-none cursor-pointer child:bg-black child:text-white"
+                                >
+                                  <option value="">MORE...</option>
+                                  <optgroup label="Corel">
+                                    {ALL_COREL_FORMATS.filter(f=>f!=='cdr').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                  </optgroup>
+                                  <optgroup label="Adobe">
+                                    {ALL_ADOBE_FORMATS.filter(f=>f!=='ai').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                  </optgroup>
+                                </select>
+                              </div>
                             </>
                           )}
                         </div>
@@ -4866,106 +4910,36 @@ export default function App() {
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="lg:hidden mt-12 mb-24 space-y-4"
+                  className="mt-12 mb-24 space-y-4"
                 >
-                  <div className="h-px w-full bg-white/5 mb-8" />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="h-px w-full bg-white/5 mb-8 lg:hidden" />
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 max-w-2xl mx-auto">
                     <button 
                       onClick={() => setActiveStep(2)}
-                      className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center justify-center gap-2"
+                      className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center justify-center gap-2 transition-all hover:bg-white/10"
                     >
                       <ArrowLeft className="w-4 h-4" /> Back to Studio
                     </button>
                     <button 
+                      onClick={() => setCurrentView('storyboard')} 
+                      className="flex-1 py-4 bg-white/5 border border-white/10 text-white/70 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:bg-white/10"
+                    >
+                      <Film className="w-4 h-4" /> Motion Simulation
+                    </button>
+                    <button 
                       onClick={() => setActiveStep(5)}
-                      className="flex-1 py-4 bg-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2"
+                      className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all"
                     >
                       Meet Jamini <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
-          </div>
-          
-          {/* RIGHT SIDEBAR (Generation Sequence Desktop) */}
-          <div className={cn("hidden w-[360px] xl:w-[420px] bg-[#0c0c0e]/90 backdrop-blur-3xl border-l border-white/5 shrink-0 flex-col relative z-20 shadow-[-20px_0_40px_rgba(0,0,0,0.5)]", activeStep === 4 ? "lg:flex" : "lg:hidden")}>
-            <div className="flex items-center px-6 h-14 border-b border-white/5 text-[11px] font-black text-white/90 uppercase tracking-[0.2em] gap-2 shrink-0 bg-white/[0.02]">
-              <Sparkles className="w-4 h-4 text-indigo-400" /> Generation Console
-            </div>
-            <div className="flex-1 flex flex-col p-6 gap-6 overflow-y-auto custom-scrollbar">
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-2">
-                    {isLogoMode ? <Type className="w-3.5 h-3.5 text-indigo-400" /> : <LayoutIcon className="w-3.5 h-3.5 text-indigo-400" />}
-                    {isLogoMode ? "Brand Name & Concept" : "Scene Description"}
-                  </label>
-                  <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[9px] flex items-center gap-1.5 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500/20 px-2 py-1 rounded transition-colors disabled:opacity-50 font-bold uppercase tracking-wider">
-                    {isSuggestingScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />} Auto
-                  </button>
-                </div>
-                <AutoResizeTextarea 
-                  value={scenePrompt} 
-                  onChange={(e) => setScenePrompt(e.target.value)} 
-                  placeholder={isLogoMode ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : "Describe the environment, mood, and placement..."} 
-                  className="w-full min-h-[100px] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar shadow-inner text-white/90 placeholder:text-white/20" 
-                />
-              </div>
-
-              <div className="w-full h-px bg-white/5" />
-
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-2">
-                    <ImageIcon className="w-3.5 h-3.5 text-fuchsia-400" /> General Asset Directives
-                  </label>
-                  <button onClick={() => refinePromptText('asset')} disabled={isRefiningAsset || !assetPrompt.trim()} className="text-[9px] flex items-center gap-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 px-2 py-1 rounded transition-colors disabled:opacity-50 font-bold uppercase tracking-wider">
-                    {isRefiningAsset ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
-                  </button>
-                </div>
-                <AutoResizeTextarea 
-                  value={assetPrompt} 
-                  onChange={(e) => setAssetPrompt(e.target.value)} 
-                  placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" 
-                  className="w-full min-h-[100px] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none custom-scrollbar shadow-inner text-white/90 placeholder:text-white/20" 
-                />
+                </AnimatePresence>
               </div>
             </div>
-
-            <div className="p-6 border-t border-white/5 bg-black/20 shrink-0 flex flex-col gap-4">
-              {error && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[11px] font-medium flex items-start gap-3 shadow-lg">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span className="leading-relaxed">{error}</span>
-                </motion.div>
-              )}
-              
-              <button 
-                onClick={() => setCurrentView('storyboard')} 
-                className="w-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 shadow-sm rounded-xl p-3.5 text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-              >
-                <Film className="w-4 h-4" /> Motion Simulation
-              </button>
-              
-              <button 
-                onClick={() => { handleGenerate(); setActiveStep(4); }} 
-                disabled={isGenerating} 
-                className={cn(
-                  "relative w-full group overflow-hidden rounded-xl p-[1px] transition-all h-14 shadow-lg", 
-                  isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02] shadow-indigo-500/20 hover:shadow-[0_10px_30px_rgba(99,102,241,0.3)]"
-                )}
-              >
-                {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500" />}
-                <div className={cn(
-                  "relative w-full h-full rounded-xl font-black text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", 
-                  isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0c] group-hover:bg-transparent text-white"
-                )}>
-                  {isGenerating ? <><Loader2 className="w-5 h-5 animate-spin" /> Rendering...</> : <><Sparkles className="w-5 h-5" /> Generate Masterpiece</>}
-                </div>
-              </button>
-            </div>
           </div>
-        </div>
-      </main>
+        </main>
     </div>
     );
   };
@@ -5132,27 +5106,27 @@ export default function App() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
                 className={cn(
-                  "group relative flex flex-col items-start p-2.5 md:p-4 lg:p-5 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
+                  "group relative flex flex-col items-start p-2 md:p-3 lg:p-4 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
                   i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
                 )}
               >
                 {/* 3D Glass Effect Background */}
                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-30 transition-opacity duration-500", obj.color)} />
-                <div className="absolute top-0 right-0 w-24 h-24 md:w-32 lg:w-40 bg-white/5 blur-[50px] md:blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
+                <div className="absolute top-0 right-0 w-20 h-20 md:w-28 lg:w-32 bg-white/5 blur-[40px] md:blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
                 
                 {/* Icon Sphere */}
-                <div className="relative z-10 w-8 h-8 md:w-16 lg:w-20 bg-white/5 rounded-[0.8rem] md:rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center mb-2 md:mb-5 lg:mb-6 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500 shrink-0">
-                  <div className={cn("absolute inset-0 blur-3xl opacity-0 group-hover:opacity-60 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-4 h-4 md:w-8 lg:w-10 text-white relative z-10" />
+                <div className="relative z-10 w-7 h-7 md:w-12 lg:w-14 bg-white/5 rounded-[0.8rem] md:rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center mb-1.5 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500 shrink-0">
+                  <div className={cn("absolute inset-0 blur-2xl opacity-0 group-hover:opacity-60 transition-opacity rounded-full", obj.color)} />
+                  <obj.icon className="w-3.5 h-3.5 md:w-6 lg:w-8 text-white relative z-10" />
                 </div>
 
-                <div className="relative z-10 flex-1 space-y-0.5 md:space-y-2 lg:space-y-3">
+                <div className="relative z-10 flex-1 space-y-0.5 md:space-y-1.5 lg:space-y-2">
                   <div className="space-y-0 text-left">
-                    <h3 className="text-[10px] md:text-xl lg:text-2xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
-                    <p className="text-indigo-400 font-black text-[6px] md:text-xs lg:text-sm uppercase tracking-widest md:tracking-[0.15em]">{obj.desc}</p>
+                    <h3 className="text-[9px] md:text-lg lg:text-xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
+                    <p className="text-indigo-400 font-black text-[6px] md:text-[9px] lg:text-xs uppercase tracking-widest md:tracking-[0.15em]">{obj.desc}</p>
                   </div>
                   
-                  <p className="text-[8px] md:text-xs lg:text-sm text-white/40 text-left leading-tight md:leading-relaxed font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
+                  <p className="text-[8px] md:text-[10px] lg:text-xs text-white/40 text-left leading-tight md:leading-relaxed font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
                     {obj.longDesc}
                   </p>
                 </div>
@@ -5255,6 +5229,7 @@ export default function App() {
 
   return (
     <>
+      <SystemBackground />
       <AnimatePresence mode="wait">
         {!hasEntered ? (
           <WelcomeScreen key="welcome" onEnter={handleEnter} onMeetJamini={handleMeetJamini} />
@@ -5264,7 +5239,7 @@ export default function App() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="h-[100dvh] w-full flex flex-col overflow-hidden bg-[#0E0E11]"
+            className="h-[100dvh] w-full flex flex-col overflow-hidden bg-transparent"
           >
             <div className="flex-1 min-h-0 relative overflow-hidden">
               {renderContent()}
