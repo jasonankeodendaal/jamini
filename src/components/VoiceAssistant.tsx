@@ -46,10 +46,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const [transcript, setTranscript] = useState('');
   const [recognition, setRecognition] = useState<any>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [clientDetails, setClientDetails] = useState({ name: '', company: '', industry: '' });
+  const [clientDetails, setClientDetails] = useState({ name: '', company: '', industry: '', tel: '', objective: '' });
   const [isFinished, setIsFinished] = useState(false);
   const [isIntroDone, setIsIntroDone] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [typedMessage, setTypedMessage] = useState('');
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -63,8 +64,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   };
 
   const introQuestions = [
-    "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Before we begin, please state your full name and the name of the company or client for this project.",
-    "Thank you. And which industry or sector does this business operate in?"
+    "Welcome to the JAMINI Vocal Engine. It's great to have you. Pour yourself a coffee, and let's get down to business. To start, could you please tell me your full name and the name of the company your project is with?",
+    "That's fantastic. What is the best telephone number to reach you at?",
+    "Wonderful, thanks for that. Keeping our project goals in mind, what is the primary objective you're hoping to achieve with this project?",
+    "And specifically, what would you like me to help you generate today?",
+    "Excellent work. Finally, which industry or sector does this business operate in? This just helps me calibrate the visual tone to be perfect."
   ];
 
   const questions = objective === 'logo' ? [
@@ -138,7 +142,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     }
 
     // Initial Greeting
-    const greeting = allQuestions[0];
+    const greeting = "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Think of this as a relaxed coffee chat—just talk to me about your vision, and I'll handle the technical details. You can ask me anything, or just describe what you want. When you're ready to see your project generated, just say 'Show me my generation'. To begin, please state your full name and the name of the company or client for this project.";
     setMessages([{ role: 'assistant', text: greeting }]);
     speak(greeting);
 
@@ -265,15 +269,36 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const handleUserResponse = async (text: string) => {
     setMessages(prev => [...prev, { role: 'user', text }]);
     setTranscript('');
+    setTypedMessage(''); // Clear input
     setIsProcessing(true);
 
+    const lowerText = text.toLowerCase();
+
+    // Trigger phrase detection
+    if (lowerText.includes("show me my generation")) {
+       const finalMessage = `Understood. I'm finalizing your vision, ${clientDetails.name || 'sir'}. Preparing the Master Manifest now.`;
+       setMessages(prev => [...prev, { role: 'assistant', text: finalMessage }]);
+       speak(finalMessage);
+       setIsFinished(true);
+       await finalizeGeneration({ ...answers, client_name: clientDetails.name, company_name: clientDetails.company, client_tel: clientDetails.tel, client_objective: clientDetails.objective, client_generate_what: answers.generate_what || '', industry: clientDetails.industry });
+       return;
+    }
+
     if (currentQuestionIndex === 0) {
-      // First intro question: Name and Company
-      setClientDetails(prev => ({ ...prev, name: text.split(' and ')[0] || text, company: text.split(' for ')[1] || text.split(' and ')[1] || text }));
+      // Name and Company
+      setClientDetails(prev => ({ ...prev, name: text.split(' and ')[0] || text, company: text.split(' and ')[1] || text }));
     } else if (currentQuestionIndex === 1) {
-      // Second intro question: Industry
+      // Tel
+      setClientDetails(prev => ({ ...prev, tel: text }));
+    } else if (currentQuestionIndex === 2) {
+      // Objective
+      setClientDetails(prev => ({ ...prev, objective: text }));
+    } else if (currentQuestionIndex === 3) {
+      // What to generate?
+      setAnswers(prev => ({ ...prev, generate_what: text }));
+    } else if (currentQuestionIndex === 4) {
+      // Industry
       setClientDetails(prev => ({ ...prev, industry: text }));
-      setIsIntroDone(true);
     } else {
       // Design questions
       const questionIndex = currentQuestionIndex - introQuestions.length;
@@ -292,11 +317,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     } else {
       // Completed all questions
       setIsFinished(true);
-      const finalMessage = `Excellent! I have all the information I need, ${clientDetails.name || 'sir'}. I'm now orchestrating the Vision Matrix for ${clientDetails.company || 'your project'}. One moment.`;
+      const finalMessage = `Excellent! I have all the information I need, ${clientDetails.name || 'sir'}. I'm now orchestrating the Vision Matrix for ${clientDetails.company || 'your project'}.`;
       setMessages(prev => [...prev, { role: 'assistant', text: finalMessage }]);
       speak(finalMessage);
       
-      await finalizeGeneration({ ...answers, client_name: clientDetails.name, company_name: clientDetails.company, industry: clientDetails.industry });
+      await finalizeGeneration({ ...answers, client_name: clientDetails.name, company_name: clientDetails.company, client_tel: clientDetails.tel, client_objective: clientDetails.objective, client_generate_what: answers.generate_what || '', industry: clientDetails.industry });
     }
   };
 
@@ -528,30 +553,26 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
                 </button>
 
                 <div className="flex flex-1 items-center gap-2 overflow-hidden bg-white/5 p-2 rounded-xl">
-                  <div className="h-8 flex items-center gap-1 flex-1 px-1">
-                  <AnimatePresence mode="wait">
-                    {(isListening || isSpeaking) ? (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-1 h-full w-full">
-                        {[...Array(10)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            animate={{ 
-                              height: isSpeaking ? [8, 24, 10, 22, 8] : [4, 12, 6, 10, 4],
-                              opacity: isSpeaking ? [0.4, 1, 0.4] : [0.2, 0.5, 0.2]
-                            }}
-                            transition={{ duration: 1, repeat: Infinity, delay: i * 0.04 }}
-                            className={cn("w-1 rounded-full", isSpeaking ? "bg-indigo-500" : "bg-fuchsia-500")}
-                          />
-                        ))}
-                      </motion.div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-white/10 w-full justify-center">
-                        <Terminal className="w-3 h-3" />
-                        <span className="text-[9px] font-mono uppercase tracking-[0.2em] whitespace-nowrap">Standby</span>
-                      </div>
-                    )}
-                  </AnimatePresence>
-                  </div>
+                  <input
+                    type="text"
+                    value={typedMessage}
+                    onChange={(e) => setTypedMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && typedMessage.trim()) {
+                        handleUserResponse(typedMessage);
+                      }
+                    }}
+                    placeholder="Type your response..."
+                    disabled={isProcessing || isFinished}
+                    className="w-full bg-transparent text-white/70 placeholder:text-white/20 text-[10px] font-mono uppercase tracking-[0.2em] px-2 outline-none"
+                  />
+                  <button
+                    onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)}
+                    disabled={isProcessing || isFinished || !typedMessage.trim()}
+                    className="text-indigo-400 hover:text-indigo-300 disabled:opacity-30"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
                 
                 <button 
