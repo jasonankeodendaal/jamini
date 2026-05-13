@@ -434,9 +434,9 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-transparent overflow-hidden"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-transparent overflow-hidden px-4 md:px-8"
     >
-      <div className="relative z-10 flex flex-col items-center text-center px-4">
+      <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm sm:max-w-md md:max-w-lg">
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 30 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -5043,21 +5043,29 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full max-w-[1400px] mx-auto px-4 md:px-0 group/container">
-            {objectives.map((obj, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 w-full max-w-[1200px] mx-auto px-2 md:px-0 group/container">
+            {objectives.map((obj, i) => {
+              const puzzleShapes = [
+                "rounded-tl-[64px] rounded-br-[64px] rounded-tr-[16px] rounded-bl-[16px]",
+                "rounded-tr-[64px] rounded-bl-[64px] rounded-tl-[16px] rounded-br-[16px]",
+                "rounded-br-[64px] rounded-tl-[64px] rounded-tr-[16px] rounded-bl-[16px]",
+                "rounded-bl-[64px] rounded-tr-[64px] rounded-tl-[16px] rounded-br-[16px]",
+              ];
+              const shapeClass = puzzleShapes[i % puzzleShapes.length];
+
+              return (
               <motion.button
                 key={obj.id}
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 + i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ 
-                  scale: 1.03, 
-                  y: -8,
+                  scale: 1.02, 
                   boxShadow: `0 30px 60px -20px ${obj.glow}` 
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className="col-span-1 group relative flex flex-col items-start p-6 md:p-8 rounded-[32px] bg-[#0c0c0e]/80 backdrop-blur-md border border-white/5 hover:border-white/20 text-left transition-all overflow-hidden isolation-auto min-h-[320px] md:min-h-[380px]"
+                className={`col-span-1 group relative flex flex-col items-start p-4 md:p-6 ${shapeClass} bg-[#0c0c0e]/80 backdrop-blur-md border border-white/5 hover:border-white/20 text-left transition-all overflow-hidden isolation-auto min-h-[200px] md:min-h-[320px]`}
               >
                 {/* Dynamic Lighting Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`, WebkitMaskImage: 'linear-gradient(black, transparent)' }} />
@@ -5094,7 +5102,8 @@ export default function App() {
                   </div>
                 </div>
               </motion.button>
-            ))}
+              );
+            })}
           </div>
 
           {/* System Status Footer */}

@@ -4,7 +4,7 @@ import {
   RotateCcw, Camera, MonitorPlay, FileText, Settings2,
   ChevronDown, ChevronUp, GripVertical, Check, AlertCircle,
   Zap, ArrowLeft, Play, Layers, SlidersHorizontal, Eye, Loader2,
-  ExternalLink, Maximize2, Video, Focus, X
+  ExternalLink, Maximize2, Video, Focus, X, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -19,6 +19,9 @@ interface VideoScene {
   lighting?: string;
   transitionType?: string;
   audioCue?: string;
+  productAsset?: string | null;
+  colorPalette?: string;
+  theming?: string;
 }
 
 interface StoryboardViewProps {
@@ -50,7 +53,33 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [viewMode, setViewMode] = useState<'visual' | 'script'>('visual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [ciSummary, setCiSummary] = useState(editorState.ciSummary || '');
   const isLogoMode = editorState.generationObjective === 'logo';
+
+  const handleAssetUpload = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateState({ ...editorState, [key]: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSceneAssetUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newScenes = [...scenes];
+        newScenes[index] = { ...newScenes[index], productAsset: reader.result as string };
+        setScenes(newScenes);
+        onUpdateState({ ...editorState, videoScenes: newScenes });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     if (scenes.length === 0) {
@@ -106,15 +135,29 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
     try {
       const ai = new GoogleGenAI({ apiKey });
 
+      const sceneDetails = scenes.map((s, i) => `
+        Scene ${i + 1}: 
+        Visual Direction: ${s.prompt}
+        Product Asset: ${s.productAsset ? 'Included (Visual Asset Provided)' : 'Not Provided'}
+      `).join('\n');
+
       const prompt = `
         As a cinematic storyboard artist and director, break down the following concept into a detailed 4-scene cinematic storyboard.
         
         CONCEPT: ${editorState.scenePrompt}
         STYLE: ${editorState.style}
         LIGHTING PREFERENCE: ${editorState.lighting}
-        BRAND ASSETS: ${editorState.assetPrompt}
+        CONCEPT ASSETS: ${editorState.assetPrompt}
+        BRAND LOGO: ${editorState.brandLogoAsset ? 'Provided' : 'None'}
+        COMPANY LOGO: ${editorState.companyLogoAsset ? 'Provided' : 'None'}
+        CHARACTER: ${editorState.characterAsset ? 'Provided' : 'None'}
+        CI PDF: ${editorState.ciPdfAsset ? 'Provided' : 'None'}
+        CI SUMMARY: ${editorState.ciSummary || 'None'}
         
-        For each scene, provide:
+        Current Scene Breakdown Structure:
+        ${sceneDetails}
+        
+        For each scene, use the specific assets (especially if 'Provided') to ensure brand and identity consistency.
         1. Visual Prompt (detailed)
         2. Duration (2-5 seconds)
         3. Camera Motion (e.g., Dolly Zoom, Tracking, Pan, Push-in)
@@ -168,6 +211,12 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
     try {
       const ai = new GoogleGenAI({ apiKey });
 
+      const sceneDetails = scenes.map((s, i) => `
+        Scene ${i + 1}: 
+        Visual Direction: ${s.prompt}
+        Product Asset: ${s.productAsset ? 'Included (Visual Asset Provided)' : 'Not Provided'}
+      `).join('\n');
+
       const prompt = `
         As a world-class Film Director and Script Architect, generate a detailed, professional video storyboard script based on the following parameters:
         
@@ -175,11 +224,19 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         CINEMATIC STYLE: ${editorState.style}
         LIGHTING SCHEME: ${editorState.lighting}
         MASTER ASSETS: ${editorState.assetPrompt}
+        BRAND LOGO: ${editorState.brandLogoAsset ? 'Provided' : 'None'}
+        COMPANY LOGO: ${editorState.companyLogoAsset ? 'Provided' : 'None'}
+        CHARACTER: ${editorState.characterAsset ? 'Provided' : 'None'}
+        CI PDF: ${editorState.ciPdfAsset ? 'Provided' : 'None'}
+        CI SUMMARY: ${editorState.ciSummary || 'None'}
         TOTAL DURATION: ${editorState.videoDuration} seconds
+        
+        Current Scene Breakdown Structure:
+        ${sceneDetails}
         
         Requirement: Break this down into exactly 4 precise scenes.
         For each scene, provide a highly technical description including:
-        1. Visual Description (detailed framing, action, and textures)
+        1. Visual Description (detailed framing, action, and textures - incorporate the scene-specific PRODUCT ASSET if provided)
         2. Camera Motion (Technical terms: Dolly, Truck, Pan, Tilt, Pedestal, Zoom)
         3. Lens Specification (e.g., 24mm Anamorphic, 85mm Prime, 14mm Ultra-Wide)
         4. Detailed Lighting (Technical: Three-point, Rembrandt, High-key, Moody Chiaroscuro)
@@ -241,7 +298,10 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
       cameraMotion: 'Static',
       lensType: '35mm',
       lighting: 'Neutral',
-      transitionType: 'Cut'
+      transitionType: 'Cut',
+      productAsset: null,
+      colorPalette: 'Neutral',
+      theming: 'Cinematic'
     };
     const newScenes = [...scenes, newScene];
     setScenes(newScenes);
@@ -252,6 +312,31 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
     const newScenes = scenes.filter(s => s.id !== id);
     setScenes(newScenes);
     onUpdateState({ ...editorState, videoScenes: newScenes });
+  };
+
+  const enhancePrompt = async (index: number) => {
+    const apiKey = getApiKey('paid');
+    if (!apiKey) {
+      alert("API KEY MISSING.");
+      return;
+    }
+    const scene = scenes[index];
+    try {
+      setIsGenerating(true);
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = `Refine this visual prompt for a cinematic storyboard scene. Make it more descriptive, technically sound, and inspiring while keeping the original intent. Keep it concise.
+      Original: ${scene.prompt}
+      `;
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash-8b",
+        contents: [{ parts: [{ text: prompt }] }],
+      });
+      updateScene(index, { prompt: response.text || scene.prompt });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -278,6 +363,11 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
         </div>
 
         <div className="flex items-center gap-2 relative">
+          <div className="flex lg:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-white/50 hover:text-white">
+                {mobileMenuOpen ? <X className="w-5 h-5"/> : <Menu className="w-5 h-5"/>}
+            </button>
+          </div>
           <div className="hidden lg:flex items-center gap-2">
             <div className="flex bg-[#0A0A0C] border border-white/10 rounded-lg p-1 mr-4">
               <button 
@@ -397,6 +487,42 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
 
       <main className="flex-1 overflow-y-auto bg-transparent custom-scrollbar p-2 md:p-4 lg:p-8 flex flex-col items-center">
         <div className="max-w-5xl w-full mx-auto space-y-4 md:space-y-6 pb-32">
+          
+          {/* Asset Section */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6">
+            <h3 className="text-sm font-black text-white/60 uppercase tracking-widest">Global Asset & CI Control Board</h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {[
+                { label: 'Product', key: 'productAsset' },
+                { label: 'Brand Logo', key: 'brandLogoAsset' },
+                { label: 'Company Logo', key: 'companyLogoAsset' },
+                { label: 'Character', key: 'characterAsset' },
+                { label: 'CI PDF', key: 'ciPdfAsset' },
+                { label: 'CI Summary', key: 'ciSummary', type: 'text' }
+              ].map(asset => (
+                <div key={asset.label} className="space-y-2">
+                  <label className="text-[9px] font-black uppercase tracking-wider text-white/40">{asset.label}</label>
+                  {asset.type === 'text' ? (
+                     <textarea value={ciSummary} onChange={(e) => { setCiSummary(e.target.value); onUpdateState({...editorState, ciSummary: e.target.value}); }} className="w-full h-16 bg-white/5 border border-white/10 rounded-lg p-2 text-xs" placeholder="Summarize brand CI..."/>
+                  ) : (
+                    <div className="relative group aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                      {editorState[asset.key] ? (
+                    asset.key === 'ciPdfAsset' ? (
+                        <div className="flex items-center justify-center w-full h-full text-white/50">
+                            <FileType2 className="w-8 h-8" />
+                        </div>
+                    ) : (
+                        <img src={editorState[asset.key]} className="object-contain w-full h-full" />
+                    )
+                  ) : <Plus className="w-6 h-6 text-white/20" />}
+                  <input type="file" onChange={(e) => handleAssetUpload(e, asset.key)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           <AnimatePresence mode="wait">
             {viewMode === 'script' ? (
               <motion.div
@@ -493,6 +619,16 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                                      </div>
                                   </div>
                                   <p className="text-[10px] md:text-[11px] text-white/30 uppercase tracking-[0.3em] font-mono">ID: {scene.id.split('-')[0]}</p>
+                                   <div className="flex items-center gap-4 pt-2">
+                                      <label className="text-[9px] font-black uppercase tracking-wider text-white/40">Product</label>
+                                      <div className="relative group w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                                         {scene.productAsset ? <img src={scene.productAsset} className="object-contain w-full h-full" /> : <Plus className="w-4 h-4 text-white/20" />}
+                                         <input type="file" onChange={(e) => handleSceneAssetUpload(activeSceneIndex, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                      </div>
+                                      {scene.productAsset && (
+                                        <button onClick={() => updateScene(activeSceneIndex, { productAsset: null })} className="text-[9px] font-black text-red-500 hover:text-red-400">REMOVE</button>
+                                      )}
+                                   </div>
                                </div>
                                <button onClick={() => deleteScene(scene.id)} className="p-2 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors absolute top-0 right-0 md:relative md:top-auto md:right-auto">
                                  <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
@@ -501,15 +637,20 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
 
                             {/* Visual Direction */}
                             <div className="space-y-3 md:space-y-4">
-                               <div className="flex items-center gap-2 text-indigo-400">
-                                  <Eye className="w-4 h-4" />
-                                  <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Visual Prompt & Direction</h4>
+                               <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-indigo-400">
+                                     <Eye className="w-4 h-4" />
+                                     <h4 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Visual Prompt & Direction</h4>
+                                  </div>
+                                  <button onClick={() => enhancePrompt(activeSceneIndex)} className="text-[9px] md:text-[10px] font-black text-white/40 hover:text-indigo-400 uppercase tracking-widest flex items-center gap-1.5 transition-colors">
+                                     <Sparkles className="w-3 h-3" /> Enhance with AI
+                                  </button>
                                </div>
                                <textarea
                                  value={scene.prompt}
                                  onChange={(e) => updateScene(activeSceneIndex, { prompt: e.target.value })}
                                  placeholder="Describe the cinematic visual for this scene..."
-                                 className="w-full h-24 md:h-32 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6 text-xs md:text-sm text-white/80 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none leading-relaxed outline-none"
+                                 className="w-full h-24 md:h-32 bg-black/40 border border-white/10 rounded-2xl p-4 md:p-6 text-xs md:text-sm text-white/90 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none leading-relaxed outline-none"
                                />
                             </div>
 

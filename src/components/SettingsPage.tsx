@@ -538,23 +538,23 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                     <h2 className="text-xl md:text-2xl font-black tracking-tighter">Data Protection</h2>
                   </header>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 md:gap-4">
-                    <div className="bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.25rem] p-3 md:p-4 space-y-2 md:space-y-3 flex flex-col">
-                      <div className="w-7 h-7 md:w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20"><HardDrive className="w-3.5 h-3.5 md:w-4 h-4 text-indigo-400" /></div>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:gap-4">
+                    <div className="bg-white/5 border border-white/10 rounded-[1rem] p-3 space-y-2 flex flex-col">
+                      <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20"><HardDrive className="w-4 h-4 text-indigo-400" /></div>
                       <div>
-                        <h3 className="text-[10px] md:text-xs font-black uppercase">Vault</h3>
-                        <p className="text-[8px] md:text-[9px] text-white/40 mt-1 leading-tight">
-                          LocalStorage persistence.
+                        <h3 className="text-[10px] font-black uppercase">Vault</h3>
+                        <p className="text-[9px] text-white/40 mt-1 leading-tight">
+                          LocalStorage.
                         </p>
                       </div>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.25rem] p-3 md:p-4 space-y-2 md:space-y-3 flex flex-col">
-                      <div className="w-7 h-7 md:w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center border border-green-500/20"><Lock className="w-3.5 h-3.5 md:w-4 h-4 text-green-400" /></div>
+                    <div className="bg-white/5 border border-white/10 rounded-[1rem] p-3 space-y-2 flex flex-col">
+                      <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center border border-green-500/20"><Lock className="w-4 h-4 text-green-400" /></div>
                       <div>
-                        <h3 className="text-[10px] md:text-xs font-black uppercase">Kernel</h3>
-                        <p className="text-[8px] md:text-[9px] text-white/40 mt-1 leading-tight">
-                          Sandbox isolation.
+                        <h3 className="text-[10px] font-black uppercase">Kernel</h3>
+                        <p className="text-[9px] text-white/40 mt-1 leading-tight">
+                          Sandbox.
                         </p>
                       </div>
                     </div>

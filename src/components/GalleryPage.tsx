@@ -335,7 +335,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
             ) : filtered.length === 0 ? (
               <div className="flex h-full items-center justify-center text-white/10 text-xs font-bold uppercase tracking-widest">No matching artifacts</div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 max-w-[1800px] mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 md:gap-4 max-w-[1800px] mx-auto">
                 <AnimatePresence mode="popLayout">
                   {filtered.map(record => (
                     <motion.div 
