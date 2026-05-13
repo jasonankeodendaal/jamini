@@ -396,7 +396,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="w-full h-[100dvh] lg:h-[85vh] lg:max-w-7xl bg-[#0B0B0E] lg:rounded-[3rem] shadow-[0_0_100px_rgba(99,102,241,0.25)] overflow-hidden flex flex-col lg:flex-row border border-white/5"
+        className="w-full h-[100dvh] lg:h-[80vh] lg:max-w-5xl bg-[#0B0B0E] lg:rounded-[3rem] shadow-[0_0_100px_rgba(99,102,241,0.25)] overflow-hidden flex flex-col lg:flex-row border border-white/5"
       >
         {/* Left Section: Conversation Log */}
         <div className="flex-1 flex flex-col h-[55vh] lg:h-full border-b lg:border-b-0 lg:border-r border-white/5 order-2 lg:order-1 bg-[#050507]">
@@ -452,53 +452,50 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         </div>
 
         {/* Right Section: Diagnostics & Controls */}
-        <div className="w-full lg:w-[400px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-3 lg:p-6 order-1 lg:order-2">
-          <div className="flex items-center justify-between mb-3 lg:mb-5">
-            <div className="lg:hidden flex items-center gap-3">
-               <Headphones className="w-4 h-4 text-indigo-400" />
-               <h4 className="text-[10px] font-black text-white/60 uppercase tracking-widest">JAMINI VOICE</h4>
-            </div>
-            <h4 className="hidden lg:block text-[9px] font-black text-white/30 uppercase tracking-[0.5em]">System Diagnostics</h4>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
-              <X className="w-4 h-4 lg:w-5 lg:h-5" />
+        <div className="w-full lg:w-[360px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-4 lg:p-6 order-1 lg:order-2 border-l border-white/5">
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <h4 className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Neural System</h4>
+            <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="space-y-3 lg:space-y-6 mb-auto">
-             <div className="bg-white/5 border border-white/10 rounded-[1.2rem] lg:rounded-[1.5rem] p-4 lg:p-6">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 ring-4 ring-indigo-500/5">
-                      <ShieldAlert className="w-4 h-4 lg:w-6 lg:h-6 text-indigo-400" />
+          <div className="space-y-4 mb-auto">
+             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                <div className="flex items-center gap-4 mb-5">
+                   <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                      <ShieldAlert className="w-5 h-5 text-indigo-400" />
                    </div>
                    <div className="flex-1 min-w-0">
-                      <p className="text-[7px] lg:text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
-                      <p className="text-sm lg:text-lg font-black text-white truncate">{clientDetails.company || 'Initializing...'}</p>
+                      <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
+                      <p className="text-sm font-black text-white truncate tracking-tight">{clientDetails.company || 'Initializing...'}</p>
                    </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                   <div className="bg-black/60 p-2 lg:p-3 rounded-xl border border-white/5 space-y-1">
-                      <p className="text-[6px] lg:text-[8px] font-black text-white/20 uppercase tracking-widest">Creative Lead</p>
-                      <p className="text-[9px] lg:text-xs font-bold text-indigo-400 truncate tracking-tight">{clientDetails.name || 'TBD'}</p>
+
+                <div className="space-y-2">
+                   <div className="flex items-center justify-between py-2 border-b border-white/[0.05]">
+                      <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Creative Lead</p>
+                      <p className="text-xs font-bold text-indigo-400 tracking-tight">{clientDetails.name || 'TBD'}</p>
                    </div>
-                   <div className="bg-black/60 p-2 lg:p-3 rounded-xl border border-white/5 space-y-1">
-                      <p className="text-[6px] lg:text-[8px] font-black text-white/20 uppercase tracking-widest">Sector Domain</p>
-                      <p className="text-[9px] lg:text-xs font-bold text-fuchsia-400 truncate tracking-tight">{clientDetails.industry || 'TBD'}</p>
+                   <div className="flex items-center justify-between py-2">
+                      <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Sector Domain</p>
+                      <p className="text-xs font-bold text-fuchsia-400 tracking-tight">{clientDetails.industry || 'TBD'}</p>
                    </div>
                 </div>
              </div>
 
-             <div className="space-y-3 lg:space-y-4 hidden sm:block">
+             <div className="space-y-2">
                 {[
                   { icon: BrainCircuit, label: 'Neural Link', value: 'Prime', color: 'text-indigo-400' },
                   { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400' },
                   { icon: Cpu, label: 'Compute Engine', value: 'Titan v4', color: 'text-amber-400' }
                 ].map((stat, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
-                    <div className="flex items-center gap-4">
-                       <stat.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", stat.color)} />
-                       <span className="text-[9px] lg:text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{stat.label}</span>
+                  <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors">
+                    <div className="flex items-center gap-3">
+                       <stat.icon className={cn("w-4 h-4", stat.color)} />
+                       <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">{stat.label}</span>
                     </div>
-                    <span className={cn("text-[10px] lg:text-xs font-bold uppercase tracking-widest leading-none", stat.color)}>{stat.value}</span>
+                    <span className={cn("text-[10px] font-bold uppercase tracking-[0.1em]", stat.color)}>{stat.value}</span>
                   </div>
                 ))}
              </div>
