@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Folder, Image as ImageIcon, Trash2, Calendar, FileType2, Search, Filter, X, Zap, ArrowLeft, Cloud, CloudLightning, RefreshCw, Globe } from 'lucide-react';
+import { Download, Folder, Image as ImageIcon, Trash2, Calendar, FileType2, Search, Filter, X, Zap, ArrowLeft, Cloud, CloudLightning, RefreshCw, Globe, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import localforage from 'localforage';
 import { cn } from '../lib/utils';
@@ -57,6 +57,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<GenerationRecord | null>(null);
   const [viewMode, setViewMode] = useState<'date' | 'client'>('date');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Cloud Sync State
   const [cloudSync, setCloudSync] = useState(false);
@@ -163,38 +164,46 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden">
-      <header className="h-10 md:h-12 flex items-center justify-between px-3 md:px-4 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-10">
+      <header className="h-[50px] md:h-12 flex items-center justify-between px-3 md:px-4 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-20">
         <div className="flex items-center gap-2 md:gap-4">
           <button onClick={onBack} className="text-white/50 hover:text-white transition-colors uppercase text-[9px] md:text-[10px] tracking-widest font-bold flex items-center gap-1.5 md:gap-2">
             <ArrowLeft className="w-3 h-3 md:w-3.5 md:h-3.5" /> <span className="hidden xs:inline">Back</span>
           </button>
           <div className="h-3 w-px bg-white/10 mx-1 md:mx-2" />
-          <button onClick={refreshVault} className="text-white/30 hover:text-indigo-400 transition-colors uppercase text-[9px] md:text-[10px] tracking-widest font-bold flex items-center gap-1.5 md:gap-2">
-            <Zap className={cn("w-3 h-3 md:w-3.5 md:h-3.5", loading && "animate-spin")} /> <span className="hidden xs:inline">Refresh</span>
+          <button onClick={refreshVault} className="hidden xs:flex text-white/30 hover:text-indigo-400 transition-colors uppercase text-[9px] md:text-[10px] tracking-widest font-bold items-center gap-1.5 md:gap-2">
+            <Zap className={cn("w-3 h-3 md:w-3.5 md:h-3.5", loading && "animate-spin")} /> <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
         
-        <div className="hidden md:flex items-center gap-4">
-          {cloudSync ? (
-            <div className="flex items-center gap-3 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-              <div className="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-[8px] font-black">{cloudAccount?.charAt(0).toUpperCase()}</div>
-              <span className="text-[9px] font-bold text-indigo-300 uppercase tracking-tight">{cloudAccount}</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            </div>
-          ) : (
-            <button 
-              onClick={handleCloudConnect}
-              disabled={isCloudConnecting}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
-            >
-              <div className="w-5 h-5 bg-[#4285F4]/10 rounded-md flex items-center justify-center border border-[#4285F4]/20 group-hover:bg-[#4285F4]/20 transition-colors">
-                <Cloud className="w-3 h-3 text-[#4285F4]" />
+        <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-4">
+            {cloudSync ? (
+              <div className="flex items-center gap-3 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                <div className="w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center text-[8px] font-black">{cloudAccount?.charAt(0).toUpperCase()}</div>
+                <span className="text-[9px] font-bold text-indigo-300 uppercase tracking-tight">{cloudAccount}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               </div>
-              <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">
-                {isCloudConnecting ? 'Connecting...' : 'Link Drive'}
-              </span>
-            </button>
-          )}
+            ) : (
+              <button 
+                onClick={handleCloudConnect}
+                disabled={isCloudConnecting}
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all group"
+              >
+                <div className="w-5 h-5 bg-[#4285F4]/10 rounded-md flex items-center justify-center border border-[#4285F4]/20 group-hover:bg-[#4285F4]/20 transition-colors">
+                  <Cloud className="w-3 h-3 text-[#4285F4]" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">
+                  {isCloudConnecting ? 'Connecting...' : 'Link Drive'}
+                </span>
+              </button>
+            )}
+          </div>
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            className="lg:hidden p-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors mx-2"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-3">
@@ -207,6 +216,32 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
           </h1>
         </div>
       </header>
+
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="lg:hidden absolute top-[50px] right-2 w-64 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-2xl rounded-xl overflow-hidden z-[100] flex flex-col p-2 gap-1"
+          >
+            <button 
+              onClick={() => { refreshVault(); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-3 py-3 w-full text-left rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:bg-white/10 transition-colors"
+            >
+              <Zap className={cn("w-4 h-4", loading && "animate-spin")} /> Refresh Cache
+            </button>
+            <button 
+              onClick={() => { handleCloudConnect(); setMobileMenuOpen(false); }}
+              disabled={isCloudConnecting || cloudSync}
+              className="flex items-center gap-3 px-3 py-3 w-full text-left rounded-lg bg-[#4285F4]/10 border border-[#4285F4]/20 text-[10px] font-black text-[#4285F4] uppercase tracking-widest hover:bg-[#4285F4]/20 transition-colors"
+            >
+              <Cloud className="w-4 h-4" /> {cloudSync ? 'Cloud Synced' : (isCloudConnecting ? 'Connecting...' : 'Connect GDrive')}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!cloudSync && !loading && (
         <div className="mx-6 mt-4 p-4 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">

@@ -415,7 +415,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                     </p>
                   </header>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white/5 border border-white/10 rounded-[1.25rem] p-4 space-y-4">
                       <h3 className="text-md font-bold flex items-center gap-2">
                         <Database className="w-4 h-4 text-indigo-400" /> Key Injection
@@ -441,7 +441,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                             className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all placeholder:text-white/10 font-mono tracking-widest"
                           />
                         </div>
-                        <div className="grid grid-cols-1 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                            <div className="space-y-1">
                             <label className="text-[9px] font-black uppercase tracking-widest text-white/30 ml-2">Tier</label>
                             <select 

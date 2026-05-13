@@ -13,7 +13,7 @@ import {
   MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2, PlusCircle,
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
   Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
-  Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink,
+  Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink, Menu,
   Film, Database, Box, Headphones, Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -294,9 +294,9 @@ const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", o
   };
   const textClasses = {
     xs: "text-lg",
-    sm: "text-xl",
-    md: "text-2xl lg:text-3xl",
-    lg: "text-4xl lg:text-5xl"
+    sm: "text-sm md:text-xl",
+    md: "text-base md:text-2xl lg:text-lg md:text-3xl",
+    lg: "text-xl md:text-4xl lg:text-5xl"
   };
   const subTextClasses = {
     xs: "text-[8px]",
@@ -315,7 +315,7 @@ const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", o
     xs: "gap-1.5",
     sm: "gap-2",
     md: "gap-4",
-    lg: "gap-8"
+    lg: "gap-4 md:p-8"
   };
 
   return (
@@ -481,7 +481,7 @@ const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJ
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap justify-center gap-2 md:gap-6 pt-4 md:pt-8 border-t border-white/5"
+              className="flex flex-wrap justify-center gap-2 md:gap-4 md:p-6 pt-4 md:pt-8 border-t border-white/5"
             >
               {[
                 { label: 'VEO', sub: '4K Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/10' },
@@ -668,14 +668,14 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
         </div>
 
         {/* Global Architecture View */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
-          <div className="col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden group">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+          <div className="col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2.5rem] p-4 md:p-8 lg:p-10 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-1000" />
             <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-white">
               <Workflow className="w-6 h-6 text-indigo-400" /> 
               Core Architecture
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                   <h3 className="text-sm font-bold text-indigo-300 mb-2 flex items-center gap-2 italic">
@@ -736,7 +736,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
           <h2 className="text-3xl font-black mb-8 flex items-center gap-4">
             <div className="w-10 h-0.5 bg-indigo-500" /> Pre-Flight Checklist
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {[
               { title: "Environment Runtime", desc: "Node.js 18.x or 20.x is mandatory for the Vite build engine.", why: "Ensures ESM compatibility and fast HMR." },
               { title: "Version Control", desc: "Active GitHub account with SSH keys configured for secure push.", why: "Required for atomic deployments and Vercel hooks." },
@@ -921,7 +921,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
             <h2 className="text-4xl font-black mb-6 flex items-center gap-4 text-white">
               <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" /> Professional Grade Tips
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="font-bold flex items-center gap-2 tracking-tight text-white">
@@ -1104,7 +1104,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
           <p className="text-white/50 max-w-2xl text-base">Everything you need to build stunning, production-ready assets in seconds.</p>
         </div>
 
-        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
           {[
             { 
               icon: MonitorPlay, 
@@ -1183,7 +1183,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 relative z-10">
               {[
                 { step: '01', title: 'Upload Assets', desc: 'Provide your product images, logos, and character models. The AI analyzes their lighting and perspective.', color: 'indigo', icon: Upload },
                 { step: '02', title: 'Define Style', desc: 'Select your layout, lighting, typography, and color palette. Refine your prompt with Gemini 3.1 Pro.', color: 'fuchsia', icon: Palette },
@@ -1562,7 +1562,7 @@ export default function App() {
   const [lighting, setLighting] = useState<Lighting>('Softbox Studio');
   const [aspectRatio, setAspectRatio] = useState<APIAspectRatio>('9:16');
   const [fontFamily, setFontFamily] = useState<FontPreset>('Space Grotesk');
-  const [generationObjective, setGenerationObjective] = useState<'poster' | 'logo' | 'video' | null>(null);
+  const [generationObjective, setGenerationObjective] = useState<'poster' | 'logo' | 'video' | 'motion-lab' | null>(null);
   const [dimensionMode, setDimensionMode] = useState<DimensionMode>('2D Standard');
   const [dynamics, setDynamics] = useState<DynamicSettings>({
     gloss: true,
@@ -2782,6 +2782,67 @@ export default function App() {
 
 
 
+  const renderHeader = () => (
+    <div className="w-full shrink-0">
+      {/* Desktop Header */}
+      <header className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-4 z-50 transform-gpu shadow-xl w-full">
+        <div className="flex items-center gap-4">
+          <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors px-3 font-sans">
+            Meet Jamini
+          </button>
+          <div className="w-px h-4 bg-white/10 mx-1" />
+          <nav className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
+            <button 
+              onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
+              className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter hover:bg-white/10 transition-all text-fuchsia-400 font-sans"
+            >
+              CHOOSE GOAL
+            </button>
+            <div className="w-px h-3 bg-white/10 mx-0.5" />
+            <button onClick={() => setCurrentView('gallery')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70")}>VAULT</button>
+            <button onClick={() => setCurrentView('settings')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>SYSTEM</button>
+            <button onClick={() => setCurrentView('guide')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>TERMINAL</button>
+          </nav>
+
+          <button onClick={() => downloadImage('png')} disabled={!generatedImage} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ml-2">
+            <Download className="w-3 h-3" /> <span className="hidden 2xl:inline font-sans">Export</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Header with Hamburger Dropdown */}
+      <header className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-2 z-50 transform-gpu shadow-xl flex w-full relative">
+        <div className="flex items-center gap-2 shrink-0">
+          <JaminiLogo size="xs" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors ml-1 font-sans">Meet Jamini</button>
+        </div>
+
+        <div className="flex-1 flex justify-end relative">
+          <button 
+            onClick={() => {
+              const menu = document.getElementById('jamini-mobile-menu');
+              if (menu) menu.classList.toggle('hidden');
+            }}
+            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white active:scale-95 transition-transform"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <div id="jamini-mobile-menu" className="hidden absolute top-10 right-0 w-48 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] rounded-bl-xl overflow-hidden flex-col origin-top-right z-[60] p-2 gap-1 text-left">
+            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className="px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans">CHOOSE GOAL</button>
+            <button onClick={() => { setCurrentView('gallery'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'gallery' && "bg-white/10 text-white")}>VAULT ARCHIVE</button>
+            <button onClick={() => { setCurrentView('settings'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'settings' && "bg-white/10 text-white")}>SYSTEM SETTINGS</button>
+            <button onClick={() => { setCurrentView('guide'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'guide' && "bg-white/10 text-white")}>DEV TERMINAL</button>
+          </div>
+        </div>
+      </header>
+    </div>
+  );
+
   const renderContent = () => {
     if (currentView === 'guide') return <SetupGuide onBack={() => setCurrentView('editor')} />;
     if (currentView === 'settings') return <SettingsPage onBack={() => setCurrentView('editor')} />;
@@ -2795,10 +2856,18 @@ export default function App() {
       />
     );
 
-    if (!generationObjective) return <ObjectiveSelector />;
+    if (!generationObjective) return (
+      <div className="flex flex-col h-full overflow-hidden w-full relative">
+        {renderHeader()}
+        <div className="flex-1 overflow-y-auto w-full">
+          <ObjectiveSelector />
+        </div>
+      </div>
+    );
 
     return (
       <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
+        {renderHeader()}
         {/* 3D/4D Popping Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
@@ -2840,127 +2909,7 @@ export default function App() {
           ))}
         </div>
 
-        {/* Desktop Header */}
-        <header className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 items-center justify-between px-4 z-50 transform-gpu shadow-xl">
-          <div className="flex items-center gap-4">
-            <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
-            <div className="h-4 w-px bg-white/10 mx-1" />
-            <div className="flex items-center gap-0.5 bg-white/5 rounded-md p-0.5 border border-white/5">
-              <button 
-                onClick={undo} 
-                disabled={historyIndex === 0} 
-                className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-20 transition-all font-mono"
-                title="Undo (Ctrl+Z)"
-              >
-                <Undo2 className="w-3 h-3" />
-              </button>
-              <button 
-                onClick={redo} 
-                disabled={historyIndex === history.length - 1} 
-                className="p-1.5 rounded text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-20 transition-all font-mono"
-                title="Redo (Ctrl+Y)"
-              >
-                <Redo2 className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <nav className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
-              <button 
-                onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter text-indigo-400 hover:bg-indigo-500/10 transition-all"
-              >
-                <ArrowLeft className="w-3 h-3" /> <span className="hidden xl:inline">Goal</span>
-              </button>
-              
-              <div className="w-px h-3 bg-white/10 mx-0.5" />
-
-              <button 
-                onClick={() => setCurrentView('gallery')} 
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  (currentView as string) === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <History className="w-3 h-3" /> <span className="hidden xl:inline">Vault</span>
-              </button>
-
-              <button 
-                onClick={() => setCurrentView('storyboard')} 
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  (currentView as string) === 'storyboard' ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.1)]" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <Film className="w-3 h-3" /> <span className="hidden xl:inline">Motion</span>
-              </button>
-
-              <button 
-                onClick={() => setCurrentView('settings')} 
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  (currentView as string) === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <Settings2 className="w-3 h-3" /> <span className="hidden xl:inline">System</span>
-              </button>
-
-              <button 
-                onClick={() => setCurrentView('guide')} 
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
-                  (currentView as string) === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70"
-                )}
-              >
-                <Terminal className="w-3 h-3" /> <span className="hidden xl:inline">Terminal</span>
-              </button>
-            </nav>
-
-            <button 
-              onClick={() => downloadImage('png')} 
-              disabled={!generatedImage} 
-              className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
-            >
-              <Download className="w-3 h-3" /> <span className="hidden 2xl:inline">Export</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Mobile Header */}
-        <header className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 flex items-center justify-between px-2 z-50 transform-gpu shadow-xl">
-          <div className="flex items-center gap-2 shrink-0">
-            <button 
-              onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
-              className="w-8 h-8 flex items-center justify-center text-indigo-400 bg-indigo-500/10 rounded-lg active:scale-90 transition-transform"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-            </button>
-            <JaminiLogo size="xs" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
-          </div>
-
-          <div className="flex-1 flex justify-end">
-            <div className="flex items-center gap-0.5 bg-white/5 rounded-xl p-0.5 border border-white/5 max-w-full overflow-x-auto no-scrollbar">
-              {[
-                { id: 'gallery', icon: History, active: (currentView as string) === 'gallery' },
-                { id: 'storyboard', icon: Film, active: (currentView as string) === 'storyboard' },
-                { id: 'settings', icon: Settings2, active: (currentView as string) === 'settings' },
-                { id: 'guide', icon: Terminal, active: (currentView as string) === 'guide' }
-              ].map(tab => (
-                <button 
-                  key={tab.id}
-                  onClick={() => setCurrentView(tab.id as any)}
-                  className={cn(
-                    "p-2 rounded-lg transition-all shrink-0",
-                    tab.active ? "bg-white/10 text-white shadow-sm" : "text-white/30 active:scale-95"
-                  )}
-                >
-                  <tab.icon className="w-3.5 h-3.5" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
+        {/* Header has been extracted */}
 
         {/* Main Workspace */}
         <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-transparent items-center">
@@ -2986,9 +2935,6 @@ export default function App() {
                 <button onClick={() => setActiveStep(4)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   {(generatedImage || generatedVideo) && <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse" />}
                   <MonitorPlay className="w-4 h-4 md:w-3.5 md:h-3.5" /> Preview
-                </button>
-                <button onClick={() => setActiveStep(5)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 whitespace-nowrap", activeStep === 5 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Book className="w-4 h-4 md:w-3.5 md:h-3.5" /> Meet Jamini
                 </button>
              </div>
           </div>
@@ -3146,7 +3092,7 @@ export default function App() {
                       <input type="file" ref={productInputRef} onChange={(e) => handleFileUpload(e, 'product')} multiple accept="image/*" className="hidden" />
                     </div>
                     {generationObjective !== 'logo' && (
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Brand Logo (Product Brand)</h3>
                             {brandLogoAsset ? (
@@ -4061,184 +4007,189 @@ export default function App() {
           )}>
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
             
-            <div className="flex-1 w-full h-full p-4 lg:p-0 flex flex-col items-center justify-center relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu">
-              <div className="w-full max-w-5xl mx-auto">
+            <div className="flex-1 w-full h-full p-2 md:p-4 lg:p-0 flex flex-col items-center justify-start relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu lg:py-10">
+              <div className={cn("w-full mx-auto h-[max-content] pb-24 md:pb-32 px-2 md:px-0", activeStep === 5 ? "max-w-[1400px]" : "max-w-5xl")}>
                 <AnimatePresence mode="wait">
                 {activeStep === 5 ? (
-                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-5xl w-full space-y-8 py-8 px-4 md:px-6 pb-24 mb-10 shadow-2xl bg-[#09090b]/90 backdrop-blur-3xl rounded-3xl border border-white/10 mx-auto mt-4 min-h-max transform-gpu lg:p-8">
+                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-[1400px] w-full px-4 md:px-8 py-10 shadow-2xl bg-[#09090b]/80 backdrop-blur-3xl rounded-[40px] border border-white/5 mx-auto mt-4 transform-gpu shrink-0 text-center relative overflow-hidden flex flex-col items-center">
                   
+                  {/* Hero Effect Backgrounds */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/10 blur-[120px] rounded-full mix-blend-screen" />
+                    <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-fuchsia-500/10 blur-[120px] rounded-full mix-blend-screen" />
+                  </div>
+
                   {/* Hero Section */}
-                  <div className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-2 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                      <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Welcome to the Next Generation of Creative AI
+                  <div className="text-center space-y-6 relative z-10 w-full max-w-4xl mx-auto">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-black uppercase tracking-[0.2em] mb-4 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+                      <Sparkles className="w-4 h-4 animate-pulse text-indigo-400" /> Professional Multi-Modal Architecture
                     </div>
-                      <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                      </div>
-                    <p className="text-sm md:text-lg text-white/70 font-medium italic drop-shadow-lg">Engineering the absolute standard for commercial AI architecture. <span className="text-indigo-400">#Jamini</span></p>
                     
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 md:mt-10 scale-90 md:scale-100">
+                    <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/40 tracking-tighter drop-shadow-2xl !leading-[1.1]">
+                      Engineered for <br className="hidden md:block" /> Built-In <span className="text-indigo-400">Brilliance.</span>
+                    </h2>
+                    
+                    <p className="text-sm md:text-lg lg:text-xl text-white/50 font-medium max-w-2xl mx-auto leading-relaxed">
+                      JAMINI uses dual-node synthetic reasoning to enforce brand compliance, spatial awareness, and cinema-grade lighting protocols on every generation.
+                    </p>
+                    
+                    {/* The Architecture Duo Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12 mt-12 md:mt-20 w-full max-w-3xl mx-auto px-4 md:px-0 relative">
                       
-                      {/* JA Card */}
-                      <div className="p-[1px] rounded-[24px] bg-gradient-to-b from-indigo-500/50 via-indigo-500/0 to-indigo-500/0 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default">
-                        <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] group-hover:bg-indigo-500/30 transition-colors pointer-events-none" />
-                        <div className="px-4 py-6 md:px-6 md:py-8 rounded-[23px] bg-[#0c0c0e] text-center min-w-[200px] md:min-w-[240px] relative overflow-hidden flex flex-col items-center justify-center h-full">
-                          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-black/0 to-black/0 opacity-50" />
-                          <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay" />
-                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 shadow-[inset_0_2px_10px_rgba(99,102,241,0.2)]">
-                            <Layers className="w-6 h-6 text-indigo-400" />
-                          </div>
-                          <span className="block text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">JA</span>
-                          <span className="text-[10px] md:text-xs text-indigo-400 uppercase font-black tracking-[0.4em] relative z-10 mt-3 block">Jason (Brain)</span>
-                          <div className="w-6 h-px bg-indigo-500/30 my-3" />
-                          <p className="text-[10px] md:text-xs text-white/50 relative z-10 leading-relaxed">The creative architect. Providing the vision, layout structure, semantic composition, and aesthetic intuition.</p>
-                        </div>
+                      {/* Plus icon strictly in the center */}
+                      <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 items-center justify-center text-2xl font-black text-white/40 z-20 shadow-2xl">
+                        +
                       </div>
 
-                      <div className="text-white/20 text-3xl md:text-5xl font-black px-2">+</div>
+                      {/* JA Card */}
+                      <div className="flex flex-col items-center p-8 rounded-[32px] bg-gradient-to-b from-indigo-500/10 to-transparent border border-indigo-500/20 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default h-full text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center mb-6 !shadow-[0_0_30px_rgba(99,102,241,0.3)]">
+                          <Layers className="w-8 h-8 text-indigo-400" />
+                        </div>
+                        <span className="block text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2">JA</span>
+                        <span className="text-xs text-indigo-400 font-black uppercase tracking-[0.3em] mb-4">Jason (Brain)</span>
+                        <p className="text-xs text-white/50 leading-relaxed font-medium">The creative architect. Providing the vision, layout structure, semantic composition, and aesthetic intuition.</p>
+                      </div>
 
                       {/* MINI Card */}
-                      <div className="p-[1px] rounded-[24px] bg-gradient-to-b from-fuchsia-500/50 via-fuchsia-500/0 to-fuchsia-500/0 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default">
-                        <div className="absolute inset-0 bg-fuchsia-500/20 blur-[100px] group-hover:bg-fuchsia-500/30 transition-colors pointer-events-none" />
-                        <div className="px-4 py-6 md:px-6 md:py-8 rounded-[23px] bg-[#0c0c0e] text-center min-w-[200px] md:min-w-[240px] relative overflow-hidden flex flex-col items-center justify-center h-full">
-                          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-900/40 via-black/0 to-black/0 opacity-50" />
-                          <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay" />
-                          <div className="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-4 shadow-[inset_0_2px_10px_rgba(217,70,239,0.2)]">
-                            <Zap className="w-6 h-6 text-fuchsia-400" />
-                          </div>
-                          <span className="block text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 uppercase relative z-10 drop-shadow-lg tracking-tighter">MINI</span>
-                          <span className="text-[10px] md:text-xs text-fuchsia-400 uppercase font-black tracking-[0.4em] relative z-10 mt-3 block">Gemini (Brawn)</span>
-                          <div className="w-6 h-px bg-fuchsia-500/30 my-3" />
-                          <p className="text-[10px] md:text-xs text-white/50 relative z-10 leading-relaxed">The computational powerhouse. Rendering complex physics, lighting algorithms, semantic fusion, and infinite variations.</p>
+                      <div className="flex flex-col items-center p-8 rounded-[32px] bg-gradient-to-b from-fuchsia-500/10 to-transparent border border-fuchsia-500/20 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default h-full text-center mt-6 md:mt-0">
+                        <div className="w-16 h-16 rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center mb-6 !shadow-[0_0_30px_rgba(217,70,239,0.3)]">
+                          <Zap className="w-8 h-8 text-fuchsia-400" />
                         </div>
+                        <span className="block text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2">MINI</span>
+                        <span className="text-xs text-fuchsia-400 font-black uppercase tracking-[0.3em] mb-4">Gemini (Brawn)</span>
+                        <p className="text-xs text-white/50 leading-relaxed font-medium">The computational powerhouse. Rendering complex physics, lighting algorithms, semantic fusion, and variations.</p>
                       </div>
                     </div>
 
-                    <div className="text-white/60 max-w-4xl mx-auto leading-relaxed text-sm md:text-base px-6 md:px-8 font-normal mt-10 bg-[#121215] p-6 rounded-3xl border border-white/5 text-left shadow-2xl relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500" />
-                      <strong className="text-white font-bold mb-3 block text-lg md:text-xl font-sans flex items-center gap-3">
-                        <Layers className="w-5 h-5 text-indigo-400" /> The Matrix Engine Architecture
+                    <div className="w-full mx-auto text-left space-y-8 mt-16 md:mt-24 pb-8 border-b border-white/5">
+
+                    <div className="w-full font-normal relative overflow-hidden">
+                      <strong className="text-white font-bold mb-6 block text-2xl md:text-4xl font-sans flex items-center justify-center gap-4 text-center">
+                        <Layers className="w-8 h-8 text-indigo-400" /> The Matrix Engine Architecture
                       </strong>
-                      <div className="space-y-4">
-                        <p className="text-xs md:text-sm">
-                          JAMINI Studio Edition is an advanced commercial generation workbench. Unlike consumer-grade AI wrappers, JAMINI bypasses "aesthetic guessing" by implementing a formal <strong>Compositional Protocol</strong>. This allows users to treat the generative process as a series of architectural commands rather than a dialogue.
-                        </p>
+
+                      <p className="text-sm md:text-lg text-white/50 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
+                        JAMINI Studio Edition is an advanced commercial generation workbench. Unlike consumer-grade AI wrappers, JAMINI bypasses "aesthetic guessing" by implementing a formal <strong>Compositional Protocol</strong>. This allows users to treat the generative process as a series of architectural commands rather than a dialogue.
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-6 w-full mb-8">
+                        <div className="bg-[#121215] p-8 rounded-[32px] border border-white/5 hover:border-fuchsia-500/20 transition-all shadow-2xl relative overflow-hidden group">
+                          <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                          <h4 className="text-white font-black uppercase tracking-widest text-lg md:text-xl flex items-center gap-3 mb-6 relative z-10">
+                            <Cpu className="w-6 h-6 text-fuchsia-400" /> Hybrid Compute Bridge
+                          </h4>
+                          <ul className="space-y-4 text-sm md:text-base text-white/60 relative z-10">
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Token Density:</strong> Optimized for 100% asset fidelity.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Prompt Orchestration:</strong> Gemini 3.1 Pro integration.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Temporal Flow:</strong> Veo 3.1 4K Commercial Synthesis.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Color Science:</strong> CI-Aware LUT mapping (32-bit).</span></li>
+                          </ul>
+                        </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                          <div className="space-y-2">
-                            <h4 className="text-white font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
-                              <Cpu className="w-3.5 h-3.5 text-fuchsia-400" /> Hybrid Compute Bridge
-                            </h4>
-                            <ul className="space-y-1 text-xs text-white/50 bg-black/20 p-3 rounded-2xl border border-white/5">
-                              <li>• <strong>Token Density:</strong> Optimized for 100% asset fidelity.</li>
-                              <li>• <strong>Prompt Orchestration:</strong> Gemini 3.1 Pro integration.</li>
-                              <li>• <strong>Temporal Flow:</strong> Veo 3.1 4K Commercial Synthesis.</li>
-                              <li>• <strong>Color Science:</strong> CI-Aware LUT mapping (32-bit).</li>
-                            </ul>
-                          </div>
-                          <div className="space-y-2">
-                            <h4 className="text-white font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
-                              <Zap className="w-3.5 h-3.5 text-amber-400" /> Synthesis Performance
-                            </h4>
-                            <ul className="space-y-1 text-xs text-white/50 bg-black/20 p-3 rounded-2xl border border-white/5">
-                              <li>• <strong>Execution Speed:</strong> Optimized sub-18s rendering.</li>
-                              <li>• <strong>Accuracy Index:</strong> 99.8% Brand Compliance.</li>
-                              <li>• <strong>Scale:</strong> From Social (9:16) to Print (Physical MM).</li>
-                              <li>• <strong>Security:</strong> Absolute client-side data sovereignty.</li>
-                              <li>• <strong>Cloud Fusion:</strong> Google Drive bi-directional sync.</li>
-                            </ul>
-                          </div>
+                        <div className="bg-[#121215] p-8 rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden group">
+                          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                          <h4 className="text-white font-black uppercase tracking-widest text-lg md:text-xl flex items-center gap-3 mb-6 relative z-10">
+                            <Zap className="w-6 h-6 text-amber-400" /> Synthesis Performance
+                          </h4>
+                          <ul className="space-y-4 text-sm md:text-base text-white/60 relative z-10">
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Execution Speed:</strong> Optimized sub-18s rendering.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Accuracy Index:</strong> 99.8% Brand Compliance.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Scale:</strong> From Social (9:16) to Print (Physical MM).</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Security:</strong> Absolute client-side data sovereignty.</span></li>
+                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Cloud Fusion:</strong> Google Drive bi-directional sync.</span></li>
+                          </ul>
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                          <div className="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-                            <h4 className="text-indigo-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Sparkles className="w-3 h-3" /> Precision Scale</h4>
-                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
-                              "Surgical print-ready generation using physical dimension mapping."
-                            </p>
-                          </div>
-                          <div className="p-4 bg-fuchsia-500/5 rounded-2xl border border-fuchsia-500/10">
-                            <h4 className="text-fuchsia-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Video className="w-3 h-3" /> Temporal Flow</h4>
-                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
-                              "Synchronized video continuity across dynamic 4K motion logic."
-                            </p>
-                          </div>
-                          <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-                            <h4 className="text-emerald-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Globe className="w-3 h-3" /> Localization</h4>
-                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
-                              "Instant 50+ language resynthesis matching exact mouth phonetics."
-                            </p>
-                          </div>
-                          <div className="p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10">
-                            <h4 className="text-amber-400 font-bold mb-1 flex items-center gap-2 italic text-[10px] md:text-xs"><Database className="w-3 h-3" /> Data Pipeline</h4>
-                            <p className="text-[9px] md:text-[10px] text-white/50 italic leading-relaxed">
-                              "End-to-end integration with enterprise DAMs and CMS platforms."
-                            </p>
-                          </div>
+                      <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 w-full">
+                        <div className="p-4 md:p-6 lg:p-8 bg-indigo-500/5 rounded-[24px] border border-indigo-500/10 hover:bg-indigo-500/10 transition-colors">
+                          <h4 className="text-indigo-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Sparkles className="w-5 h-5" /> Precision Scale</h4>
+                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
+                            "Surgical print-ready generation using physical dimension mapping ensuring pixel-perfect fidelity."
+                          </p>
                         </div>
-
-                        {/* Enterprise Integration Expansion */}
-                        <div className="mt-8 space-y-4">
-                           <div className="flex items-center gap-3">
-                              <Box className="w-4 h-4 text-emerald-400" />
-                              <h4 className="text-base font-bold text-white uppercase tracking-[0.2em]">Enterprise Integrations</h4>
-                           </div>
-                           <div className="p-5 bg-black/40 border border-white/5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
-                             <div className="space-y-1">
-                               <h5 className="text-xs font-bold text-white uppercase tracking-wider">RESTful Synthesis API</h5>
-                               <p className="text-[10px] text-white/40 max-w-sm">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides.</p>
-                             </div>
-                             <div className="flex gap-2">
-                               <button className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-white transition-colors">Docs</button>
-                               <button className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-bold transition-colors">API Keys</button>
-                             </div>
-                           </div>
+                        <div className="p-6 md:p-8 bg-fuchsia-500/5 rounded-[24px] border border-fuchsia-500/10 hover:bg-fuchsia-500/10 transition-colors">
+                          <h4 className="text-fuchsia-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Video className="w-5 h-5" /> Temporal Flow</h4>
+                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
+                            "Synchronized video continuity across dynamic 4K motion logic resulting in perfect cinematics."
+                          </p>
                         </div>
+                        <div className="p-6 md:p-8 bg-emerald-500/5 rounded-[24px] border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors">
+                          <h4 className="text-emerald-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Globe className="w-5 h-5" /> Localization</h4>
+                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
+                            "Instant 50+ language resynthesis matching exact mouth phonetics for global deployment."
+                          </p>
+                        </div>
+                        <div className="p-6 md:p-8 bg-amber-500/5 rounded-[24px] border border-amber-500/10 hover:bg-amber-500/10 transition-colors">
+                          <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Database className="w-5 h-5" /> Data Pipeline</h4>
+                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
+                            "End-to-end integration with enterprise DAMs and CMS platforms directly."
+                          </p>
+                        </div>
+                      </div>
 
-                        {/* Video Showcase Section */}
-                        <div className="mt-12 space-y-6">
-                           <div className="flex items-center gap-3">
-                              <Video className="w-5 h-5 text-fuchsia-400" />
-                              <h4 className="text-lg font-bold text-white uppercase tracking-[0.2em]">Commercial Production Reel</h4>
+                      {/* Enterprise Integration Expansion */}
+                      <div className="mt-16 bg-black/40 border border-white/5 rounded-[32px] p-8 md:p-12 flex flex-col xl:flex-row gap-8 items-center justify-between">
+                         <div className="space-y-4 max-w-2xl text-center xl:text-left">
+                           <div className="flex items-center gap-3 justify-center xl:justify-start">
+                              <Box className="w-6 h-6 text-emerald-400" />
+                              <h4 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em]">Enterprise Integrations</h4>
                            </div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {[
-                                { title: 'Luxury Swiss Horology', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', tag: 'VE0 3.1 PRO' },
-                                { title: 'High-Performance Automotive', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', tag: 'VE0 3.1 LITE' },
-                                { title: 'Tech Hardware Showcase', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', tag: 'VE0 3.1 PRO' },
-                                { title: 'Premium Beverage AD', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4', tag: 'VE0 3.1 PRO' },
-                                { title: 'Architectural Fly-through', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', tag: 'VE0 3.1 LITE' },
-                                { title: 'Fashion Editorial', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', tag: 'VE0 3.1 PRO' }
-                              ].map((video, idx) => (
-                                <motion.div 
-                                  key={idx}
-                                  whileHover={{ y: -5 }}
-                                  className="group relative aspect-video bg-black rounded-2xl overflow-hidden border border-white/10"
-                                >
-                                  <video 
-                                    src={video.url} 
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
-                                    autoPlay
-                                    loop 
-                                    muted 
-                                    playsInline 
-                                  />
-                                  <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-black text-white uppercase tracking-wider">{video.title}</span>
-                                      <span className="text-[8px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-black">{video.tag}</span>
-                                    </div>
+                           <p className="text-sm md:text-base text-white/40 leading-relaxed">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides using our RESTful Synthesis API.</p>
+                         </div>
+                         <div className="flex gap-4 shrink-0">
+                           <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95">API Docs</button>
+                           <button className="px-6 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:scale-105 active:scale-95">Generate Keys</button>
+                         </div>
+                      </div>
+
+                      {/* Video Showcase Section */}
+                      <div className="mt-20 space-y-8">
+                         <div className="flex items-center gap-4 justify-center">
+                            <Video className="w-8 h-8 text-fuchsia-400" />
+                            <h4 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.2em]">Production Reel</h4>
+                         </div>
+                         <p className="text-center text-white/50 text-sm md:text-base mb-10 max-w-2xl mx-auto">See the Matrix engine in action. All videos generated natively in 4K resolution at 60 frames per second using Veo 3.1 architecture.</p>
+                         
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                            {[
+                              { title: 'Luxury Swiss Horology', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', tag: 'VE0 3.1 PRO' },
+                              { title: 'High-Performance Auto', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', tag: 'VE0 3.1 LITE' },
+                              { title: 'Tech Hardware Event', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', tag: 'VE0 3.1 PRO' },
+                              { title: 'Premium Beverage AD', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4', tag: 'VE0 3.1 PRO' },
+                              { title: 'Architectural Fly-thr', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', tag: 'VE0 3.1 LITE' },
+                              { title: 'Fashion Editorial', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', tag: 'VE0 3.1 PRO' }
+                            ].map((video, idx) => (
+                              <motion.div 
+                                key={idx}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                className="group relative aspect-video bg-[#0c0c0e] rounded-3xl overflow-hidden border border-white/10 shadow-xl"
+                              >
+                                <video 
+                                  src={video.url} 
+                                  className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700" 
+                                  autoPlay
+                                  loop 
+                                  muted 
+                                  playsInline 
+                                />
+                                <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-black text-white uppercase tracking-wider">{video.title}</span>
+                                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-1 rounded-md font-black tracking-widest">{video.tag}</span>
                                   </div>
-                                </motion.div>
-                              ))}
-                           </div>
-                           <p className="text-[10px] text-white/30 text-center italic">Hover to preview cinematic artifacts generated by the Matrix.</p>
-                        </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Architecture Diagram Visualization */}
-                  <div className="pt-12 border-t border-white/5">
+                  </div>
+                  <div className="pt-12 border-t border-white/5 w-full max-w-5xl mx-auto">
                     <div className="text-center space-y-4 mb-10">
                        <h3 className="text-xl md:text-3xl font-black text-white">System Architecture & Pipeline</h3>
                        <p className="text-white/50 max-w-2xl mx-auto">Visualizing the flow of data intuitively from user intent to final synthesized commercial asset, orchestrated by Gemini Pro.</p>
@@ -4913,24 +4864,12 @@ export default function App() {
                   className="mt-12 mb-24 space-y-4"
                 >
                   <div className="h-px w-full bg-white/5 mb-8 lg:hidden" />
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 max-w-2xl mx-auto">
+                  <div className="flex justify-center max-w-sm mx-auto">
                     <button 
                       onClick={() => setActiveStep(2)}
                       className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center justify-center gap-2 transition-all hover:bg-white/10"
                     >
                       <ArrowLeft className="w-4 h-4" /> Back to Studio
-                    </button>
-                    <button 
-                      onClick={() => setCurrentView('storyboard')} 
-                      className="flex-1 py-4 bg-white/5 border border-white/10 text-white/70 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:bg-white/10"
-                    >
-                      <Film className="w-4 h-4" /> Motion Simulation
-                    </button>
-                    <button 
-                      onClick={() => setActiveStep(5)}
-                      className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all"
-                    >
-                      Meet Jamini <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </motion.div>
@@ -5013,9 +4952,22 @@ export default function App() {
         color: 'from-emerald-600 to-teal-500',
         glow: 'rgba(5, 150, 105, 0.4)'
       },
+      { 
+        id: 'motion-lab', 
+        title: 'Motion Lab', 
+        desc: 'Advanced animation suite.',
+        longDesc: 'Bring existing layers and assets to life. Professional keyframing, timeline animation, and multi-track compositing for static visuals.',
+        icon: Film, 
+        color: 'from-orange-600 to-red-500',
+        glow: 'rgba(234, 88, 12, 0.4)'
+      },
     ];
 
-    const selectObjective = (id: 'logo' | 'poster' | 'video') => {
+    const selectObjective = (id: 'logo' | 'poster' | 'video' | 'motion-lab') => {
+      if (id === 'motion-lab') {
+        setCurrentView('storyboard');
+        return;
+      }
       setGenerationObjective(id);
       
       // Reset shared states to prevent bleeding between modes
@@ -5052,7 +5004,7 @@ export default function App() {
     };
 
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[100dvh] w-full p-1 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
+      <div className="relative flex flex-col items-center justify-center min-h-full w-full p-1 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
         {/* Dynamic Background Effects - Optimized Stack */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[30s] ease-linear animate-pulse" />
@@ -5091,63 +5043,54 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 md:gap-6 lg:gap-8 w-full group/container px-1.5 md:px-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full max-w-[1400px] mx-auto px-4 md:px-0 group/container">
             {objectives.map((obj, i) => (
               <motion.button
                 key={obj.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.1 + i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ 
-                  scale: 1.02, 
-                  y: -10,
-                  boxShadow: `0 20px 60px -15px ${obj.glow}` 
+                  scale: 1.03, 
+                  y: -8,
+                  boxShadow: `0 30px 60px -20px ${obj.glow}` 
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className={cn(
-                  "group relative flex flex-col items-start p-2 md:p-3 lg:p-4 bg-white/5 border border-white/10 rounded-[1rem] md:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500",
-                  i === 2 ? "col-span-2 md:col-span-1" : "col-span-1"
-                )}
+                className="col-span-1 group relative flex flex-col items-start p-6 md:p-8 rounded-[32px] bg-[#0c0c0e]/80 backdrop-blur-md border border-white/5 hover:border-white/20 text-left transition-all overflow-hidden isolation-auto min-h-[320px] md:min-h-[380px]"
               >
-                {/* 3D Glass Effect Background */}
-                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-30 transition-opacity duration-500", obj.color)} />
-                <div className="absolute top-0 right-0 w-20 h-20 md:w-28 lg:w-32 bg-white/5 blur-[40px] md:blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
-                
-                {/* Icon Sphere */}
-                <div className="relative z-10 w-7 h-7 md:w-12 lg:w-14 bg-white/5 rounded-[0.8rem] md:rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center mb-1.5 md:mb-3 lg:mb-4 border border-white/10 shadow-inner group-hover:rotate-12 transition-all duration-500 shrink-0">
-                  <div className={cn("absolute inset-0 blur-2xl opacity-0 group-hover:opacity-60 transition-opacity rounded-full", obj.color)} />
-                  <obj.icon className="w-3.5 h-3.5 md:w-6 lg:w-8 text-white relative z-10" />
-                </div>
+                {/* Dynamic Lighting Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`, WebkitMaskImage: 'linear-gradient(black, transparent)' }} />
+                <div className={`absolute right-[-20%] top-[-20%] w-[150%] h-[150%] bg-gradient-to-bl ${obj.color} opacity-0 group-hover:opacity-10 blur-[80px] rounded-full transition-opacity duration-700 pointer-events-none`} />
+                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
 
-                <div className="relative z-10 flex-1 space-y-0.5 md:space-y-1.5 lg:space-y-2">
-                  <div className="space-y-0 text-left">
-                    <h3 className="text-[9px] md:text-lg lg:text-xl font-black text-white uppercase tracking-tighter group-hover:text-indigo-300 transition-colors leading-none">{obj.title}</h3>
-                    <p className="text-indigo-400 font-black text-[6px] md:text-[9px] lg:text-xs uppercase tracking-widest md:tracking-[0.15em]">{obj.desc}</p>
+                {/* Content */}
+                <div className="relative z-10 w-full h-full flex flex-col">
+                  {/* Header / Icon */}
+                  <div className="flex items-center justify-between w-full mb-6 relative">
+                    <div className="relative h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center border border-white/[0.05] shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] overflow-hidden group-hover:border-white/20 transition-colors">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${obj.color} opacity-20`} />
+                      <obj.icon className="w-6 h-6 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] z-10" />
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/30 group-hover:bg-white/10 transition-all">
+                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white/90 transition-colors group-hover:translate-x-0.5" />
+                    </div>
                   </div>
                   
-                  <p className="text-[8px] md:text-[10px] lg:text-xs text-white/40 text-left leading-tight md:leading-relaxed font-medium group-hover:text-white/60 transition-colors line-clamp-2 md:line-clamp-none">
-                    {obj.longDesc}
-                  </p>
-                </div>
-
-
-
-                {/* Progress Indicator Decorations */}
-                <div className="mt-2 md:mt-4 lg:mt-6 w-full relative z-10">
-                  <div className="h-0.5 w-full bg-white/10 overflow-hidden rounded-full">
-                    <motion.div 
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: '100%' }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                      className={cn("h-full w-1/2 bg-gradient-to-r from-transparent to-transparent", obj.color.replace('from-', 'via-'))}
-                    />
-                  </div>
-                  <div className="mt-1 md:mt-4 flex items-center justify-between">
-                    <span className="text-[7px] md:text-[9px] font-black uppercase text-white/20 tracking-tighter">Cluster 0{i+1}</span>
-                    <div className="flex items-center gap-1 text-white font-bold text-[7px] md:text-[9px] lg:text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-x-[-5px] group-hover:translate-x-0 transition-all">
-                      Init <ArrowRight className="w-2.5 h-2.5 text-indigo-400" />
-                    </div>
+                  {/* Typography */}
+                  <div className="mt-auto">
+                    <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-xl">
+                      {obj.title}
+                    </h3>
+                    <div className={`w-10 h-1 rounded-full bg-gradient-to-r ${obj.color} mb-4 opacity-50 group-hover:w-16 transition-all duration-500`} />
+                    
+                    <p className="text-sm font-semibold text-white/80 mb-2 group-hover:text-white transition-colors">
+                      {obj.desc}
+                    </p>
+                    
+                    <p className="text-[11px] md:text-xs text-white/40 leading-relaxed font-medium group-hover:text-white/60 transition-colors">
+                      {obj.longDesc}
+                    </p>
                   </div>
                 </div>
               </motion.button>
@@ -5251,8 +5194,7 @@ export default function App() {
                 { id: 'studio', label: 'STUDIO', icon: LayoutIcon, isActive: currentView === 'editor' && activeStep <= 3, action: () => { setCurrentView('editor'); if(currentView === 'editor') setActiveStep(1); } },
                 { id: 'vault', label: 'VAULT', icon: History, isActive: currentView === 'gallery', action: () => { setCurrentView('gallery'); } },
                 { id: 'new', label: 'NEW', icon: Plus, isActive: false, action: () => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }, isAction: true },
-                { id: 'preview', label: 'PREVIEW', icon: MonitorPlay, isActive: currentView === 'editor' && activeStep === 4, action: () => { setCurrentView('editor'); setActiveStep(4); }, hasPing: generatedImage || generatedVideo },
-                { id: 'guide', label: 'GUIDE', icon: Book, isActive: currentView === 'editor' && activeStep === 5, action: () => { setCurrentView('editor'); setActiveStep(5); } }
+                { id: 'preview', label: 'PREVIEW', icon: MonitorPlay, isActive: currentView === 'editor' && activeStep === 4, action: () => { setCurrentView('editor'); setActiveStep(4); }, hasPing: generatedImage || generatedVideo }
               ].map(tab => (
                 <button 
                   key={tab.id}

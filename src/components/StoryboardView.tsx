@@ -49,6 +49,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
   const [activeSceneIndex, setActiveSceneIndex] = useState<number | null>(0);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [viewMode, setViewMode] = useState<'visual' | 'script'>('visual');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isLogoMode = editorState.generationObjective === 'logo';
 
   useEffect(() => {
@@ -256,80 +257,143 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
   return (
     <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden">
       {/* Header */}
-      <header className="h-9 md:h-10 flex items-center justify-between px-1.5 md:px-2 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-20">
+      <header className="h-[50px] md:h-12 flex items-center justify-between px-2 md:px-4 border-b border-white/5 bg-black/40 backdrop-blur-md shrink-0 z-20">
         <div className="flex items-center gap-1 md:gap-2">
           <button onClick={onBack} className="text-white/50 hover:text-white transition-colors group flex items-center gap-1">
-            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
-              <ArrowLeft className="w-2.5 h-2.5 md:w-3 md:h-3" />
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
+              <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" />
             </div>
-            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest ">Back</span>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">Back</span>
           </button>
-          <div className="h-3 md:h-4 w-px bg-white/10 mx-1 md:mx-2" />
-          <div className="flex items-center gap-1.5 md:gap-3">
-             <div className="w-6 h-6 md:w-8 md:h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
-                <Video className="w-3 h-3 md:w-4 md:h-4 text-indigo-400" />
+          <div className="h-4 w-px bg-white/10 mx-1 md:mx-2" />
+          <div className="flex items-center gap-2 md:gap-3">
+             <div className="w-7 h-7 md:w-8 md:h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                <Video className="w-4 h-4 text-indigo-400" />
              </div>
              <div className="flex flex-col">
                 <h1 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/90">Storyboard</h1>
-                <span className="text-[7px] md:text-[8px] text-white/30 font-mono uppercase tracking-[0.2em] hidden xs:inline">Sequence Engine</span>
+                <span className="text-[7px] md:text-[8px] text-white/30 font-mono text-ellipsis overflow-hidden whitespace-nowrap uppercase tracking-[0.2em]">Sequence Engine</span>
              </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 md:gap-3">
-          <div className="hidden sm:flex bg-[#0A0A0C] border border-white/10 rounded-lg p-0.5 md:p-1 mr-1 md:mr-4">
+        <div className="flex items-center gap-2 relative">
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="flex bg-[#0A0A0C] border border-white/10 rounded-lg p-1 mr-4">
+              <button 
+                onClick={() => setViewMode('visual')}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                  viewMode === 'visual' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                <Film className="w-3 h-3" /> Storyboard
+              </button>
+              <button 
+                onClick={() => setViewMode('script')}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                  viewMode === 'script' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                <FileText className="w-3 h-3" /> Script
+              </button>
+            </div>
+
             <button 
-              onClick={() => setViewMode('visual')}
-              className={cn(
-                "px-2 py-1 md:px-3 md:py-1.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 md:gap-2",
-                viewMode === 'visual' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
-              )}
+              onClick={simulateVideoGeneration}
+              disabled={isGenerating || isPreviewing}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"
             >
-              <Film className="w-2.5 h-2.5 md:w-3 md:h-3" /> Storyboard
+              <MonitorPlay className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Preview</span>
             </button>
             <button 
-              onClick={() => setViewMode('script')}
+              onClick={generateVideoScript}
+              disabled={isGeneratingScript}
               className={cn(
-                "px-2 py-1 md:px-3 md:py-1.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 md:gap-2",
-                viewMode === 'script' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                "flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all",
+                isGeneratingScript && "opacity-50 cursor-not-allowed"
               )}
             >
-              <FileText className="w-2.5 h-2.5 md:w-3 md:h-3" /> Script
+              {isGeneratingScript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+              <span className="text-[10px] font-black uppercase tracking-widest">Script</span>
+            </button>
+            <button 
+              onClick={generateAIPrompt}
+              disabled={isGenerating}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
+                isGenerating && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {isGenerating ? <Zap className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              <span className="text-[10px] font-black uppercase tracking-widest">AI Gen</span>
             </button>
           </div>
-
+          
           <button 
-            onClick={simulateVideoGeneration}
-            disabled={isGenerating || isPreviewing}
-            className="flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            className="lg:hidden p-2 bg-white/5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors"
           >
-            <MonitorPlay className="w-3 h-3 md:w-4 md:h-4" />
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">Preview</span>
-          </button>
-          <button 
-            onClick={generateVideoScript}
-            disabled={isGeneratingScript}
-            className={cn(
-              "flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all",
-              isGeneratingScript && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            {isGeneratingScript ? <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" /> : <Layers className="w-3 h-3 md:w-4 md:h-4" />}
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">Script</span>
-          </button>
-          <button 
-            onClick={generateAIPrompt}
-            disabled={isGenerating}
-            className={cn(
-              "flex items-center gap-1 md:gap-2 px-2 py-1 md:px-4 md:py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]",
-              isGenerating && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            {isGenerating ? <Zap className="w-3 h-3 md:w-4 md:h-4 animate-spin" /> : <Sparkles className="w-3 h-3 md:w-4 md:h-4" />}
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest hidden xs:inline">AI Gen</span>
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
           </button>
         </div>
       </header>
+      
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="lg:hidden absolute top-[50px] md:top-12 right-2 w-64 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-2xl rounded-xl overflow-hidden z-[100] flex flex-col p-2 gap-1"
+          >
+            <div className="flex bg-[#0A0A0C] border border-white/10 rounded-lg p-1 mb-2">
+              <button 
+                onClick={() => { setViewMode('visual'); setMobileMenuOpen(false); }}
+                className={cn(
+                  "flex-1 px-2 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-center",
+                  viewMode === 'visual' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                <Film className="w-3 h-3" /> Board
+              </button>
+              <button 
+                onClick={() => { setViewMode('script'); setMobileMenuOpen(false); }}
+                className={cn(
+                  "flex-1 px-2 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-center",
+                  viewMode === 'script' ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"
+                )}
+              >
+                <FileText className="w-3 h-3" /> Script
+              </button>
+            </div>
+            <button 
+              onClick={() => { setMobileMenuOpen(false); simulateVideoGeneration(); }}
+              disabled={isGenerating || isPreviewing}
+              className="flex items-center gap-3 px-3 py-3 w-full text-left rounded-lg bg-white/5 border border-white/10 text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:bg-white/10 transition-colors"
+            >
+              <MonitorPlay className="w-4 h-4" /> Preview
+            </button>
+            <button 
+              onClick={() => { setMobileMenuOpen(false); generateVideoScript(); }}
+              disabled={isGeneratingScript}
+              className="flex items-center gap-3 px-3 py-3 w-full text-left rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-500/20 transition-colors"
+            >
+              {isGeneratingScript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />} Generate Script
+            </button>
+            <button 
+              onClick={() => { setMobileMenuOpen(false); generateAIPrompt(); }}
+              disabled={isGenerating}
+              className="flex items-center gap-3 px-3 py-3 w-full text-left rounded-lg bg-indigo-500 text-[10px] font-black text-white uppercase tracking-widest shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:bg-indigo-600 transition-colors"
+            >
+              {isGenerating ? <Zap className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} AI Synapse
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="flex-1 overflow-y-auto bg-transparent custom-scrollbar p-2 md:p-4 lg:p-8 flex flex-col items-center">
         <div className="max-w-5xl w-full mx-auto space-y-4 md:space-y-6 pb-32">
@@ -484,7 +548,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                             </div>
 
                             {/* Secondary Logic */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 pt-6 md:pt-8 border-t border-white/5">
+                            <div className="grid grid-cols-2 gap-4 md:gap-8 pt-6 md:pt-8 border-t border-white/5">
                                <div className="space-y-2 md:space-y-4">
                                   <div className="flex items-center gap-2 text-amber-400">
                                      <Zap className="w-3 h-3" />
