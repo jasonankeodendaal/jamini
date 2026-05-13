@@ -509,7 +509,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                       {editorState[asset.key] ? (
                     asset.key === 'ciPdfAsset' ? (
                         <div className="flex items-center justify-center w-full h-full text-white/50">
-                            <FileType2 className="w-8 h-8" />
+                            <FileText className="w-8 h-8" />
                         </div>
                     ) : (
                         <img src={editorState[asset.key]} className="object-contain w-full h-full" />

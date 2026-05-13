@@ -29,7 +29,7 @@ interface VoiceAssistantProps {
   onClose: () => void;
   getApiKey: (type: 'paid' | 'free') => string;
   onGenerate: (data: any) => void;
-  objective: 'logo' | 'poster' | 'video';
+  objective: 'logo' | 'poster' | 'video' | 'motion-lab';
 }
 
 interface Message {

@@ -2782,20 +2782,22 @@ export default function App() {
 
 
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const renderHeader = () => (
     <div className="w-full shrink-0">
       {/* Desktop Header */}
-      <header className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-4 z-50 transform-gpu shadow-xl w-full">
+      <header role="banner" className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-4 z-50 transform-gpu shadow-xl w-full">
         <div className="flex items-center gap-4">
           <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
         </div>
 
-        <div className="flex items-center gap-2">
+        <nav className="flex items-center gap-2">
           <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors px-3 font-sans">
             Meet Jamini
           </button>
           <div className="w-px h-4 bg-white/10 mx-1" />
-          <nav className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
+          <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
             <button 
               onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
               className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter hover:bg-white/10 transition-all text-fuchsia-400 font-sans"
@@ -2806,16 +2808,16 @@ export default function App() {
             <button onClick={() => setCurrentView('gallery')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70")}>VAULT</button>
             <button onClick={() => setCurrentView('settings')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>SYSTEM</button>
             <button onClick={() => setCurrentView('guide')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>TERMINAL</button>
-          </nav>
+          </div>
 
-          <button onClick={() => downloadImage('png')} disabled={!generatedImage} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ml-2">
-            <Download className="w-3 h-3" /> <span className="hidden 2xl:inline font-sans">Export</span>
+          <button onClick={() => downloadImage('png')} disabled={!generatedImage} aria-label="Export generated image" className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ml-2">
+            <Download className="w-3 h-3" aria-hidden="true" /> <span className="hidden 2xl:inline font-sans">Export</span>
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Mobile Header with Hamburger Dropdown */}
-      <header className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-2 z-50 transform-gpu shadow-xl flex w-full relative">
+      <header role="banner" className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-2 z-50 transform-gpu shadow-xl flex w-full relative">
         <div className="flex items-center gap-2 shrink-0">
           <JaminiLogo size="xs" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
           <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors ml-1 font-sans">Meet Jamini</button>
@@ -2823,21 +2825,21 @@ export default function App() {
 
         <div className="flex-1 flex justify-end relative">
           <button 
-            onClick={() => {
-              const menu = document.getElementById('jamini-mobile-menu');
-              if (menu) menu.classList.toggle('hidden');
-            }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="jamini-mobile-menu"
             className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white active:scale-95 transition-transform"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-5 h-5" aria-hidden="true" />
           </button>
           
-          <div id="jamini-mobile-menu" className="hidden absolute top-10 right-0 w-48 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] rounded-bl-xl overflow-hidden flex-col origin-top-right z-[60] p-2 gap-1 text-left">
-            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className="px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans">CHOOSE GOAL</button>
-            <button onClick={() => { setCurrentView('gallery'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'gallery' && "bg-white/10 text-white")}>VAULT ARCHIVE</button>
-            <button onClick={() => { setCurrentView('settings'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'settings' && "bg-white/10 text-white")}>SYSTEM SETTINGS</button>
-            <button onClick={() => { setCurrentView('guide'); document.getElementById('jamini-mobile-menu')?.classList.add('hidden'); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'guide' && "bg-white/10 text-white")}>DEV TERMINAL</button>
-          </div>
+          <nav id="jamini-mobile-menu" aria-hidden={!isMobileMenuOpen} className={cn("absolute top-10 right-0 w-48 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] rounded-bl-xl overflow-hidden flex-col origin-top-right z-[60] p-2 gap-1 text-left", !isMobileMenuOpen && "hidden")}>
+            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); setIsMobileMenuOpen(false); }} className="px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans">CHOOSE GOAL</button>
+            <button onClick={() => { setCurrentView('gallery'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'gallery' && "bg-white/10 text-white")}>VAULT ARCHIVE</button>
+            <button onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'settings' && "bg-white/10 text-white")}>SYSTEM SETTINGS</button>
+            <button onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'guide' && "bg-white/10 text-white")}>DEV TERMINAL</button>
+          </nav>
         </div>
       </header>
     </div>
