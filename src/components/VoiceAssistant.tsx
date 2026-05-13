@@ -124,8 +124,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         setTranscript(transcriptText);
       };
 
+      recognitionInstance.onstart = () => console.log("Speech recognition started");
+      recognitionInstance.onerror = (event: any) => console.error("Speech recognition error:", event.error);
       recognitionInstance.onend = () => {
         setIsListening(false);
+        console.log("Speech recognition ended");
         if (transcript.trim()) {
           handleUserResponse(transcript);
         }
@@ -157,18 +160,26 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
 
   const speak = async (text: string) => {
     if (currentSourceRef.current) {
-      currentSourceRef.current.stop();
+      try {
+        currentSourceRef.current.stop();
+      } catch (e) {
+        console.warn("Error stopping audio source:", e);
+      }
+      currentSourceRef.current = null;
     }
     
     setIsSpeaking(true);
     
     try {
       const apiKey = getApiKey('free');
+      if (!apiKey) {
+        throw new Error("Missing API Key for voice synthesis");
+      }
       const ai = new GoogleGenAI({ apiKey });
       
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text: `Speak this message as a high-status, charismatic, human creative director. Use natural rhythm, varying pace, and conversational inflections. Do NOT sound robotic or read like a list. Message: ${text}` }] }],
+        contents: [{ parts: [{ text: `Speak this message as a high-status, charismatic, human creative director. Use natural rhythm, varying pace, and conversational inflections. Do NOT sound robotic. Message: ${text}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
@@ -198,6 +209,10 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
         }
         
         const ctx = audioContextRef.current;
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        
         const audioBuffer = ctx.createBuffer(1, float32.length, 24000);
         audioBuffer.getChannelData(0).set(float32);
         
@@ -217,17 +232,33 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       }
     } catch (error) {
       console.error("TTS Error:", error);
+      setMessages(prev => [...prev, { role: 'assistant', text: "(Connection interrupted. Synthesis failed.)" }]);
       setIsSpeaking(false);
     }
   };
 
   const toggleListening = () => {
+    if (!recognition) {
+       alert("Speech recognition is not supported in this browser or environment.");
+       return;
+    }
+    
     if (isListening) {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (e) {
+        console.error("Error stopping recognition:", e);
+        setIsListening(false);
+      }
     } else {
       setTranscript('');
-      recognition.start();
-      setIsListening(true);
+      try {
+        recognition.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error("Error starting recognition:", e);
+        alert("Could not access microphone. Please check permissions.");
+      }
     }
   };
 
@@ -272,6 +303,9 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const finalizeGeneration = async (finalAnswers: Record<string, string>) => {
     try {
       const apiKey = getApiKey('free');
+      if (!apiKey) {
+        throw new Error("Missing API Key for final synthesis");
+      }
       const ai = new GoogleGenAI({ apiKey });
 
       const prompt = `You are a Master Creative Director Orchestrator. You are analyzing a detailed vocal intent interview for a ${objective}.
@@ -300,7 +334,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash-8b",
+        model: "gemini-3-flash-preview",
         contents: [{ parts: [{ text: prompt }] }],
         config: {
           responseMimeType: "application/json"
@@ -308,11 +342,24 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       });
       
       if (response.text) {
-        const generationData = JSON.parse(response.text);
-        onGenerate(generationData);
+        try {
+          const generationData = JSON.parse(response.text);
+          onGenerate(generationData);
+        } catch (jsonErr) {
+          console.error("Failed to parse AI response as JSON:", response.text);
+          // Standard fallback if JSON is malformed
+          onGenerate({
+             scenePrompt: response.text.substring(0, 500),
+             assetPrompt: "Standard creative direction",
+             style: "Modern Cinematic",
+             lighting: "Studio Neutral",
+             clientInfo: { name: finalAnswers.client_name, company: finalAnswers.company_name, industry: finalAnswers.industry }
+          });
+        }
       }
     } catch (error) {
       console.error("Voice assistant generation error:", error);
+      setMessages(prev => [...prev, { role: 'assistant', text: "I encountered a high-level processing error. Please try again or check your configuration." }]);
     } finally {
       setIsProcessing(false);
     }

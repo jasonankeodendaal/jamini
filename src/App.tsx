@@ -1373,6 +1373,18 @@ export default function App() {
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [keyRotationIndex, setKeyRotationIndex] = useState<number>(0);
 
+  useEffect(() => {
+    const requestPermissions = async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        console.log("Permissions granted");
+      } catch (err) {
+        console.warn("Permissions not granted", err);
+      }
+    };
+    requestPermissions();
+  }, []);
+
   const getApiKey = (type: 'paid' | 'free') => {
     let availableKeys: string[] = [];
 
