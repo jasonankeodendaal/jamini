@@ -270,10 +270,32 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       } else {
         setIsSpeaking(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("TTS Error:", error);
-      setMessages(prev => [...prev, { role: 'assistant', text: "(Connection interrupted. Synthesis failed.)" }]);
-      setIsSpeaking(false);
+      
+      // Fallback to browser synthesis if Gemini TTS fails (e.g. 429 Quota Exceeded)
+      if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        const voices = window.speechSynthesis.getVoices();
+        // Try to find a nice male or director-like voice if possible
+        const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Daniel') || v.name.includes('Samantha'));
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+          setMessages(prev => [...prev, { role: 'assistant', text: "(Vocal link lost. Please check connection.)" }]);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', text: "(Connection interrupted. Synthesis failed.)" }]);
+        setIsSpeaking(false);
+      }
     }
   };
 
