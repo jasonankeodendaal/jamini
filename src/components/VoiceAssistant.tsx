@@ -20,7 +20,11 @@ import {
   ShieldAlert,
   Terminal,
   UploadCloud,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Server,
+  Layout,
+  Lightbulb,
+  Boxes
 } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { cn } from '../lib/utils';
@@ -35,6 +39,7 @@ interface VoiceAssistantProps {
 interface Message {
   role: 'assistant' | 'user';
   text: string;
+  suggestions?: string[];
 }
 
 export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiKey, onGenerate, objective }) => {
@@ -44,6 +49,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [transcript, setTranscript] = useState('');
+  const transcriptRef = useRef('');
   const [recognition, setRecognition] = useState<any>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [clientDetails, setClientDetails] = useState({ name: '', company: '', industry: '', tel: '', objective: '' });
@@ -159,18 +165,33 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       recognitionInstance.lang = 'en-US';
 
       recognitionInstance.onresult = (event: any) => {
-        const current = event.resultIndex;
-        const transcriptText = event.results[current][0].transcript;
-        setTranscript(transcriptText);
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        const fullTranscript = finalTranscript || interimTranscript;
+        setTranscript(fullTranscript);
+        transcriptRef.current = fullTranscript;
       };
 
-      recognitionInstance.onstart = () => console.log("Speech recognition started");
+      recognitionInstance.onstart = () => {
+        console.log("Speech recognition started");
+        transcriptRef.current = '';
+        setTranscript('');
+      };
       recognitionInstance.onerror = (event: any) => console.error("Speech recognition error:", event.error);
       recognitionInstance.onend = () => {
         setIsListening(false);
-        console.log("Speech recognition ended");
-        if (transcript.trim()) {
-          handleUserResponse(transcript);
+        console.log("Speech recognition ended, final text:", transcriptRef.current);
+        if (transcriptRef.current.trim()) {
+          handleUserResponse(transcriptRef.current);
         }
       };
 
@@ -178,8 +199,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     }
 
     // Initial Greeting
-    const greeting = "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Think of this as a relaxed coffee chat—just talk to me about your vision, and I'll handle the technical details. You can ask me anything, or just describe what you want. When you're ready to see your project generated, just say 'Show me my generation'. To begin, please state your full name and the name of the company or client for this project.";
-    setMessages([{ role: 'assistant', text: greeting }]);
+    const greeting = "Welcome to the JAMINI Vocal Engine. I'm your creative director today. Think of this as a relaxed coffee chat. To begin, please state your full name and the name of the company or client for this project.";
+    setMessages([{ 
+      role: 'assistant', 
+      text: greeting
+    }]);
     speak(greeting);
 
     return () => {
@@ -314,6 +338,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       }
     } else {
       setTranscript('');
+      transcriptRef.current = '';
       try {
         recognition.start();
         setIsListening(true);
@@ -375,7 +400,18 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       setCurrentQuestionIndex(nextIndex);
       const nextQuestion = allQuestions[nextIndex];
       
-      setMessages(prev => [...prev, { role: 'assistant', text: nextQuestion }]);
+      let suggestions: string[] | undefined = undefined;
+      if (nextIndex === 3) {
+        suggestions = ["Logo Design", "Cinematic Video", "Poster / Art", "Brand Identity", "Motion Graphics", "UX UI Mockup", "3D Asset"];
+      } else if (nextIndex === 4) {
+        suggestions = ["Technology", "Fashion", "Healthcare", "Architecture", "Entertainment", "Finance"];
+      } else if (nextIndex === 7) {
+        suggestions = ["Minimalist", "Brutalist", "Cyberpunk", "Ethereal Organic", "High-Tech Corporate", "Retro 80s"];
+      } else if (nextIndex === 8) {
+        suggestions = ["Electric Blue & Silver", "Emerald & Gold", "Monochrome Noir", "Sunset Gradient", "Nordic Pastel", "Vibrant Neon"];
+      }
+
+      setMessages(prev => [...prev, { role: 'assistant', text: nextQuestion, suggestions }]);
       speak(nextQuestion);
       setIsProcessing(false);
     } else {
@@ -510,29 +546,56 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 lg:p-10 space-y-4 lg:space-y-8 custom-scrollbar pb-32">
             <AnimatePresence initial={false}>
               {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    "flex items-start gap-3 lg:gap-5",
-                    msg.role === 'user' ? "flex-row-reverse" : ""
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "flex items-start gap-3 lg:gap-5",
+                  msg.role === 'user' ? "flex-row-reverse" : ""
+                )}
+              >
+                <div className={cn(
+                  "w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 border",
+                  msg.role === 'assistant' ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20"
+                )}>
+                  {msg.role === 'assistant' ? <BrainCircuit className="w-4 h-4 lg:w-5 lg:h-5" /> : <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5" />}
+                </div>
+                <div className={cn(
+                  "max-w-[85%] p-4 lg:p-6 rounded-2xl text-xs lg:text-base leading-relaxed tracking-wide shadow-2xl",
+                  msg.role === 'assistant' ? "bg-white/[0.03] text-white/90 border border-white/5" : "bg-fuchsia-500/10 text-white border border-fuchsia-500/20"
+                )}>
+                  {msg.text}
+                  {msg.suggestions && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {msg.suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => handleUserResponse(suggestion)}
+                          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/50 text-[10px] uppercase tracking-widest font-bold text-indigo-400 transition-all pointer-events-auto"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                >
-                  <div className={cn(
-                    "w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 border",
-                    msg.role === 'assistant' ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20"
-                  )}>
-                    {msg.role === 'assistant' ? <BrainCircuit className="w-4 h-4 lg:w-5 lg:h-5" /> : <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5" />}
-                  </div>
-                  <div className={cn(
-                    "max-w-[85%] p-4 lg:p-6 rounded-2xl text-xs lg:text-base leading-relaxed tracking-wide shadow-2xl",
-                    msg.role === 'assistant' ? "bg-white/[0.03] text-white/90 border border-white/5" : "bg-fuchsia-500/10 text-white border border-fuchsia-500/20"
-                  )}>
-                    {msg.text}
-                  </div>
-                </motion.div>
-              ))}
+                </div>
+              </motion.div>
+            ))}
+            {isListening && transcript && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-start gap-3 lg:gap-5 flex-row-reverse"
+              >
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 border bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 animate-pulse">
+                  <Mic className="w-4 h-4 lg:w-5 lg:h-5" />
+                </div>
+                <div className="max-w-[85%] p-4 lg:p-6 rounded-2xl text-xs lg:text-base leading-relaxed tracking-wide shadow-2xl bg-fuchsia-500/5 text-white/40 border border-fuchsia-500/10 italic">
+                  {transcript}...
+                </div>
+              </motion.div>
+            )}
             </AnimatePresence>
             {isProcessing && (
               <div className="flex flex-col gap-3 px-12">
@@ -619,13 +682,51 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
                 </div>
              </div>
 
+             {/* Capabilities List */}
+             <div className="hidden lg:block bg-black/40 border border-white/5 rounded-2xl p-4 mt-2">
+                <h5 className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-3">Core Capabilities</h5>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Brand Archetypes', icon: Sparkles },
+                    { label: 'Geometric Layouts', icon: Layout },
+                    { label: 'Cinematic Lighting', icon: Lightbulb },
+                    { label: 'Material Mapping', icon: Boxes }
+                  ].map((cap, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[9px] text-white/50 bg-white/5 p-2 rounded-lg border border-white/5">
+                        <cap.icon className="w-3 h-3 text-indigo-400" />
+                        {cap.label}
+                      </div>
+                  ))}
+                </div>
+             </div>
+
+             {/* Engine Principles */}
+             <div className="hidden lg:block bg-gradient-to-b from-indigo-950/20 to-black/40 border border-indigo-500/10 rounded-2xl p-4 mt-2">
+                <h5 className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-3">Engine Principles</h5>
+                <ul className="space-y-2">
+                  {[
+                    'Intent-First Synthesis',
+                    'Context-Aware Heuristics',
+                    'Zero-Config Deployment',
+                    'Atomic State Locking'
+                  ].map((principle, i) => (
+                    <li key={i} className="flex items-center gap-2 text-[8px] text-white/60">
+                      <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                      {principle}
+                    </li>
+                  ))}
+                </ul>
+             </div>
+
              {/* Bento Grid Stats (Shrunken) */}
              <div className="hidden lg:grid grid-cols-2 gap-2">
                 {[
-                  { icon: BrainCircuit, label: 'Link', value: 'Prime', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-                  { icon: Workflow, label: 'Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
-                  { icon: Cpu, label: 'Core', value: 'Titan 4', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-                  { icon: Signal, label: 'Lat', value: '14ms', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+                  { icon: BrainCircuit, label: 'Neural Link', value: 'Prime-A7', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+                  { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
+                  { icon: Cpu, label: 'Compute', value: '84% Load', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                  { icon: Signal, label: 'Stream', value: '14.2 ms', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                  { icon: Terminal, label: 'Engine', value: 'Node v23', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                  { icon: Server, label: 'Region', value: 'EU-West-1', color: 'text-rose-400', bg: 'bg-rose-500/10' }
                 ].map((stat, i) => (
                   <motion.div 
                     key={i} 
@@ -636,7 +737,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
                     </div>
                     <div>
                        <span className="block text-[7px] font-black text-white/20 uppercase tracking-widest">{stat.label}</span>
-                       <span className={cn("text-[9px] font-black uppercase tracking-tight", stat.color)}>{stat.value}</span>
+                       <span className={cn("text-[8px] font-black uppercase tracking-tight", stat.color)}>{stat.value}</span>
                     </div>
                   </motion.div>
                 ))}
