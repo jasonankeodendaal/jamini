@@ -90,7 +90,8 @@ export const generateLogo = async (
 export const generateCIBible = async (
   darkLogoUrl: string | null,
   lightLogoUrl: string | null,
-  brandName: string = "JAMINI Studio"
+  brandName: string = "JAMINI Studio",
+  ciMarkdown: string | null = null
 ) => {
   const pdf = new jsPDF();
   const pageWidth = 210;
@@ -100,7 +101,7 @@ export const generateCIBible = async (
   const renderHeader = (pageNumber: number, sectionTitle: string) => {
      pdf.setFontSize(8);
      pdf.setTextColor(100, 100, 100);
-     pdf.text(`JAMINI STUDIO - AUTOMATED BRAND IDENTITY BIBLE - PAGE ${pageNumber}`, margin, 15);
+     pdf.text(`${brandName.toUpperCase()} - AUTOMATED BRAND IDENTITY BIBLE - PAGE ${pageNumber}`, margin, 15);
      pdf.setDrawColor(255, 255, 255, 0.1);
      pdf.line(margin, 20, pageWidth - margin, 20);
   };
@@ -355,6 +356,69 @@ export const generateCIBible = async (
   pdf.setTextColor(150, 150, 150);
   pdf.text("Buttons: Sharp corners (0px radius) for structural, 8px for fluid interactive elements.", margin, 170);
   pdf.text("Navigation: Glassmorphism / backdrop-blur with 15% white opacity.", margin, 177);
+
+  // --- PAGE 9+: AI GENERATED CI SPECIFICATIONS ---
+  if (ciMarkdown) {
+    let pageNum = 9;
+    pdf.addPage();
+    pdf.setFillColor(15, 23, 42);
+    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+    renderHeader(pageNum, "STRATEGIC CI SPECIFICATIONS");
+
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.text("08. STRATEGIC CI SPECIFICATIONS", margin, 40);
+
+    const lines = ciMarkdown.split('\n');
+    let y = 60;
+    
+    for (let i = 0; i < lines.length; i++) {
+       let line = lines[i];
+       if (y > pageHeight - margin - 10) {
+           pageNum++;
+           pdf.addPage();
+           pdf.setFillColor(15, 23, 42);
+           pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+           renderHeader(pageNum, "STRATEGIC CI SPECIFICATIONS");
+           y = 40;
+       }
+
+       if (line.trim() === '') {
+           y += 5;
+           continue;
+       }
+
+       if (line.startsWith('# ')) {
+           pdf.setFontSize(20);
+           pdf.setTextColor(255, 255, 255);
+           pdf.text(line.replace('# ', ''), margin, y);
+           y += 12;
+       } else if (line.startsWith('## ')) {
+           pdf.setFontSize(16);
+           pdf.setTextColor(164, 255, 0);
+           pdf.text(line.replace('## ', ''), margin, y);
+           y += 10;
+       } else if (line.startsWith('### ')) {
+           pdf.setFontSize(13);
+           pdf.setTextColor(0, 179, 89);
+           pdf.text(line.replace('### ', ''), margin, y);
+           y += 8;
+       } else if (line.startsWith('- ') || line.startsWith('* ')) {
+           pdf.setFontSize(10);
+           pdf.setTextColor(200, 200, 200);
+           const splitText = pdf.splitTextToSize(`• ${line.substring(2)}`, pageWidth - (margin * 2) - 5);
+           pdf.text(splitText, margin + 5, y);
+           y += (splitText.length * 5) + 3;
+       } else {
+           pdf.setFontSize(10);
+           pdf.setTextColor(180, 180, 180);
+           const cleanLine = line.replace(/\*\*/g, ''); // strip bold temporarily
+           const splitText = pdf.splitTextToSize(cleanLine, pageWidth - (margin * 2));
+           pdf.text(splitText, margin, y);
+           y += (splitText.length * 5) + 3;
+       }
+    }
+  }
 
   const pdfBlob = pdf.output('blob');
   const link = document.createElement('a');

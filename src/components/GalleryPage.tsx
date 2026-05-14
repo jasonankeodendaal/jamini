@@ -244,7 +244,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
       </AnimatePresence>
 
       {!cloudSync && !loading && (
-        <div className="mx-6 mt-4 p-4 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mx-6 mt-4 p-4 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex flex-row shrink-0 items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
               <CloudLightning className="w-6 h-6 text-indigo-400" />
@@ -268,7 +268,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
 
       <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
         {/* Unified Top Control Bar */}
-        <div className="px-3 py-2 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-col md:flex-row items-center gap-2 shrink-0 transition-all">
+        <div className="px-3 py-2 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-row shrink-0 items-center gap-2 shrink-0 transition-all">
           <div className="relative flex-1 w-full max-w-xl">
             <Search className="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
             <input 
@@ -433,7 +433,7 @@ export default function GalleryPage({ onBack }: { onBack: () => void }) {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#18181C] border border-white/10 rounded-3xl overflow-hidden max-w-6xl w-full max-h-full flex flex-col md:flex-row shadow-2xl"
+              className="bg-[#18181C] border border-white/10 rounded-3xl overflow-hidden max-w-6xl w-full max-h-full flex flex-row shrink-0 shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex-1 bg-black/50 p-4 md:p-8 flex items-center justify-center relative min-h-[40vh] md:min-h-0">

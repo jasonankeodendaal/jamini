@@ -532,7 +532,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-4xl mx-auto space-y-8 pb-20"
               >
-                <div className="flex flex-col lg:flex-row items-start md:items-end justify-between border-b border-white/5 pb-6 gap-4">
+                <div className="flex flex-row shrink-0 items-start md:items-end justify-between border-b border-white/5 pb-6 gap-4">
                    <div className="space-y-2">
                       <div className="flex items-center gap-3">
                          <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-black text-emerald-400 uppercase tracking-widest">
@@ -582,7 +582,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
                 exit={{ opacity: 0, x: 20 }}
                 className="space-y-6"
               >
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-4 lg:p-6 bg-white/[0.02] border border-white/5 rounded-2xl gap-4">
+                <div className="flex flex-row shrink-0 items-start lg:items-center justify-between p-4 lg:p-6 bg-white/[0.02] border border-white/5 rounded-2xl gap-4">
                   <div className="flex items-center gap-4">
                     <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] font-black text-indigo-400 uppercase tracking-widest hidden lg:block">
                       Sequence Logic
@@ -610,7 +610,7 @@ export default function StoryboardView({ onBack, editorState, getApiKey, onUpdat
 
                          {/* Inline Card Editor */}
                          <div className="p-3 md:p-8 space-y-4 md:space-y-8">
-                            <div className="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-white/5 pb-4 md:pb-6 gap-4 relative">
+                            <div className="flex flex-row shrink-0 items-start md:items-end justify-between border-b border-white/5 pb-4 md:pb-6 gap-4 relative">
                                <div className="space-y-2">
                                   <div className="flex items-center gap-3">
                                      <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">

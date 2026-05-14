@@ -29,7 +29,7 @@ interface VoiceAssistantProps {
   onClose: () => void;
   getApiKey: (type: 'paid' | 'free') => string;
   onGenerate: (data: any) => void;
-  objective: 'logo' | 'poster' | 'video' | 'motion-lab';
+  objective: 'logo' | 'poster' | 'video' | 'motion-lab' | 'ci-generator' | null;
 }
 
 interface Message {
@@ -77,6 +77,12 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
     "What kind of design language are we speaking here? Are you leaning towards Minimalist, Brutalist, or perhaps a more High-Tech Modern aesthetic?",
     "Let's talk about the chromatic profile. Which specific colors or tones should define your brand's presence?",
     "Finally, are there any symbolic elements or strict visual boundaries I should keep in mind during synthesis?"
+  ] : objective === 'ci-generator' ? [
+    "To begin our CI generation, what is the core personality and voice of the brand?",
+    "What are the central values and mission this brand represents?",
+    "Do you have a specific color palette in mind for this corporate identity, or should I craft a modern spectrum for you?",
+    "In terms of typography and grid structure, are you looking for Swiss Bauhaus minimalism or something more expressive?",
+    "Finally, what is the primary visual metaphor or emblem you envision for the logo within this identity system?"
   ] : objective === 'video' ? [
     "To begin, let's define the narrative arc. What is the primary objective of this cinematic sequence?",
     "Regarding the environment, where exactly does this scene unfold? Describe the spatial geometry and atmosphere for me.",
@@ -114,6 +120,36 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   }, [isProcessing, isFinished]);
 
   useEffect(() => {
+    // Request Microphone permission on open
+    const checkMicrophone = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasMic = devices.some(device => device.kind === 'audioinput');
+        
+        if (!hasMic) {
+          console.warn("No microphone detected on this system.");
+          setMessages(prev => [...prev, { role: 'assistant', text: "I couldn't find a microphone on your system. No worries—you can still use the text input below to chat with me!" }]);
+          return;
+        }
+
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("Microphone access granted.");
+      } catch (err: any) {
+        console.error("Microphone access error: ", err);
+        let errorMsg = "I noticed I don't have microphone access. You can still type your responses using the keyboard below.";
+        
+        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          errorMsg = "I couldn't find a microphone connected to your system. Please connect one or continue by typing your responses.";
+        } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          errorMsg = "Microphone access was denied. Please enable it in your browser settings if you'd like to use voice control, otherwise you can type below.";
+        }
+        
+        setMessages(prev => [...prev, { role: 'assistant', text: errorMsg }]);
+      }
+    };
+
+    checkMicrophone();
+
     // Initialize Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -259,9 +295,15 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
       try {
         recognition.start();
         setIsListening(true);
-      } catch (e) {
-        console.error("Error starting recognition:", e);
-        alert("Could not access microphone. Please check permissions.");
+      } catch (err: any) {
+        console.error("Error starting recognition:", err);
+        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          alert("No microphone was detected. Please connect a microphone to use voice features.");
+        } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          alert("Microphone access is blocked. Please enable it in your browser settings.");
+        } else {
+          alert("Could not access microphone: " + (err.message || "Unknown error"));
+        }
       }
     }
   };
@@ -391,15 +433,45 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 lg:p-6 bg-black/95 backdrop-blur-xl">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 bg-black/95 backdrop-blur-xl">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="w-full h-[100dvh] lg:h-[80vh] lg:max-w-5xl bg-[#0B0B0E] lg:rounded-[3rem] shadow-[0_0_100px_rgba(99,102,241,0.25)] overflow-hidden flex flex-col lg:flex-row border border-white/5"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full h-[100dvh] lg:h-screen lg:w-screen lg:max-w-none bg-[#09090B]/98 backdrop-blur-3xl lg:rounded-none rounded-[2rem] shadow-none overflow-hidden flex flex-col lg:flex-row shrink-0"
+        style={{ perspective: '1000px' }}
       >
+        {/* Mobile Header / Quick Info Cards (Side by side on mobile) */}
+        <div className="lg:hidden flex gap-2 p-3 border-b border-white/5 bg-black/40 overflow-x-auto custom-scrollbar shrink-0">
+           <div className="min-w-[140px] flex-1 bg-white/[0.03] border border-white/10 rounded-xl p-2.5 flex items-center gap-2 shadow-inner">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                 <ShieldAlert className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div className="min-w-0">
+                 <p className="text-[7px] font-black text-white/30 uppercase tracking-[0.1em]">Target</p>
+                 <p className="text-[10px] font-black text-white truncate">{clientDetails.company || 'Initializing...'}</p>
+              </div>
+           </div>
+           
+           <div className="min-w-[100px] bg-white/[0.03] border border-white/10 rounded-xl p-2.5 flex items-center gap-2 shadow-inner">
+              <div className="w-8 h-8 rounded-lg bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-500/30">
+                 <Workflow className="w-4 h-4 text-fuchsia-400" />
+              </div>
+              <div>
+                 <p className="text-[7px] font-black text-white/30 uppercase tracking-[0.1em]">Sync</p>
+                 <p className="text-[10px] font-black text-fuchsia-400">{Math.round((currentQuestionIndex / allQuestions.length) * 100)}%</p>
+              </div>
+           </div>
+
+           <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/20 hover:text-white shrink-0">
+              <X className="w-5 h-5" />
+           </button>
+        </div>
+
         {/* Left Section: Conversation Log */}
-        <div className="flex-1 flex flex-col h-[55vh] lg:h-full border-b lg:border-b-0 lg:border-r border-white/5 order-2 lg:order-1 bg-[#050507]">
+        <div className="flex-1 flex flex-col h-full lg:border-r border-white/5 order-2 lg:order-1 bg-transparent relative overflow-hidden">
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0B0B0E] to-transparent pointer-events-none z-10" />
+          
           {/* Header (Desktop Only) */}
           <div className="hidden lg:flex p-8 border-b border-white/5 items-center justify-between bg-black/40">
             <div className="flex items-center gap-5">
@@ -413,7 +485,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 lg:p-10 space-y-4 lg:space-y-8 custom-scrollbar">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 lg:p-10 space-y-4 lg:space-y-8 custom-scrollbar pb-32">
             <AnimatePresence initial={false}>
               {messages.map((msg, i) => (
                 <motion.div
@@ -449,55 +521,173 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
               </div>
             )}
           </div>
+
+          <div className="absolute inset-x-0 bottom-0 p-5 lg:p-10 bg-gradient-to-t from-[#09090B] via-[#09090B]/90 to-transparent z-20">
+            <div className="flex flex-col gap-4 max-w-5xl mx-auto">
+              {uploadedImages.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                  {uploadedImages.map((file, i) => (
+                    <div key={i} className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 shadow-lg">
+                      <ImageIcon className="w-4 h-4 text-indigo-400" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-row items-center gap-4 lg:gap-8">
+                <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-12 h-12 lg:w-auto lg:px-6 lg:py-4 lg:h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 hover:bg-white/10 transition-all shadow-xl shrink-0"
+                  >
+                    <UploadCloud className="w-5 h-5 lg:mr-3" />
+                    <span className="hidden lg:inline">Ingest Intent</span>
+                </button>
+                
+                <div className="relative group shrink-0">
+                  <button 
+                      onClick={toggleListening}
+                      disabled={isFinished}
+                      className={cn(
+                        "w-12 h-12 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl relative z-10",
+                        isListening 
+                          ? "bg-fuchsia-600 text-white" 
+                          : "bg-indigo-600 text-white hover:bg-indigo-500",
+                        isFinished && "opacity-20 cursor-not-allowed"
+                      )}
+                    >
+                      {isListening && (
+                        <div className="absolute inset-0 rounded-xl lg:rounded-2xl animate-pulse-slow">
+                          <div className="absolute inset-[-4px] rounded-xl lg:rounded-2xl border-2 border-fuchsia-500/50 animate-ping" />
+                        </div>
+                      )}
+                      {isListening ? <MicOff className="w-5 h-5 lg:w-8 lg:h-8" /> : <Mic className="w-5 h-5 lg:w-8 lg:h-8" />}
+                  </button>
+                </div>
+
+                <div className="flex-1 flex items-center gap-4 bg-white/[0.03] p-3 lg:p-4 h-12 lg:h-20 rounded-xl lg:rounded-2xl border border-white/10 focus-within:border-indigo-500/50 transition-all shadow-2xl group">
+                  <Terminal className="hidden sm:block w-5 h-5 text-white/20 group-focus-within:text-indigo-500 transition-colors" />
+                  <input
+                    type="text"
+                    value={typedMessage}
+                    onChange={(e) => setTypedMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && typedMessage.trim()) {
+                        handleUserResponse(typedMessage);
+                      }
+                    }}
+                    placeholder="SYNTHESIZE ARCHITECTURAL COMMAND..."
+                    disabled={isProcessing || isFinished}
+                    className="w-full bg-transparent text-white/90 placeholder:text-white/10 text-[10px] lg:text-sm font-mono uppercase tracking-[0.2em] outline-none"
+                  />
+                  <button
+                    onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)}
+                    disabled={isProcessing || isFinished || !typedMessage.trim()}
+                    className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 disabled:opacity-30 transition-all"
+                  >
+                    <ArrowRight className="w-4 h-4 lg:w-6 lg:h-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Section: Diagnostics & Controls */}
-        <div className="w-full lg:w-[360px] flex flex-col h-auto lg:h-full bg-black/50 backdrop-blur-3xl p-4 lg:p-6 order-1 lg:order-2 border-l border-white/5">
-          <div className="flex items-center justify-between mb-4 lg:mb-6">
-            <h4 className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Neural System</h4>
-            <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
-              <X className="w-4 h-4" />
+        <div className="w-full lg:w-[320px] flex flex-col h-auto lg:h-full bg-black/40 backdrop-blur-2xl p-4 lg:p-8 lg:pt-12 order-1 lg:order-2 border-b lg:border-b-0 lg:border-l border-white/5 relative overflow-hidden shrink-0">
+          <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-500/10 blur-[100px] rounded-full" />
+          <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-fuchsia-500/10 blur-[100px] rounded-full" />
+
+          <div className="hidden lg:flex items-center justify-between mb-8">
+            <div className="flex flex-col">
+              <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] mb-1">Neural Diagnostic</h4>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-mono text-emerald-500/70 uppercase">System Nominal</span>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all border border-white/5 hover:border-white/20 shadow-xl">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="space-y-4 mb-auto">
-             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-                <div className="flex items-center gap-4 mb-5">
-                   <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-                      <ShieldAlert className="w-5 h-5 text-indigo-400" />
+          <div className="space-y-4 lg:space-y-6 mb-auto relative z-10">
+             <div className="hidden lg:block bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/10 rounded-[2rem] p-6 shadow-3xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="flex items-center gap-5 mb-6">
+                   <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_50px_rgba(99,102,241,0.3)] group-hover:scale-110 transition-transform duration-500">
+                      <ShieldAlert className="w-7 h-7 text-indigo-400" />
                    </div>
                    <div className="flex-1 min-w-0">
-                      <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Active Descriptor</p>
-                      <p className="text-sm font-black text-white truncate tracking-tight">{clientDetails.company || 'Initializing...'}</p>
+                      <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] mb-1.5">Primary Node</p>
+                      <p className="text-lg font-black text-white truncate tracking-tighter leading-tight drop-shadow-2xl">{clientDetails.company || 'Jamini Engine'}</p>
                    </div>
                 </div>
 
-                <div className="space-y-2">
-                   <div className="flex items-center justify-between py-2 border-b border-white/[0.05]">
-                      <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Creative Lead</p>
-                      <p className="text-xs font-bold text-indigo-400 tracking-tight">{clientDetails.name || 'TBD'}</p>
+                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                   <div>
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Architect</p>
+                      <div className="flex items-center gap-2">
+                         <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                         <p className="text-xs font-bold text-white/80 tracking-tight truncate">{clientDetails.name || 'Anonymous'}</p>
+                      </div>
                    </div>
-                   <div className="flex items-center justify-between py-2">
-                      <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Sector Domain</p>
-                      <p className="text-xs font-bold text-fuchsia-400 tracking-tight">{clientDetails.industry || 'TBD'}</p>
+                   <div>
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Industry</p>
+                      <div className="flex items-center gap-2">
+                         <div className="w-1 h-1 rounded-full bg-fuchsia-500" />
+                         <p className="text-xs font-bold text-white/80 tracking-tight truncate">{clientDetails.industry || 'General'}</p>
+                      </div>
                    </div>
                 </div>
              </div>
 
-             <div className="space-y-2">
+             {/* Bento Grid Stats */}
+             <div className="hidden lg:grid grid-cols-2 gap-3">
                 {[
-                  { icon: BrainCircuit, label: 'Neural Link', value: 'Prime', color: 'text-indigo-400' },
-                  { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400' },
-                  { icon: Cpu, label: 'Compute Engine', value: 'Titan v4', color: 'text-amber-400' }
+                  { icon: BrainCircuit, label: 'Neural Link', value: 'Prime', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+                  { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
+                  { icon: Cpu, label: 'Compute', value: 'Titan v4', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                  { icon: Signal, label: 'Latency', value: '14ms', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                  { icon: Terminal, label: 'Runtime', value: 'Node 23', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                  { icon: Headphones, label: 'Audio', value: 'Vivid v2', color: 'text-rose-400', bg: 'bg-rose-500/10' }
                 ].map((stat, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors">
-                    <div className="flex items-center gap-3">
+                  <motion.div 
+                    key={i} 
+                    whileHover={{ scale: 1.05, y: -3 }}
+                    className="flex flex-col gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group shadow-2xl relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/5 to-transparent blur-2xl" />
+                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center border", stat.bg, "border-white/5 group-hover:rotate-12 transition-transform duration-500")}>
                        <stat.icon className={cn("w-4 h-4", stat.color)} />
-                       <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">{stat.label}</span>
                     </div>
-                    <span className={cn("text-[10px] font-bold uppercase tracking-[0.1em]", stat.color)}>{stat.value}</span>
-                  </div>
+                    <div>
+                       <span className="block text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">{stat.label}</span>
+                       <span className={cn("text-[10px] font-black uppercase tracking-[0.1em]", stat.color)}>{stat.value}</span>
+                    </div>
+                  </motion.div>
                 ))}
+             </div>
+
+             {/* Connection Visualization Space */}
+             <div className="hidden lg:block bg-black/40 border border-white/5 rounded-2xl p-5 mt-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h5 className="text-[9px] font-black text-white/40 uppercase tracking-widest">Neural Stream</h5>
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-indigo-500/50 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+                    ))}
+                  </div>
+                </div>
+                <div className="h-16 flex items-end gap-1">
+                   {Array.from({ length: 24 }).map((_, i) => (
+                      <motion.div 
+                        key={i}
+                        animate={{ height: [ 10, Math.random() * 40 + 10, 10 ] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }}
+                        className="flex-1 bg-gradient-to-t from-indigo-500/10 to-indigo-500/40 rounded-full"
+                      />
+                   ))}
+                </div>
              </div>
           </div>
 
@@ -509,78 +699,6 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
             multiple 
             onChange={handleFileChange}
           />
-
-          <div className="flex flex-col gap-2 w-full px-2">
-            {uploadedImages.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                {uploadedImages.map((file, i) => (
-                  <div key={i} className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                    <ImageIcon className="w-4 h-4 text-indigo-400" />
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <div className="flex flex-row items-center justify-between gap-2 mt-2 w-full">
-              <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center p-3 bg-indigo-500/10 border border-indigo-500/10 rounded-2xl text-[8px] font-black uppercase text-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/20 transition-all"
-                >
-                  <UploadCloud className="w-4 h-4 mb-1" /> Asset
-              </button>
-              
-              <button 
-                  onClick={toggleListening}
-                  disabled={isSpeaking || isFinished}
-                  className={cn(
-                    "w-12 h-12 lg:w-28 lg:h-28 rounded-2xl lg:rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-2xl relative group ring-8 ring-white/0 hover:ring-white/5 active:ring-white/10",
-                    isListening 
-                      ? "bg-fuchsia-500 text-white rotate-90 shadow-fuchsia-500/50 scale-110" 
-                      : "bg-indigo-600 text-white hover:scale-105 active:scale-95 shadow-indigo-600/50",
-                    (isSpeaking || isFinished) && "opacity-20 cursor-not-allowed scale-90"
-                  )}
-                >
-                  {isListening && (
-                    <>
-                      <div className="absolute inset-[-6px] rounded-2xl lg:rounded-[3rem] border-2 border-fuchsia-500/50 animate-[ping_2s_infinite]" />
-                      <div className="absolute inset-[-12px] rounded-2xl lg:rounded-[3rem] border-2 border-fuchsia-500/20 animate-[ping_2s_infinite_0.5s]" />
-                    </>
-                  )}
-                  {isListening ? <MicOff className="w-5 h-5 lg:w-12 lg:h-12 -rotate-90" /> : <Mic className="w-5 h-5 lg:w-12 lg:h-12" />}
-                </button>
-
-                <div className="flex flex-1 items-center gap-2 overflow-hidden bg-white/5 p-2 rounded-xl">
-                  <input
-                    type="text"
-                    value={typedMessage}
-                    onChange={(e) => setTypedMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && typedMessage.trim()) {
-                        handleUserResponse(typedMessage);
-                      }
-                    }}
-                    placeholder="Type your response..."
-                    disabled={isProcessing || isFinished}
-                    className="w-full bg-transparent text-white/70 placeholder:text-white/20 text-[10px] font-mono uppercase tracking-[0.2em] px-2 outline-none"
-                  />
-                  <button
-                    onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)}
-                    disabled={isProcessing || isFinished || !typedMessage.trim()}
-                    className="text-indigo-400 hover:text-indigo-300 disabled:opacity-30"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                <button 
-                  onClick={onClose}
-                  className="flex flex-col items-center justify-center p-3 bg-red-500/10 border border-red-500/10 rounded-2xl text-[8px] font-black uppercase text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                >
-                    <X className="w-4 h-4" /> Exit
-                </button>
-            </div>
-          </div>
-
         </div>
 
         {isFinished && (

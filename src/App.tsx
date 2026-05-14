@@ -12,7 +12,7 @@ import {
   CheckCircle2, AlertCircle, Loader2, Upload, X, Type, Layout as LayoutIcon, Plus,
   MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2, PlusCircle,
   Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
-  Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight,
+  Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight, Target,
   Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink, Menu,
   Film, Database, Box, Headphones, Mic
 } from 'lucide-react';
@@ -578,7 +578,7 @@ const FeatureCard = ({ feature, index }: { feature: any, index: number }) => {
         onMouseLeave={() => setIsHovered(false)}
         whileHover={{ rotateX: 5, rotateY: -5, scale: 1.02, z: 20 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 overflow-hidden relative h-full shadow-[0_10px_30px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] group"
+        className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-[2rem] p-2.5 md:p-8 overflow-hidden relative h-full shadow-[0_10px_30px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] group"
         style={{ transformStyle: "preserve-3d" }}
       >
         {/* Dynamic Mouse Spotlight */}
@@ -594,20 +594,20 @@ const FeatureCard = ({ feature, index }: { feature: any, index: number }) => {
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0">
           <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(255,255,255,0.3)_360deg)] animate-[spin_4s_linear_infinite]" />
         </div>
-        <div className="absolute inset-[1px] bg-black/80 backdrop-blur-xl rounded-[2rem] z-0" />
+        <div className="absolute inset-[1px] bg-black/80 backdrop-blur-xl rounded-2xl md:rounded-[2rem] z-0" />
 
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0" />
-        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-${feature.color}-500/20 to-transparent rounded-bl-full z-0 transition-transform duration-700 group-hover:scale-150`} />
+        <div className={`absolute top-0 right-0 w-16 md:w-32 h-16 md:h-32 bg-gradient-to-bl from-${feature.color}-500/20 to-transparent rounded-bl-full z-0 transition-transform duration-700 group-hover:scale-150`} />
         
-        <div className="h-24 mb-8 relative flex items-center z-10" style={{ transform: 'translateZ(30px)' }}>
-          <motion.div className={`w-16 h-16 bg-${feature.color}-500/10 border border-${feature.color}-500/30 rounded-2xl backdrop-blur-md absolute z-10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-[0_0_20px_rgba(var(--${feature.color}-500),0.2)]`}>
-            <feature.icon className={`w-8 h-8 text-${feature.color}-400 drop-shadow-[0_0_10px_rgba(var(--${feature.color}-500),0.8)]`} />
+        <div className="h-8 md:h-24 mb-2 md:mb-8 relative flex items-center z-10" style={{ transform: 'translateZ(30px)' }}>
+          <motion.div className={`w-6 h-6 md:w-16 md:h-16 bg-${feature.color}-500/10 border border-${feature.color}-500/30 rounded-lg md:rounded-2xl backdrop-blur-md absolute z-10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-[0_0_20px_rgba(var(--${feature.color}-500),0.2)]`}>
+            <feature.icon className={`w-3 h-3 md:w-8 md:h-8 text-${feature.color}-400 drop-shadow-[0_0_10px_rgba(var(--${feature.color}-500),0.8)]`} />
           </motion.div>
-          <div className={`w-24 h-24 bg-${feature.color}-500/20 rounded-full absolute -left-4 blur-2xl group-hover:bg-${feature.color}-500/40 transition-colors duration-500`} />
+          <div className={`w-10 h-10 md:w-24 md:h-24 bg-${feature.color}-500/20 rounded-full absolute -left-1.5 md:-left-4 blur-xl md:blur-2xl group-hover:bg-${feature.color}-500/40 transition-colors duration-500`} />
         </div>
         
-        <h3 className="text-2xl font-bold mb-4 text-white/90 group-hover:text-white transition-colors z-10 relative" style={{ transform: 'translateZ(20px)' }}>{feature.title}</h3>
-        <div className="text-white/50 text-sm md:text-base leading-relaxed group-hover:text-white/70 transition-colors z-10 relative whitespace-pre-line" style={{ transform: 'translateZ(10px)' }}>
+        <h3 className="text-[10px] md:text-2xl font-bold mb-0.5 md:mb-4 text-white/90 group-hover:text-white transition-colors z-10 relative" style={{ transform: 'translateZ(20px)' }}>{feature.title}</h3>
+        <div className="text-[8px] md:text-base text-white/40 leading-tight md:leading-relaxed group-hover:text-white/70 transition-colors z-10 relative whitespace-pre-line line-clamp-3 md:line-clamp-none" style={{ transform: 'translateZ(10px)' }}>
           {feature.desc}
         </div>
       </motion.div>
@@ -643,7 +643,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
         </div>
         
         <div className="mb-10 text-left">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+          <div className="flex flex-row md:items-end justify-between gap-6 mb-6">
             <div className="space-y-2 max-w-2xl">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                 <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-white/5 rounded-lg border border-white/10 text-white/40 mb-2">
@@ -668,14 +668,14 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
         </div>
 
         {/* Global Architecture View */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
           <div className="col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2.5rem] p-4 md:p-8 lg:p-10 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-1000" />
             <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-white">
               <Workflow className="w-6 h-6 text-indigo-400" /> 
               Core Architecture
             </h2>
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                   <h3 className="text-sm font-bold text-indigo-300 mb-2 flex items-center gap-2 italic">
@@ -736,7 +736,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
           <h2 className="text-3xl font-black mb-8 flex items-center gap-4">
             <div className="w-10 h-0.5 bg-indigo-500" /> Pre-Flight Checklist
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { title: "Environment Runtime", desc: "Node.js 18.x or 20.x is mandatory for the Vite build engine.", why: "Ensures ESM compatibility and fast HMR." },
               { title: "Version Control", desc: "Active GitHub account with SSH keys configured for secure push.", why: "Required for atomic deployments and Vercel hooks." },
@@ -769,7 +769,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
             {/* Step 1 */}
             <div className="relative pl-12 md:pl-0">
               <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-white/10" />
-              <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="flex flex-row gap-8 items-start">
                 <div className="w-full md:w-1/2 md:text-right space-y-4">
                   <div className="inline-block px-4 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-black text-indigo-400 uppercase tracking-tighter">PHASE 01: SOURCE</div>
                   <h3 className="text-3xl font-black tracking-tighter">Clone & Prep</h3>
@@ -814,7 +814,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
 
             {/* Step 2 */}
             <div className="relative pl-12 md:pl-0">
-              <div className="flex flex-col md:flex-row-reverse gap-8 items-start">
+              <div className="flex flex-row-reverse gap-8 items-start">
                 <div className="w-full md:w-1/2 space-y-4">
                   <div className="inline-block px-4 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-full text-xs font-black text-fuchsia-400 uppercase tracking-tighter">PHASE 02: BRAIN</div>
                   <h3 className="text-3xl font-black tracking-tighter">Dynamic API Sync</h3>
@@ -865,7 +865,7 @@ const SetupGuide = ({ onBack }: { onBack: () => void }) => {
 
             {/* Step 3 */}
             <div className="relative pl-12 md:pl-0">
-              <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="flex flex-row gap-8 items-start">
                 <div className="w-full md:w-1/2 md:text-right space-y-4">
                   <div className="inline-block px-4 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-xs font-black text-cyan-400 uppercase tracking-tighter">PHASE 03: DEPLOY</div>
                   <h3 className="text-3xl font-black tracking-tighter">Global Proliferation</h3>
@@ -1025,7 +1025,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
         </button>
 
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row items-center gap-10 mb-20">
+        <div className="flex flex-row shrink-0 items-center gap-10 mb-20">
           <div className="flex-1 text-center lg:text-left relative">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0, rotate: -10 }} 
@@ -1104,7 +1104,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
           <p className="text-white/50 max-w-2xl text-base">Everything you need to build stunning, production-ready assets in seconds.</p>
         </div>
 
-        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
           {[
             { 
               icon: MonitorPlay, 
@@ -1183,7 +1183,7 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
               />
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
               {[
                 { step: '01', title: 'Upload Assets', desc: 'Provide your product images, logos, and character models. The AI analyzes their lighting and perspective.', color: 'indigo', icon: Upload },
                 { step: '02', title: 'Define Style', desc: 'Select your layout, lighting, typography, and color palette. Refine your prompt with Gemini 3.1 Pro.', color: 'fuchsia', icon: Palette },
@@ -1283,53 +1283,99 @@ const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
 const CustomSelect = ({ value, onChange, options, label, icon: Icon }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
   const filteredOptions = options.filter((o: string) => o.toLowerCase().includes(search.toLowerCase()));
   
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative space-y-2">
-      <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1">
-        {Icon && <Icon className="w-3 h-3" />} {label}
+    <div ref={containerRef} className="relative space-y-2 group/select">
+      <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2 transition-colors group-hover/select:text-indigo-400">
+        {Icon && <Icon className="w-3.5 h-3.5" />} {label}
       </label>
-      <div 
-        className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white cursor-pointer flex justify-between items-center hover:border-indigo-500/50 transition-colors"
+      
+      <motion.div 
+        whileTap={{ scale: 0.98 }}
+        className={cn(
+          "w-full bg-[#0c0c0e]/80 backdrop-blur-xl border border-white/10 rounded-xl p-3 text-xs text-white cursor-pointer flex justify-between items-center transition-all duration-300 relative overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.3)]",
+          isOpen ? "border-indigo-500/50 ring-1 ring-indigo-500/20 shadow-[0_0_25px_rgba(99,102,241,0.2)]" : "hover:border-white/20 hover:bg-[#121215]"
+        )}
         onClick={() => setIsOpen(!isOpen)}
+        style={{ perspective: '1000px' }}
       >
-        <span className="truncate">{value}</span>
-        <ChevronDown className={cn("w-4 h-4 text-white/40 transition-transform", isOpen && "rotate-180")} />
-      </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/select:opacity-100 transition-opacity pointer-events-none" />
+        <span className="truncate font-bold tracking-tight relative z-10">{value}</span>
+        <ChevronDown className={cn("w-4 h-4 text-white/30 transition-transform duration-500 relative z-10", isOpen && "rotate-180 text-indigo-400")} />
+      </motion.div>
       
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-            className="absolute z-50 w-full mt-1 bg-[#111] border border-white/10 rounded-lg shadow-xl overflow-hidden"
+            initial={{ opacity: 0, scale: 0.95, y: -10, rotateX: -15 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10, rotateX: -15 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="absolute z-[100] w-full mt-2 bg-[#0c0c0e]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] overflow-hidden origin-top"
+            style={{ transformStyle: 'preserve-3d' }}
           >
-            <div className="p-2 border-b border-white/5">
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full bg-black/40 border border-white/10 rounded p-1.5 text-xs text-white outline-none focus:border-indigo-500"
-              />
+            <div className="p-3 border-b border-white/5 bg-white/5">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Filter parameters..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[11px] text-white outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 placeholder:text-white/20 font-medium transition-all"
+                />
+                <Eye className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-white/10" />
+              </div>
             </div>
-            <div className="max-h-48 overflow-y-auto custom-scrollbar">
+            <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5 space-y-1">
               {filteredOptions.map((opt: string) => (
-                <div 
+                <motion.div 
                   key={opt}
+                  whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
                   onClick={() => { onChange(opt); setIsOpen(false); setSearch(''); }}
                   className={cn(
-                    "px-3 py-2 text-xs cursor-pointer transition-colors",
-                    value === opt ? "bg-indigo-500/20 text-indigo-300" : "text-white/70 hover:bg-white/5 hover:text-white"
+                    "px-4 py-2.5 text-[11px] cursor-pointer rounded-lg transition-all flex items-center justify-between group/opt relative",
+                    value === opt ? "bg-indigo-500/15 text-indigo-300 font-black border border-indigo-500/20" : "text-white/60 hover:text-white"
                   )}
                 >
-                  {opt}
-                </div>
+                  <span className="relative z-10">{opt}</span>
+                  {value === opt && (
+                    <motion.div layoutId="active-check">
+                      <Check className="w-3.5 h-3.5 text-indigo-400" />
+                    </motion.div>
+                  )}
+                  <div className="absolute left-0 w-1 h-0 bg-indigo-500 group-hover/opt:h-1/2 transition-all duration-300 rounded-full opacity-50" />
+                </motion.div>
               ))}
               {filteredOptions.length === 0 && (
-                <div className="px-3 py-2 text-xs text-white/40 text-center">No results found</div>
+                <div className="px-4 py-8 text-[10px] text-white/30 text-center uppercase tracking-widest font-black flex flex-col items-center gap-2">
+                  <AlertCircle className="w-5 h-5 opacity-20" />
+                  No parameters found
+                </div>
               )}
+            </div>
+            
+            <div className="p-3 bg-white/5 border-t border-white/5 flex items-center justify-between">
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                {filteredOptions.length} Options
+              </span>
+              <div className="flex gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse delay-75" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-150" />
+              </div>
             </div>
           </motion.div>
         )}
@@ -1512,6 +1558,8 @@ export default function App() {
   const [clientName, setClientName] = useState<string>('');
   const [companyName, setCompanyName] = useState<string>('');
   const [industry, setIndustry] = useState<string>('');
+  const [brandVoice, setBrandVoice] = useState<string>('Professional and Innovative');
+  const [brandValues, setBrandValues] = useState<string>('Quality, Integrity, Innovation');
 
   const [textEnginesList, setTextEnginesList] = useState<string[]>(DEFAULT_TEXT_ENGINES);
   const [imageEnginesList, setImageEnginesList] = useState<string[]>(DEFAULT_IMAGE_ENGINES);
@@ -1574,7 +1622,7 @@ export default function App() {
   const [lighting, setLighting] = useState<Lighting>('Softbox Studio');
   const [aspectRatio, setAspectRatio] = useState<APIAspectRatio>('9:16');
   const [fontFamily, setFontFamily] = useState<FontPreset>('Space Grotesk');
-  const [generationObjective, setGenerationObjective] = useState<'poster' | 'logo' | 'video' | 'motion-lab' | null>(null);
+  const [generationObjective, setGenerationObjective] = useState<'poster' | 'logo' | 'video' | 'motion-lab' | 'ci-generator' | null>(null);
   const [dimensionMode, setDimensionMode] = useState<DimensionMode>('2D Standard');
   const [dynamics, setDynamics] = useState<DynamicSettings>({
     gloss: true,
@@ -2454,8 +2502,98 @@ export default function App() {
     }
   };
 
+  const handleGenerateCI = async () => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const apiKey = getApiKey('free');
+      if (!apiKey) throw new Error("API key is required for CI generation.");
+      const ai = new GoogleGenAI({ apiKey });
+
+      // Use uploaded assets as inspirational CI foundations
+      const referenceImages = productAssets.map(a => a.data);
+
+      let ciPrompt = `Design a comprehensive Corporate Identity (CI) system for ${companyName || 'JAMINI Studio'}. Industry: ${industry || 'Creative Technology'}. Brand Voice: ${brandVoice || 'Professional, Innovative'}. Values: ${brandValues || 'Quality, Integrity'}.
+      Create a highly professional CI Bible layout featuring a detailed logomark. The image should look like an 8-page brand guideline spread condensed into one detailed collage, or a beautiful minimal brand guidelines presentation cover with a logo. Style: Clean UI/UX, Bauhaus, Swiss, Minimalist, ultra-professional.`;
+
+      const { darkLogoUrl, lightLogoUrl } = await generateLogo(ai, {
+        prompt: ciPrompt,
+        referenceImages,
+        model: getImageModelString(imageEngine)
+      }, shiftKey);
+
+      if (darkLogoUrl) setBrandLogoAsset({ id: 'logo-dark', name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
+      if (lightLogoUrl) setCompanyLogoAsset({ id: 'logo-light', name: 'Light Logo', data: lightLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Light Logo' });
+
+      // Generate the CI Documentation Text
+      const textModelName = 'gemini-2.0-flash'; // standard fallback
+      const masterCiPrompt = `Role: You are a Senior UI/UX Architect and Brand Strategist operating within a high-end, tech-forward Creative Studio.
+Task: Generate a comprehensive technical specification for a Corporate Identity (CI) Brand Guidelines PDF for the company "${companyName || 'JAMINI Studio'}". Industry: ${industry || 'Creative Design'}. Voice: ${brandVoice || 'Professional'}. Values: ${brandValues || 'Quality'}.
+
+The output must be structured for "top-class" professional execution, focusing on minimalist prose and functional hierarchy.
+
+Deliverables:
+1. Essential CI Components
+List every element required for a complete identity, including:
+Primary, Secondary, and Monochrome Logos: Clearances and minimum size specs.
+Typography Hierarchy: Primary and secondary typefaces with specific weights for H1 through Body.
+Color Theory: A table containing HEX, RGB, CMYK, and Pantone codes.
+Iconography & Imagery: Guidelines for custom icon sets and art direction for photography.
+
+2. Technical File Manifest
+Provide a table of required file formats for hand-off, categorized by:
+Vector (Scalable): .AI, .EPS, .SVG.
+Raster (Digital): .PNG (transparent), .JPG (high-res), .WebP.
+Print: .PDF (Press Quality, CMYK, with bleed).
+
+3. Professional Document Layout & Anatomy
+Define the layout for a 20+ page CI Guide using the following standards:
+Grid System: Explain the use of a 12-column grid or baseline grid for perfect alignment.
+Navigation Headers: Specifications for "Section ID" headers and folio numbers.
+Technical Labels: Use of callouts to explain "Safe Zones" and "Construction Geometry" using $inline\_math$ for ratios where applicable (e.g., $1:1.618$).
+Visual Separation: Use horizontal rules and bold emphasis to define different brand "phases."
+
+Tone & Style:
+Maintain a polished, business-ready tone.
+Use modern industry terminology (e.g., "Visual DNA," "Scalability Logistics," "Chromatic Harmony").
+Ensure all descriptions are concise yet technically dense.
+Formatting: Use Markdown headers, bold key terms, and tables for data comparison.
+
+Implementation Roadblocks to Anticipate
+Color Shift: Ensure you specify that Pantone (PMS) is mandatory for physical branding to avoid the common "RGB to CMYK" shift during printing.
+Font Licensing: Always include a section for "Web-Safe Alternatives" (e.g., a Google Font equivalent) to ensure the brand remains consistent across web platforms without $10,000+ licensing fees.
+Aspect Ratios: When generating assets, define if the brand utilizes a standard 16:9 digital footprint or a more traditional A4 print-first approach.`;
+
+      const aiResponse = await ai.models.generateContent({
+        model: textModelName,
+        contents: masterCiPrompt
+      });
+      const ciMarkdown = aiResponse.text;
+      setCiSummary(ciMarkdown);
+
+      // Generate the PDF
+      await generateCIBible(darkLogoUrl, lightLogoUrl, companyName || "JAMINI Studio", ciMarkdown);
+
+    } catch (err: any) {
+      console.error("CI Generation Error:", err);
+      let errorMessage = err.message || String(err);
+      if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getImageModelString(imageEngine)}). Please switch to 'Gemini 2.5 Flash Image (Free)'.`;
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. Verify your API key.";
+      }
+      setError("Failed to generate CI: " + errorMessage);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGenerate = async () => {
-    if (isLogoMode) {
+    if (generationObjective === 'ci-generator') {
+      await handleGenerateCI();
+      return;
+    }
+    if (generationObjective === 'logo') {
       await handleGenerateLogo();
       return;
     }
@@ -2829,29 +2967,131 @@ export default function App() {
       </header>
 
       {/* Mobile Header with Hamburger Dropdown */}
-      <header role="banner" className="lg:hidden h-11 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-2 z-50 transform-gpu shadow-xl flex w-full relative">
-        <div className="flex items-center gap-2 shrink-0">
-          <JaminiLogo size="xs" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
-          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors ml-1 font-sans">Meet Jamini</button>
+      <header role="banner" className="lg:hidden h-14 border-b border-white/5 bg-black/40 backdrop-blur-xl items-center justify-between px-4 z-50 transform-gpu shadow-2xl flex w-full relative">
+        <div className="flex items-center gap-3 shrink-0">
+          <JaminiLogo size="sm" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            <span className="text-[10px] font-black text-white/90 tracking-tighter leading-none font-sans">JAMINI</span>
+            <span className="text-[7px] font-bold text-indigo-400/80 uppercase tracking-[0.2em] leading-none mt-0.5">Studio v4.0</span>
+          </motion.div>
         </div>
 
-        <div className="flex-1 flex justify-end relative">
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="jamini-mobile-menu"
-            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white active:scale-95 transition-transform"
-          >
-            <Menu className="w-5 h-5" aria-hidden="true" />
-          </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[8px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-1.5 rounded-lg border border-indigo-500/20 active:scale-95 transition-all font-sans">Meet Jamini</button>
           
-          <nav id="jamini-mobile-menu" aria-hidden={!isMobileMenuOpen} className={cn("absolute top-10 right-0 w-48 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] rounded-bl-xl overflow-hidden flex-col origin-top-right z-[60] p-2 gap-1 text-left", !isMobileMenuOpen && "hidden")}>
-            <button onClick={() => { setGenerationObjective(null); setActiveStep(1); setIsMobileMenuOpen(false); }} className="px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans">CHOOSE GOAL</button>
-            <button onClick={() => { setCurrentView('gallery'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'gallery' && "bg-white/10 text-white")}>VAULT ARCHIVE</button>
-            <button onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'settings' && "bg-white/10 text-white")}>SYSTEM SETTINGS</button>
-            <button onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }} className={cn("px-3 py-3 rounded-lg w-full text-left text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 font-sans", currentView === 'guide' && "bg-white/10 text-white")}>DEV TERMINAL</button>
-          </nav>
+          <div className="relative">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+              className={cn(
+                "w-10 h-10 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 relative overflow-hidden",
+                isMobileMenuOpen ? "bg-white/10" : "bg-white/5 hover:bg-white/10"
+              )}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+              <motion.span 
+                animate={isMobileMenuOpen ? { rotate: 45, y: 5 } : { rotate: 0, y: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full origin-center" 
+              />
+              <motion.span 
+                animate={isMobileMenuOpen ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full" 
+              />
+              <motion.span 
+                animate={isMobileMenuOpen ? { rotate: -45, y: -5 } : { rotate: 0, y: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full origin-center" 
+              />
+            </button>
+            
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.nav 
+                  id="jamini-mobile-menu"
+                  initial={{ opacity: 0, scale: 0.9, y: -20, rotateX: -15, rotateY: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0, rotateY: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20, rotateX: -15, rotateY: 10 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute top-12 right-0 w-64 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] rounded-2xl overflow-hidden flex flex-col origin-top-right z-[100] p-2 gap-1.5 text-left border-t-white/20"
+                  style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
+                >
+                  <div className="px-3 py-2 border-b border-white/5 mb-1">
+                    <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Master Navigation</p>
+                  </div>
+
+                  {[
+                    { 
+                      label: "Choose Goal", 
+                      sub: "Define Art Intent", 
+                      icon: Target, 
+                      color: "text-fuchsia-400", 
+                      bg: "hover:bg-fuchsia-500/10",
+                      action: () => { setGenerationObjective(null); setActiveStep(1); }
+                    },
+                    { 
+                      label: "Vault Archive", 
+                      sub: "Local IndexedDB", 
+                      icon: Database, 
+                      active: currentView === 'gallery',
+                      color: "text-indigo-400", 
+                      bg: "hover:bg-indigo-500/10",
+                      action: () => setCurrentView('gallery')
+                    },
+                    { 
+                      label: "System Settings", 
+                      sub: "API & Performance", 
+                      icon: Settings2, 
+                      active: currentView === 'settings',
+                      color: "text-emerald-400", 
+                      bg: "hover:bg-emerald-500/10",
+                      action: () => setCurrentView('settings')
+                    },
+                    { 
+                      label: "Dev Terminal", 
+                      sub: "Architecture Guide", 
+                      icon: Terminal, 
+                      active: currentView === 'guide',
+                      color: "text-amber-400", 
+                      bg: "hover:bg-amber-500/10",
+                      action: () => setCurrentView('guide')
+                    }
+                  ].map((item, idx) => (
+                    <motion.button 
+                      key={idx}
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { item.action(); setIsMobileMenuOpen(false); }} 
+                      className={cn(
+                        "group flex items-center gap-3 px-3 py-3 rounded-xl w-full text-left transition-all duration-300 border border-transparent",
+                        item.active ? "bg-white/10 border-white/10 shadow-inner" : cn(item.bg, "hover:border-white/5")
+                      )}
+                    >
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-black/40 border border-white/5 shadow-lg group-hover:scale-110 transition-transform", item.color)}>
+                        {item.icon && <item.icon className="w-5 h-5" />}
+                      </div>
+                      <div className="flex-1 flex flex-col items-start gap-0">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-white leading-none font-sans">{item.label}</span>
+                        <span className="text-[8px] font-bold text-white/30 uppercase tracking-tighter mt-1">{item.sub}</span>
+                      </div>
+                      {item.active && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />}
+                    </motion.button>
+                  ))}
+                  
+                  <div className="mt-2 p-3 bg-white/5 border-t border-white/5 rounded-b-xl flex items-center justify-between">
+                     <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">v4.0.2 Ent</span>
+                     <div className="flex gap-1">
+                        <div className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
+                        <div className="w-1 h-1 rounded-full bg-fuchsia-500 animate-pulse delay-75" />
+                     </div>
+                  </div>
+                </motion.nav>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </header>
     </div>
@@ -2935,16 +3175,20 @@ export default function App() {
           )}>
              <div className="flex items-center gap-0.5 bg-[#121214] p-0.5 rounded-lg border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
                 <button onClick={() => setActiveStep(1)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Media
+                  <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> {generationObjective === 'ci-generator' ? 'Brief & Assets' : 'Media'}
                 </button>
-                <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
-                <button onClick={() => setActiveStep(2)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <Palette className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Design
-                </button>
-                <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
-                <button onClick={() => setActiveStep(3)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
-                  <SlidersHorizontal className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Properties
-                </button>
+                {generationObjective !== 'ci-generator' && (
+                  <>
+                    <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                    <button onClick={() => setActiveStep(2)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                      <Palette className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Design
+                    </button>
+                    <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                    <button onClick={() => setActiveStep(3)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                      <SlidersHorizontal className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Properties
+                    </button>
+                  </>
+                )}
                 <div className="w-px h-6 md:h-4 bg-white/10 mx-2 md:mx-1 hidden lg:block" />
                 <button onClick={() => setActiveStep(4)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
                   {(generatedImage || generatedVideo) && <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse" />}
@@ -3068,10 +3312,12 @@ export default function App() {
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                      {isLogoMode ? "Reference Assets (Design Influence)" : "Product Images"}
-                    </h3>
-                    <div className="flex flex-col gap-3">
+                    {generationObjective !== 'ci-generator' && (
+                      <>
+                        <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider">
+                          {isLogoMode ? "Reference Assets (Design Influence)" : "Product Images"}
+                        </h3>
+                        <div className="flex flex-col gap-3">
                       {productAssets.map(asset => (
                         <div key={asset.id} className="flex gap-3 items-start bg-black/40 p-2 rounded-xl border border-white/10">
                           <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
@@ -3104,9 +3350,11 @@ export default function App() {
                         <span className="text-xs font-bold uppercase tracking-wider">{isLogoMode ? "Upload Reference" : "Upload Product"}</span>
                       </button>
                       <input type="file" ref={productInputRef} onChange={(e) => handleFileUpload(e, 'product')} multiple accept="image/*" className="hidden" />
-                    </div>
+                      </div>
+                      </>
+                    )}
                     {generationObjective !== 'logo' && (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider">Brand Logo (Product Brand)</h3>
                             {brandLogoAsset ? (
@@ -3221,7 +3469,7 @@ export default function App() {
                     </div>
                     
                     <div className="space-y-2">
-                      {generationObjective !== 'logo' && (
+                      {generationObjective !== 'logo' && generationObjective !== 'ci-generator' && (
                         <>
                           <h3 className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><Book className="w-3 h-3" /> Company CI (Brand Bible)</h3>
                           {companyCIAsset ? (
@@ -3281,15 +3529,145 @@ export default function App() {
                     )}
                   </div>
 
+                  {generationObjective === 'ci-generator' && (
+                    <div className="space-y-4 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 mt-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                          <Book className="w-4 h-4" /> CI System Configuration
+                        </h3>
+                      </div>
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Manual Colors (HEX)</label>
+                        <div className="flex items-center gap-3">
+                          <div className="relative group/picker">
+                            <input 
+                              type="color" 
+                              value={customColor} 
+                              onChange={e => setCustomColor(e.target.value)} 
+                              className="w-10 h-10 rounded-xl bg-black/40 border border-white/20 p-1 cursor-pointer transition-transform group-hover/picker:scale-110" 
+                            />
+                          </div>
+                          <div className="flex-1 flex gap-2">
+                            <input 
+                              type="text" 
+                              value={customColor} 
+                              onChange={e => setCustomColor(e.target.value)} 
+                              placeholder="#000000" 
+                              className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs font-mono focus:ring-1 focus:ring-blue-500 outline-none uppercase" 
+                            />
+                            <button 
+                              onClick={() => {
+                                if (!customColorsList.includes(customColor) && /^#[0-9A-F]{6}$/i.test(customColor)) {
+                                    setCustomColorsList([...customColorsList, customColor]);
+                                }
+                              }}
+                              className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-900/20 active:scale-95 transition-all"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap mt-3 bg-black/20 p-3 rounded-xl border border-white/5 min-h-[48px]">
+                            {customColorsList.length === 0 && <span className="text-[10px] text-white/20 uppercase tracking-widest my-auto px-2">No manual colors added</span>}
+                            {customColorsList.map((c, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="w-8 h-8 rounded-lg border border-white/20 relative group shadow-lg" 
+                                    style={{backgroundColor: c}}
+                                >
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                                        <button onClick={() => setCustomColorsList(customColorsList.filter((_, i) => i !== idx))} className="text-white hover:text-red-400 transition-colors">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                        <span className="text-[8px] font-mono text-white/50 bg-black/80 px-1 rounded">{c.toUpperCase()}</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Typography Fonts (3 Max)</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                             <CustomSelect value={fontFamily} onChange={setFontFamily} options={FONTS} label="Primary" icon={Type} />
+                             <CustomSelect value={fontFamily} onChange={setFontFamily} options={FONTS} label="Secondary" icon={Type} />
+                             <CustomSelect value={fontFamily} onChange={setFontFamily} options={FONTS} label="Accent" icon={Type} />
+                        </div>
+                      </div>
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                         <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Pro Features & Capabilities</h3>
+                         <div className="grid grid-cols-2 gap-2">
+                           {[
+                             'Brand Bible PDF', 'Vector SVG', 'CMYK Profiles', 'Identity Locking', 
+                             'Social Resizing', 'Signage Templates', 'Animated Logo', 'Voice Persona Tuning', 
+                             'Advanced Font Pairing', 'Compliance & Legal Guardrails', 'Multi-Language Support',
+                             'Custom Grid Layouts', 'Baseline Rhythm Control', 'Section Folio Automation',
+                             'WebP Performance Assets', 'Modular Component Library'
+                           ].map(feat => (
+                             <label key={feat} className="flex items-center gap-2 text-xs text-white/60 cursor-pointer hover:text-white">
+                               <input type="checkbox" className="accent-indigo-500" /> {feat}
+                             </label>
+                           ))}
+                         </div>
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Mission</label>
+                          <input type="text" placeholder="Objective..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Values</label>
+                          <input type="text" placeholder="Principles..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Logotype</label>
+                          <input type="text" placeholder="Signature..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Symbol</label>
+                          <input type="text" placeholder="Mark..." className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Industry</label>
+                        <input type="text" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Technology & Design" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Brand Voice</label>
+                        <input type="text" value={brandVoice} onChange={e => setBrandVoice(e.target.value)} placeholder="e.g. Professional, Innovative, Direct" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Core Values</label>
+                        <input type="text" value={brandValues} onChange={e => setBrandValues(e.target.value)} placeholder="e.g. Quality, Integrity, Speed" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 outline-none" />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Mobile Mobile Next Button: Step 1 -> 2 */}
-                  <div className="lg:hidden pt-8 pb-12">
-                    <button 
-                      onClick={() => setActiveStep(2)} 
-                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
-                    >
-                      <span>Next: Design Style</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                  <div className="pt-8 pb-12 lg:pb-0">
+                    {generationObjective === 'ci-generator' ? (
+                      <button 
+                        onClick={() => { handleGenerate(); setActiveStep(4); }} 
+                        disabled={isGenerating}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                      >
+                        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        <span>{isGenerating ? 'Synthesizing...' : 'Generate CI Bible'}</span>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setActiveStep(2)} 
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all lg:hidden"
+                      >
+                        <span>Next: Design Style</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
             </div>
@@ -3304,10 +3682,14 @@ export default function App() {
               
               <div className={cn("space-y-6", activeStep === 2 ? "block" : "hidden")}>
                 <motion.div key="step2" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <CustomSelect value={layout} onChange={setLayout} options={LAYOUTS} label="Poster Layout" icon={LayoutIcon} />
-                    <CustomSelect value={style} onChange={setStyle} options={STYLES} label="Visual Style" icon={Palette} />
-                    <CustomSelect value={lighting} onChange={setLighting} options={LIGHTING_OPTIONS} label="Lighting" icon={Zap} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {generationObjective !== 'ci-generator' && (
+                      <>
+                        <CustomSelect value={layout} onChange={setLayout} options={LAYOUTS} label="Poster Layout" icon={LayoutIcon} />
+                        <CustomSelect value={style} onChange={setStyle} options={STYLES} label="Visual Style" icon={Palette} />
+                        <CustomSelect value={lighting} onChange={setLighting} options={LIGHTING_OPTIONS} label="Lighting" icon={Zap} />
+                      </>
+                    )}
 
                     {/* Video Specific Settings */}
                     {imageEngine.includes('Veo') && (
@@ -3668,7 +4050,7 @@ export default function App() {
                       ))}
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4 bg-black/40 border border-white/5 rounded-xl p-4">
                       <div className="col-span-full">
                         <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2"><SlidersHorizontal className="w-3 h-3"/> Fine-Tune Controls</h4>
                       </div>
@@ -3865,8 +4247,8 @@ export default function App() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
-                        {isLogoMode ? <Type className="w-4 h-4" /> : <LayoutIcon className="w-4 h-4" />}
-                        {isLogoMode ? "Brand Name / Style Concept" : "Scene Description"}
+                        {generationObjective === 'logo' ? <Type className="w-4 h-4" /> : generationObjective === 'ci-generator' ? <Book className="w-4 h-4" /> : <LayoutIcon className="w-4 h-4" />}
+                        {generationObjective === 'logo' ? "Brand Name / Style Concept" : generationObjective === 'ci-generator' ? "Additional CI Context" : "Scene Description"}
                       </label>
                       <div className="flex gap-2">
                         <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[10px] flex items-center gap-1 bg-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
@@ -3880,7 +4262,7 @@ export default function App() {
                     <AutoResizeTextarea 
                       value={scenePrompt} 
                       onChange={(e) => setScenePrompt(e.target.value)} 
-                      placeholder={isLogoMode ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : "Describe the environment, mood, and placement..."} 
+                      placeholder={generationObjective === 'logo' ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : generationObjective === 'ci-generator' ? "Add any extra instructions for the Corporate Identity generation..." : "Describe the environment, mood, and placement..."} 
                       className="w-full min-h-[8rem] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none placeholder:text-white/20" 
                     />
                   </div>
@@ -4025,7 +4407,7 @@ export default function App() {
               <div className={cn("w-full mx-auto h-[max-content] pb-24 md:pb-32 px-2 md:px-0", activeStep === 5 ? "max-w-[1400px]" : "max-w-5xl")}>
                 <AnimatePresence mode="wait">
                 {activeStep === 5 ? (
-                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-[1400px] w-full px-4 md:px-8 py-10 shadow-2xl bg-[#09090b]/80 backdrop-blur-3xl rounded-[40px] border border-white/5 mx-auto mt-4 transform-gpu shrink-0 text-center relative overflow-hidden flex flex-col items-center">
+                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-[1400px] w-full px-3 md:px-8 py-6 md:py-10 shadow-2xl bg-[#09090b]/80 backdrop-blur-3xl rounded-[32px] md:rounded-[40px] border border-white/5 mx-auto mt-2 md:mt-4 transform-gpu shrink-0 text-center relative overflow-hidden flex flex-col items-center">
                   
                   {/* Hero Effect Backgrounds */}
                   <div className="absolute inset-0 pointer-events-none">
@@ -4034,21 +4416,21 @@ export default function App() {
                   </div>
 
                   {/* Hero Section */}
-                  <div className="text-center space-y-6 relative z-10 w-full max-w-4xl mx-auto">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-black uppercase tracking-[0.2em] mb-4 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-                      <Sparkles className="w-4 h-4 animate-pulse text-indigo-400" /> Professional Multi-Modal Architecture
+                  <div className="text-center space-y-4 md:space-y-6 relative z-10 w-full max-w-4xl mx-auto">
+                    <div className="inline-flex items-center gap-2 md:gap-3 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-2 md:mb-4 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+                      <Sparkles className="w-3 h-3 md:w-4 md:h-4 animate-pulse text-indigo-400" /> Multi-Modal Architecture
                     </div>
                     
-                    <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/40 tracking-tighter drop-shadow-2xl !leading-[1.1]">
+                    <h2 className="text-2xl md:text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/40 tracking-tighter drop-shadow-2xl !leading-[1.1]">
                       Engineered for <br className="hidden md:block" /> Built-In <span className="text-indigo-400">Brilliance.</span>
                     </h2>
                     
-                    <p className="text-sm md:text-lg lg:text-xl text-white/50 font-medium max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xs md:text-lg lg:text-xl text-white/50 font-medium max-w-2xl mx-auto leading-relaxed px-4">
                       JAMINI uses dual-node synthetic reasoning to enforce brand compliance, spatial awareness, and cinema-grade lighting protocols on every generation.
                     </p>
                     
                     {/* The Architecture Duo Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12 mt-12 md:mt-20 w-full max-w-3xl mx-auto px-4 md:px-0 relative">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5 md:gap-6 lg:gap-12 mt-8 md:mt-20 w-full max-w-3xl mx-auto px-1 md:px-0 relative">
                       
                       {/* Plus icon strictly in the center */}
                       <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 items-center justify-center text-2xl font-black text-white/40 z-20 shadow-2xl">
@@ -4056,117 +4438,106 @@ export default function App() {
                       </div>
 
                       {/* JA Card */}
-                      <div className="flex flex-col items-center p-8 rounded-[32px] bg-gradient-to-b from-indigo-500/10 to-transparent border border-indigo-500/20 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default h-full text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center mb-6 !shadow-[0_0_30px_rgba(99,102,241,0.3)]">
-                          <Layers className="w-8 h-8 text-indigo-400" />
+                      <div className="flex flex-col items-center p-2 md:p-8 rounded-lg md:rounded-[32px] bg-gradient-to-b from-indigo-500/10 to-transparent border border-indigo-500/20 shadow-[0_20px_80px_rgba(99,102,241,0.15)] relative group cursor-default h-full text-center">
+                        <div className="w-8 h-8 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center mb-1.5 md:mb-6 !shadow-[0_0_30px_rgba(99,102,241,0.3)]">
+                          <Layers className="w-4 h-4 md:w-8 md:h-8 text-indigo-400" />
                         </div>
-                        <span className="block text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2">JA</span>
-                        <span className="text-xs text-indigo-400 font-black uppercase tracking-[0.3em] mb-4">Jason (Brain)</span>
-                        <p className="text-xs text-white/50 leading-relaxed font-medium">The creative architect. Providing the vision, layout structure, semantic composition, and aesthetic intuition.</p>
+                        <span className="block text-lg md:text-6xl font-black text-white tracking-tighter mb-0.5 md:mb-2">JA</span>
+                        <span className="text-[7px] md:text-xs text-indigo-400 font-black uppercase tracking-[0.2em] mb-1 md:mb-4">Jason (Brain)</span>
+                        <p className="text-[8px] md:text-xs text-white/40 leading-tight font-medium line-clamp-2 md:line-clamp-none italic">The creative architect.</p>
                       </div>
 
                       {/* MINI Card */}
-                      <div className="flex flex-col items-center p-8 rounded-[32px] bg-gradient-to-b from-fuchsia-500/10 to-transparent border border-fuchsia-500/20 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default h-full text-center mt-6 md:mt-0">
-                        <div className="w-16 h-16 rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center mb-6 !shadow-[0_0_30px_rgba(217,70,239,0.3)]">
-                          <Zap className="w-8 h-8 text-fuchsia-400" />
+                      <div className="flex flex-col items-center p-2 md:p-8 rounded-lg md:rounded-[32px] bg-gradient-to-b from-fuchsia-500/10 to-transparent border border-fuchsia-500/20 shadow-[0_20px_80px_rgba(217,70,239,0.15)] relative group cursor-default h-full text-center mt-0">
+                        <div className="w-8 h-8 md:w-16 md:h-16 rounded-lg md:rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center mb-1.5 md:mb-6 !shadow-[0_0_30px_rgba(217,70,239,0.3)]">
+                          <Zap className="w-4 h-4 md:w-8 md:h-8 text-fuchsia-400" />
                         </div>
-                        <span className="block text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2">MINI</span>
-                        <span className="text-xs text-fuchsia-400 font-black uppercase tracking-[0.3em] mb-4">Gemini (Brawn)</span>
-                        <p className="text-xs text-white/50 leading-relaxed font-medium">The computational powerhouse. Rendering complex physics, lighting algorithms, semantic fusion, and variations.</p>
+                        <span className="block text-lg md:text-6xl font-black text-white tracking-tighter mb-0.5 md:mb-2">MINI</span>
+                        <span className="text-[7px] md:text-xs text-fuchsia-400 font-black uppercase tracking-[0.2em] mb-1 md:mb-4">Gemini (Brawn)</span>
+                        <p className="text-[8px] md:text-xs text-white/40 leading-tight font-medium line-clamp-2 md:line-clamp-none italic">The powerhouse render engine.</p>
                       </div>
                     </div>
 
-                    <div className="w-full mx-auto text-left space-y-8 mt-16 md:mt-24 pb-8 border-b border-white/5">
+                    <div className="w-full mx-auto text-left space-y-6 md:space-y-8 mt-12 md:mt-24 pb-6 md:pb-8 border-b border-white/5">
 
                     <div className="w-full font-normal relative overflow-hidden">
-                      <strong className="text-white font-bold mb-6 block text-2xl md:text-4xl font-sans flex items-center justify-center gap-4 text-center">
-                        <Layers className="w-8 h-8 text-indigo-400" /> The Matrix Engine Architecture
+                      <strong className="text-white font-bold mb-4 md:mb-6 block text-xl md:text-4xl font-sans flex items-center justify-center gap-3 md:gap-4 text-center">
+                        <Layers className="w-6 h-6 md:w-8 md:h-8 text-indigo-400" /> Matrix Engine Architecture
                       </strong>
 
-                      <p className="text-sm md:text-lg text-white/50 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
+                      <p className="text-xs md:text-lg text-white/50 text-center max-w-3xl mx-auto mb-8 md:mb-16 leading-relaxed px-4">
                         JAMINI Studio Edition is an advanced commercial generation workbench. Unlike consumer-grade AI wrappers, JAMINI bypasses "aesthetic guessing" by implementing a formal <strong>Compositional Protocol</strong>. This allows users to treat the generative process as a series of architectural commands rather than a dialogue.
                       </p>
 
-                      <div className="grid grid-cols-2 gap-6 w-full mb-8">
-                        <div className="bg-[#121215] p-8 rounded-[32px] border border-white/5 hover:border-fuchsia-500/20 transition-all shadow-2xl relative overflow-hidden group">
+                      <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-6 w-full mb-8">
+                        <div className="bg-[#121215] p-2 md:p-8 rounded-lg md:rounded-[32px] border border-white/5 hover:border-fuchsia-500/20 transition-all shadow-2xl relative overflow-hidden group">
                           <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                          <h4 className="text-white font-black uppercase tracking-widest text-lg md:text-xl flex items-center gap-3 mb-6 relative z-10">
-                            <Cpu className="w-6 h-6 text-fuchsia-400" /> Hybrid Compute Bridge
+                          <h4 className="text-white font-black uppercase tracking-widest text-[8px] md:text-xl flex items-center gap-1.5 md:gap-3 mb-1.5 md:mb-6 relative z-10">
+                            <Cpu className="w-3.5 h-3.5 md:w-6 md:h-6 text-fuchsia-400" /> Compute Bridge
                           </h4>
-                          <ul className="space-y-4 text-sm md:text-base text-white/60 relative z-10">
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Token Density:</strong> Optimized for 100% asset fidelity.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Prompt Orchestration:</strong> Gemini 3.1 Pro integration.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Temporal Flow:</strong> Veo 3.1 4K Commercial Synthesis.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 mt-2 shrink-0"/> <span><strong>Color Science:</strong> CI-Aware LUT mapping (32-bit).</span></li>
+                          <ul className="space-y-1 md:space-y-4 text-[7px] md:text-base text-white/50 relative z-10 leading-tight">
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-fuchsia-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Tokens:</strong> 100% Fidelity.</span></li>
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-fuchsia-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Engine:</strong> 3.1 Pro.</span></li>
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-fuchsia-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Scale:</strong> Sub-18s render.</span></li>
                           </ul>
                         </div>
                         
-                        <div className="bg-[#121215] p-8 rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden group">
+                        <div className="bg-[#121215] p-2 md:p-8 rounded-lg md:rounded-[32px] border border-white/5 hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden group">
                           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                          <h4 className="text-white font-black uppercase tracking-widest text-lg md:text-xl flex items-center gap-3 mb-6 relative z-10">
-                            <Zap className="w-6 h-6 text-amber-400" /> Synthesis Performance
+                          <h4 className="text-white font-black uppercase tracking-widest text-[8px] md:text-xl flex items-center gap-1.5 md:gap-3 mb-1.5 md:mb-6 relative z-10">
+                            <Zap className="w-3.5 h-3.5 md:w-6 md:h-6 text-amber-400" /> Synthesis Performance
                           </h4>
-                          <ul className="space-y-4 text-sm md:text-base text-white/60 relative z-10">
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Execution Speed:</strong> Optimized sub-18s rendering.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Accuracy Index:</strong> 99.8% Brand Compliance.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Scale:</strong> From Social (9:16) to Print (Physical MM).</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Security:</strong> Absolute client-side data sovereignty.</span></li>
-                            <li className="flex items-start gap-3"><div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0"/> <span><strong>Cloud Fusion:</strong> Google Drive bi-directional sync.</span></li>
+                          <ul className="space-y-1 md:space-y-4 text-[7px] md:text-base text-white/50 relative z-10 leading-tight">
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-amber-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Accuracy:</strong> 99% Compliance.</span></li>
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-amber-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Motion:</strong> 4K Commercial.</span></li>
+                            <li className="flex items-start gap-1 md:gap-3"><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-amber-400 mt-0.5 md:mt-2 shrink-0"/> <span><strong>Cloud:</strong> Bi-directional.</span></li>
                           </ul>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 w-full">
-                        <div className="p-4 md:p-6 lg:p-8 bg-indigo-500/5 rounded-[24px] border border-indigo-500/10 hover:bg-indigo-500/10 transition-colors">
-                          <h4 className="text-indigo-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Sparkles className="w-5 h-5" /> Precision Scale</h4>
-                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                            "Surgical print-ready generation using physical dimension mapping ensuring pixel-perfect fidelity."
-                          </p>
+                      <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-1.5 md:gap-6 w-full">
+                        <div className="p-2 md:p-8 bg-indigo-500/5 rounded-lg md:rounded-[24px] border border-indigo-500/10 hover:bg-indigo-500/10 transition-colors h-full">
+                          <h4 className="text-indigo-400 font-bold mb-1 md:mb-3 flex items-center gap-1 text-[8px] md:text-base uppercase tracking-wider"><Sparkles className="w-3 h-3 md:w-5 md:h-5" /> Scale</h4>
+                          <p className="text-[7px] md:text-sm text-white/40 leading-tight font-medium">"Surgical print-ready generation."</p>
                         </div>
-                        <div className="p-6 md:p-8 bg-fuchsia-500/5 rounded-[24px] border border-fuchsia-500/10 hover:bg-fuchsia-500/10 transition-colors">
-                          <h4 className="text-fuchsia-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Video className="w-5 h-5" /> Temporal Flow</h4>
-                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                            "Synchronized video continuity across dynamic 4K motion logic resulting in perfect cinematics."
-                          </p>
+                        <div className="p-2 md:p-8 bg-fuchsia-500/5 rounded-lg md:rounded-[24px] border border-fuchsia-500/10 hover:bg-fuchsia-500/10 transition-colors h-full">
+                          <h4 className="text-fuchsia-400 font-bold mb-1 md:mb-3 flex items-center gap-1 text-[8px] md:text-base uppercase tracking-wider"><Video className="w-3 h-3 md:w-5 md:h-5" /> Flow</h4>
+                          <p className="text-[7px] md:text-sm text-white/40 leading-tight font-medium">"Synchronized video continuity."</p>
                         </div>
-                        <div className="p-6 md:p-8 bg-emerald-500/5 rounded-[24px] border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors">
-                          <h4 className="text-emerald-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Globe className="w-5 h-5" /> Localization</h4>
-                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                            "Instant 50+ language resynthesis matching exact mouth phonetics for global deployment."
-                          </p>
+                        <div className="p-2 md:p-8 bg-emerald-500/5 rounded-lg md:rounded-[24px] border border-emerald-500/10 hover:bg-emerald-500/10 transition-colors h-full">
+                          <h4 className="text-emerald-400 font-bold mb-1 md:mb-3 flex items-center gap-1 text-[8px] md:text-base uppercase tracking-wider"><Globe className="w-3 h-3 md:w-5 md:h-5" /> Global</h4>
+                          <p className="text-[7px] md:text-sm text-white/40 leading-tight font-medium">"50+ Language resynthesis."</p>
                         </div>
-                        <div className="p-6 md:p-8 bg-amber-500/5 rounded-[24px] border border-amber-500/10 hover:bg-amber-500/10 transition-colors">
-                          <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm md:text-base uppercase tracking-wider"><Database className="w-5 h-5" /> Data Pipeline</h4>
-                          <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                            "End-to-end integration with enterprise DAMs and CMS platforms directly."
-                          </p>
+                        <div className="p-2 md:p-8 bg-amber-500/5 rounded-lg md:rounded-[24px] border border-amber-500/10 hover:bg-amber-500/10 transition-colors h-full">
+                          <h4 className="text-amber-400 font-bold mb-1 md:mb-3 flex items-center gap-1 text-[8px] md:text-base uppercase tracking-wider"><Database className="w-3 h-3 md:w-5 md:h-5" /> Pipeline</h4>
+                          <p className="text-[7px] md:text-sm text-white/40 leading-tight font-medium">"Enterprise DAM integration."</p>
                         </div>
                       </div>
 
                       {/* Enterprise Integration Expansion */}
-                      <div className="mt-16 bg-black/40 border border-white/5 rounded-[32px] p-8 md:p-12 flex flex-col xl:flex-row gap-8 items-center justify-between">
-                         <div className="space-y-4 max-w-2xl text-center xl:text-left">
-                           <div className="flex items-center gap-3 justify-center xl:justify-start">
-                              <Box className="w-6 h-6 text-emerald-400" />
-                              <h4 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em]">Enterprise Integrations</h4>
+                      <div className="mt-12 md:mt-16 bg-black/40 border border-white/5 rounded-[24px] md:rounded-[32px] p-6 md:p-12 flex flex-col xl:flex-row gap-6 md:gap-8 items-center justify-between">
+                         <div className="space-y-3 md:space-y-4 max-w-2xl text-center xl:text-left">
+                           <div className="flex items-center gap-2 md:gap-3 justify-center xl:justify-start">
+                              <Box className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" />
+                              <h4 className="text-lg md:text-2xl font-black text-white uppercase tracking-[0.2em]">Enterprise Integrations</h4>
                            </div>
-                           <p className="text-sm md:text-base text-white/40 leading-relaxed">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides using our RESTful Synthesis API.</p>
+                           <p className="text-xs md:text-base text-white/40 leading-relaxed px-2 md:px-0">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides using our RESTful Synthesis API.</p>
                          </div>
-                         <div className="flex gap-4 shrink-0">
-                           <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95">API Docs</button>
-                           <button className="px-6 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:scale-105 active:scale-95">Generate Keys</button>
+                         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 shrink-0 w-full sm:w-auto">
+                           <button className="flex-1 sm:flex-none px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs md:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95">API Docs</button>
+                           <button className="flex-1 sm:flex-none px-6 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs md:text-sm font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:scale-105 active:scale-95">Generate Keys</button>
                          </div>
                       </div>
 
                       {/* Video Showcase Section */}
-                      <div className="mt-20 space-y-8">
-                         <div className="flex items-center gap-4 justify-center">
-                            <Video className="w-8 h-8 text-fuchsia-400" />
-                            <h4 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.2em]">Production Reel</h4>
+                      <div className="mt-16 md:mt-20 space-y-6 md:space-y-8">
+                         <div className="flex items-center gap-3 md:gap-4 justify-center">
+                            <Video className="w-6 h-6 md:w-8 md:h-8 text-fuchsia-400" />
+                            <h4 className="text-xl md:text-4xl font-black text-white uppercase tracking-[0.2em]">Production Reel</h4>
                          </div>
-                         <p className="text-center text-white/50 text-sm md:text-base mb-10 max-w-2xl mx-auto">See the Matrix engine in action. All videos generated natively in 4K resolution at 60 frames per second using Veo 3.1 architecture.</p>
+                         <p className="text-center text-white/50 text-xs md:text-base mb-6 md:mb-10 max-w-2xl mx-auto px-4">See the Matrix engine in action. All videos generated natively in 4K resolution at 60 frames per second using Veo 3.1 architecture.</p>
                          
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 w-full">
                             {[
                               { title: 'Luxury Swiss Horology', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', tag: 'VE0 3.1 PRO' },
                               { title: 'High-Performance Auto', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', tag: 'VE0 3.1 LITE' },
@@ -4178,7 +4549,7 @@ export default function App() {
                               <motion.div 
                                 key={idx}
                                 whileHover={{ y: -8, scale: 1.02 }}
-                                className="group relative aspect-video bg-[#0c0c0e] rounded-3xl overflow-hidden border border-white/10 shadow-xl"
+                                className="group relative aspect-video bg-[#0c0c0e] rounded-xl md:rounded-3xl overflow-hidden border border-white/10 shadow-xl"
                               >
                                 <video 
                                   src={video.url} 
@@ -4188,10 +4559,10 @@ export default function App() {
                                   muted 
                                   playsInline 
                                 />
-                                <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-black text-white uppercase tracking-wider">{video.title}</span>
-                                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-1 rounded-md font-black tracking-widest">{video.tag}</span>
+                                <div className="absolute inset-x-0 bottom-0 p-2 md:p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
+                                    <span className="text-[8px] md:text-sm font-black text-white uppercase tracking-wider line-clamp-1">{video.title}</span>
+                                    <span className="text-[6px] md:text-[10px] w-fit bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1 md:px-2 py-0.5 md:py-1 rounded-sm md:rounded-md font-black tracking-widest">{video.tag}</span>
                                   </div>
                                 </div>
                               </motion.div>
@@ -4376,74 +4747,32 @@ export default function App() {
                       </svg>
                     </div>
                   </div>
-
-                  {/* Deep Dive into Architecture */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 pt-12 border-t border-white/5">
+                  <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5 md:gap-10 pt-8 md:pt-12 border-t border-white/5">
                     {/* Neural Engine Details */}
-                    <div className="space-y-6 p-6 md:p-8 rounded-3xl bg-[#121215] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-indigo-500/30 hover:shadow-[0_10px_30px_rgba(99,102,241,0.1)] transition-all h-full">
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.3)]">
-                          <Cpu className="w-6 h-6" />
+                    <div className="space-y-2 md:space-y-6 p-2 md:p-8 rounded-xl md:rounded-3xl bg-[#121215] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-indigo-500/30 transition-all h-full">
+                      <h3 className="text-[10px] md:text-2xl font-bold text-white flex items-center gap-1.5 md:gap-4 leading-tight">
+                        <div className="p-1 md:p-3 rounded-lg md:rounded-xl bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                          <Cpu className="w-3.5 h-3.5 md:w-6 md:h-6" />
                         </div>
-                        The Neural Engine Explained
+                        <span className="md:inline text-[9px] md:text-2xl">Neural Engine</span>
                       </h3>
-                      <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                        Jamini isn't just an image generator. It's a sophisticated multi-modal pipeline designed specifically for high-end commercial art and advertising. It thinks like an Art Director and executes like a CGI studio.
+                      <p className="text-[7px] md:text-sm text-white/40 leading-tight md:leading-relaxed font-medium">
+                        Jamini's multi-modal pipeline for commercial art.
                       </p>
-                      <ul className="space-y-5 mt-6">
+                      <ul className="space-y-1.5 md:space-y-5 mt-3 md:mt-6">
                         {[
-                          { 
-                            title: "Multi-Modal Analysis Vision", 
-                            icon: <Eye className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />, 
-                            desc: "Before rendering, Jamini scans your uploaded assets. It understands textures, recognizes edge definitions, and extrapolates 3D depth from 2D images.",
-                            details: [
-                              "Example: If you upload a glass bottle, Jamini identifies transparency and refractive indices.",
-                              "Pro Tip: High-contrast product shots yield 40% better edge definition during synthesis."
-                            ]
-                          },
-                          { 
-                            title: "Global Brand Bible Sync", 
-                            icon: <ShieldCheck className="w-5 h-5 text-fuchsia-400 shrink-0 mt-0.5" />, 
-                            desc: "Extracts precise hex codes, typography rules, and spatial constraints from brand documents and enforces them mathematically.",
-                            details: [
-                              "Syncs primary and secondary color palettes directly to the neural generator.",
-                              "Prevents 'color drift' where AI usually ignores specific brand-approved shades."
-                            ]
-                          },
-                          { 
-                            title: "Semantic Material Matrix", 
-                            icon: <Layers className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />, 
-                            desc: "Models physical light interaction between product and environment for cinematic realism.",
-                            details: [
-                              "Generates realistic specular highlights and volumetric shadows.",
-                              "Examples: Metallic brushed steel, matte carbon fiber, or soft-touch plastics."
-                            ]
-                          },
-                          { 
-                            title: "Adaptive Neural Routing", 
-                            icon: <Zap className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />, 
-                            desc: "Dynamically routes requests between Gemini 3.1 Pro and 2.5 Flash tiers based on task complexity.",
-                            details: [
-                              "Session State: Automatically recovers your prompt history and active API keys.",
-                              "Vault Encryption: Keys are stored exclusively in your browser's secure enclave."
-                            ]
-                          }
+                          { title: "Analysis Vision", icon: <Eye className="w-3 h-3 md:w-5 md:h-5 text-indigo-400" />, desc: "Scans textures." },
+                          { title: "Brand Sync", icon: <ShieldCheck className="w-3 h-3 md:w-5 md:h-5 text-fuchsia-400" />, desc: "Extracts hex." },
+                          { title: "Material Matrix", icon: <Layers className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />, desc: "Models light." },
+                          { title: "Neural Routing", icon: <Zap className="w-3 h-3 md:w-5 md:h-5 text-amber-400" />, desc: "Routes requests." }
                         ].map((item, i) => (
-                          <li key={i} className="flex flex-col gap-4 p-6 rounded-2xl bg-black/40 border border-white/5 shadow-inner hover:border-white/20 transition-all">
-                            <div className="flex gap-4">
+                          <li key={i} className="flex flex-col gap-1 md:gap-4 p-1.5 md:p-6 rounded-lg md:rounded-2xl bg-black/40 border border-white/5 shadow-inner hover:border-white/20 transition-all">
+                            <div className="flex gap-1.5">
                               {item.icon}
                               <div>
-                                <span className="block text-white font-bold text-sm uppercase tracking-wide mb-1 opacity-90">{item.title}</span>
-                                <p className="text-xs text-white/50 leading-relaxed italic">{item.desc}</p>
+                                <span className="block text-white font-bold text-[7px] md:text-sm uppercase tracking-wide mb-0.5 opacity-90 leading-tight">{item.title}</span>
+                                <p className="text-[6px] md:text-xs text-white/40 leading-tight italic line-clamp-1 md:line-clamp-none">{item.desc}</p>
                               </div>
-                            </div>
-                            <div className="pl-9 space-y-2">
-                              {item.details.map((detail, dIdx) => (
-                                <div key={dIdx} className="flex items-center gap-2 text-[10px] md:text-xs">
-                                  <div className="w-1 h-1 rounded-full bg-white/20" />
-                                  <span className="text-white/40">{detail}</span>
-                                </div>
-                              ))}
                             </div>
                           </li>
                         ))}
@@ -4451,82 +4780,31 @@ export default function App() {
                     </div>
 
                     {/* Workflow Details */}
-                    <div className="space-y-6 p-6 md:p-8 rounded-3xl bg-[#121215] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-fuchsia-500/30 hover:shadow-[0_10px_30px_rgba(217,70,239,0.1)] transition-all h-full">
-                      <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 ring-1 ring-fuchsia-500/40 shadow-[0_0_20px_rgba(232,121,249,0.3)]">
-                          <Workflow className="w-6 h-6" />
+                    <div className="space-y-2 md:space-y-6 p-2 md:p-8 rounded-xl md:rounded-3xl bg-[#121215] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:border-fuchsia-500/30 transition-all h-full">
+                      <h3 className="text-[10px] md:text-2xl font-bold text-white flex items-center gap-1.5 md:gap-4 leading-tight">
+                        <div className="p-1 md:p-3 rounded-lg md:rounded-xl bg-fuchsia-500/20 text-fuchsia-400 ring-1 ring-fuchsia-500/40 shadow-[0_0_20px_rgba(232,121,249,0.3)]">
+                          <Workflow className="w-3.5 h-3.5 md:w-6 md:h-6" />
                         </div>
-                        The Master Workflow
+                        <span className="md:inline text-[9px] md:text-2xl">Master Workflow</span>
                       </h3>
-                      <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium">
-                        A structured, non-linear progression ensures you retain creative control while Jamini handles the complex technical rendering pipelines automatically.
+                      <p className="text-[7px] md:text-sm text-white/40 leading-tight md:leading-relaxed font-medium">
+                        Structured progression for creative control.
                       </p>
-                      <div className="space-y-5 relative mt-6">
-                        {/* Connecting Line */}
-                        <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gradient-to-b from-fuchsia-500/50 via-indigo-500/50 to-transparent z-0 hidden md:block" />
-                        
+                      <div className="space-y-1.5 md:space-y-5 relative mt-3 md:mt-6">
                         {[
-                          { 
-                            step: "01", 
-                            title: "API Initialization (Settings)", 
-                            text: "Begin by navigating to the Settings tab in the bottom bar and securely load your Gemini API Key(s) to unlock generations. Keys are securely stored locally inside your browser's persistent cache (IndexedDB).",
-                            details: [
-                              "Auto-Detect: The system automatically verifies your tier (Paid vs Free) and adjusts resolution limits accordingly.",
-                              "Vault Encryption: Jamini uses a secure hashing protocol for your keys—they never leave the client environment."
-                            ]
-                          },
-                          { 
-                            step: "02", 
-                            title: "Asset Ingestion & Vivid Analysis", 
-                            text: "Upload your raw materials up to 4K resolution. Use the 'Vivid Enhance' feature to let Jamini automatically write specialized engineering prompts.",
-                            details: [
-                              "Multi-Modal Extraction: The AI scans textures, object classification, and lighting direction to ensure background synthesis is contextually aware.",
-                              "Accepted Formats: Optimized for PNG (transparency preserved), high-res JPEG, and Vector PDF analysis."
-                            ]
-                          },
-                          { 
-                            step: "03", 
-                            title: "Architectural Layout & Spatial Logic", 
-                            text: "Select your canvas dimension (Mobile vs Cinema) and define spatial arrangements. Choose from preset composition grids like 'Golden Ratio' or 'Rule of Thirds'.",
-                            details: [
-                              "Hierarchy Control: Define Subject vs Environment depth. Jamini calculates z-space to place models inside the scene, not on top of it.",
-                              "Canvas Presets: One-click formatting for Instagram Stories (9:16), Cinematic Ads (21:9), or classic Out-of-Home (OOH) billboards."
-                            ]
-                          },
-                          { 
-                            step: "04", 
-                            title: "Parametric Control & Physics", 
-                            text: "Fine-tune lighting styles, focal length, film grain simulation, and rendering intent (Octane vs Unreal).",
-                            details: [
-                              "Ray-Tracing Logic: Toggle 'Masterpiece' mode to force volumetric shadows and ray-traced reflections on glass/metal surfaces.",
-                              "Color Grading: Apply LUT-style intent prompts like 'Blade Runner Teal' or 'Kodak Portra 400' directly to the neural renderer."
-                            ]
-                          },
-                          { 
-                            step: "05", 
-                            title: "The Synthesis & Export Pipeline", 
-                            text: "Generate the result. The backend dynamically merges user prompts, layout specifications, and Vivid analyses.",
-                            details: [
-                              "Final Export: Support for PNG (Max Quality), JPG (Optimized), and PDF. Every export includes a unique generation signature for authenticity.",
-                              "Archive: Revisit any previous generation in the 'Workspace Gallery' to iterate or upscale without re-spending tokens."
-                            ]
-                          }
+                          { step: "01", title: "API Init", text: "Securely load your Gemini keys." },
+                          { step: "02", title: "Ingestion", text: "Upload raw materials up to 4K." },
+                          { step: "03", title: "Layout", text: "Define spatial arrangement." },
+                          { step: "04", title: "Parametric", text: "Fine-tune lighting styles." },
+                          { step: "05", title: "Synthesis", text: "Generate the final result." }
                         ].map((item, i) => (
-                          <div key={i} className="flex gap-4 relative z-10 group">
-                            <div className="w-12 h-12 shrink-0 rounded-full bg-[#18181C] border-2 border-fuchsia-500/30 flex items-center justify-center text-sm font-black text-fuchsia-400 group-hover:bg-fuchsia-500 group-hover:text-white group-hover:border-fuchsia-400 transition-all shadow-[0_0_15px_rgba(232,121,249,0.2)] mt-1">
+                          <div key={i} className="flex gap-1.5 relative z-10 group items-start">
+                            <div className="w-3 h-3 md:w-12 md:h-12 shrink-0 rounded-full bg-[#18181C] border border-fuchsia-500/30 flex items-center justify-center text-[6px] md:text-sm font-black text-fuchsia-400 group-hover:bg-fuchsia-500 group-hover:text-white transition-all mt-0.5 md:mt-1">
                               {item.step}
                             </div>
-                            <div className="flex-1 p-5 md:p-6 rounded-2xl bg-black/40 border border-white/5 group-hover:border-fuchsia-500/30 transition-all shadow-inner">
-                              <h4 className="text-white font-bold text-sm md:text-base mb-2">{item.title}</h4>
-                              <p className="text-xs md:text-sm text-white/50 leading-relaxed mb-4">{item.text}</p>
-                              <div className="space-y-2 mt-4 pt-4 border-t border-white/5">
-                                {item.details.map((detail, dIdx) => (
-                                  <div key={dIdx} className="flex items-start gap-2 text-[10px] md:text-xs text-white/40 italic">
-                                    <div className="w-1 h-1 rounded-full bg-fuchsia-500 mt-1.5 shrink-0" />
-                                    <span>{detail}</span>
-                                  </div>
-                                ))}
-                              </div>
+                            <div className="flex-1 p-1 md:p-6 rounded-lg md:rounded-2xl bg-black/40 border border-white/5 group-hover:border-fuchsia-500/30 transition-all">
+                              <h4 className="text-white font-bold text-[7px] md:text-base mb-0.5 md:mb-2 leading-tight uppercase tracking-tight">{item.title}</h4>
+                              <p className="text-[6px] md:text-sm text-white/40 leading-tight line-clamp-1 md:line-clamp-none">{item.text}</p>
                             </div>
                           </div>
                         ))}
@@ -4540,7 +4818,7 @@ export default function App() {
                        <h3 className="text-sm md:text-base font-black text-white/40 uppercase tracking-[0.4em]">Unleash Your Creativity</h3>
                        <p className="text-white/50 text-sm md:text-base max-w-3xl mx-auto px-4">Everything you need to build stunning, production-ready assets in seconds.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-8">
                       {[
                         { 
                           icon: MonitorPlay, 
@@ -4606,83 +4884,83 @@ export default function App() {
                   <div className="space-y-12 pt-16 border-t border-white/5">
                     <div className="text-center space-y-4">
                        <h3 className="text-sm md:text-base font-black text-white/40 uppercase tracking-[0.4em]">Comprehensive Tool Suite</h3>
-                       <p className="text-white/50 text-sm md:text-base max-w-3xl mx-auto px-4">Every dial, switch, and upload field in Jamini serves a specific commercial purpose. Here is how to master the control board parameters effectively.</p>
+                       <p className="text-white/50 text-xs md:text-base max-w-3xl mx-auto px-4">Every dial, switch, and upload field in Jamini serves a specific commercial purpose. Here is how to master the control board parameters effectively.</p>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 md:gap-8">
                       {[
                         { 
                           title: "Vivid Enhance AI", 
-                          icon: <Sparkles className="w-8 h-8" />, 
+                          icon: <Sparkles className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["Automation", "Prompt Eng"], 
-                          desc: "Click 'Vivid Enhance' on an asset to bypass manual prompt writing. Jamini uses Gemini Pro vision models to analyze the image and generate a complex descriptive prompt orchestrating object physics.",
+                          desc: "Click 'Vivid Enhance' on an asset to bypass manual prompt writing. Jamini uses Gemini Pro vision models to analyze the image.",
                           feature: "Neural Scene Description",
-                          benefit: "Prevents mismatched lighting by forcing the AI to 'understand' your object's material properties first."
+                          benefit: "Prevents mismatched lighting."
                         },
                         { 
-                          title: "Intelligent Key Manager", 
-                          icon: <Key className="w-8 h-8" />, 
+                          title: "Key Manager", 
+                          icon: <Key className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["API Setup", "Auto-Detect"], 
-                          desc: "Securely store multiple Paid and Free API keys. The system natively pings the API to query available models automatically, removing manual engine selection friction.",
+                          desc: "Securely store multiple API keys. System pings API to query models automatically, removing manual engine selection friction.",
                           feature: "Dynamic Endpoint Routing",
-                          benefit: "Instant access to 3.1 Pro performance vs 2.5 Flash speed without manual reconfiguration."
+                          benefit: "Instant access to 3.1 Pro."
                         },
                         { 
                           title: "Workspace Gallery", 
-                          icon: <History className="w-8 h-8" />, 
+                          icon: <History className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["Archive", "Exports"], 
-                          desc: "Never lose a generation. Every image is automatically serialized and saved locally (IndexedDB). Search prompt history, sort logically, and export instantly.",
+                          desc: "Never lose a generation. Saved locally (IndexedDB). Search prompt history, sort logically, and export instantly.",
                           feature: "Persistent Artifact Session",
-                          benefit: "Reduces tokens spend by allowing you to re-download high-res versions of previous work without re-generating."
+                          benefit: "Reduces tokens spend."
                         },
                         { 
-                          title: "Brand Bible Extraction", 
-                          icon: <Book className="w-8 h-8" />, 
+                          title: "Bible Extraction", 
+                          icon: <Book className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["Analysis", "Compliance"], 
-                          desc: "Uploading a CI document triggers a deep analysis. Jamini extracts exact hex colors and fonts, automatically updating your palette to enforce brand continuity in every render.",
+                          desc: "Extracts exact hex colors and fonts from CI docs and enforces them mathematically in every render.",
                           feature: "Chromatic Identity Locking",
-                          benefit: "Ensures legal and branding teams approve AI output by maintaining 100% color accuracy."
+                          benefit: "100% color accuracy."
                         },
                         { 
-                          title: "Dynamic Text Engine", 
-                          icon: <Type className="w-8 h-8" />, 
+                          title: "Text Engine", 
+                          icon: <Type className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["Typography", "Layout"], 
-                          desc: "Spatial-aware layouts ensure text matches the 'Font Preset' and respects occlusion (e.g. text behind subjects) for three-dimensional realism.",
+                          desc: "Spatial-aware layouts ensure text respects occlusion for three-dimensional realism.",
                           feature: "Semantic Typographic Layering",
-                          benefit: "Creates depth by embedding typography *into* the 3D scene rather than overlaying a flat sticker."
+                          benefit: "Creates depth in scene."
                         },
                         { 
                           title: "Material Dynamics", 
-                          icon: <SlidersHorizontal className="w-8 h-8" />, 
+                          icon: <SlidersHorizontal className="w-4 h-4 md:w-8 md:h-8" />, 
                           tags: ["Physics", "Post-FX"], 
-                          desc: "Control the physical reality of the scene. Sliders for Metallic, Roughness, and Normal Map Intensity literally alter sub-surface light interaction and surface bounce.",
-                          feature: "Physics-Based Rendering (PBR)",
-                          benefit: "Achieves 'Commercial Realism' where surfaces react to environmental light with high-fidelity specular highlights."
+                          desc: "Control PBR parameters like Metallic and Roughness for realistic surface light interaction.",
+                          feature: "Physics-Based Rendering",
+                          benefit: "Commercial Realism."
                         }
                       ].map((tool, i) => (
-                        <div key={i} className="p-6 md:p-8 rounded-3xl bg-[#121215] border border-white/10 hover:bg-white/[0.04] hover:border-indigo-500/40 hover:-translate-y-2 transition-all duration-300 group shadow-2xl flex flex-col h-full relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[50px] group-hover:bg-fuchsia-500/10 transition-colors pointer-events-none" />
-                          <div className="flex flex-col gap-5 mb-5 relative z-10">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-[inset_0_2px_10px_rgba(255,255,255,0.05)] ring-1 ring-white/10 shrink-0">
+                        <div key={i} className="p-2 md:p-8 rounded-lg md:rounded-3xl bg-[#121215] border border-white/10 hover:bg-white/[0.04] transition-all duration-300 group shadow-2xl flex flex-col h-full relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 blur-[20px] group-hover:bg-fuchsia-500/10 transition-colors pointer-events-none" />
+                          <div className="flex flex-col gap-1.5 md:gap-5 mb-1.5 md:mb-5 relative z-10">
+                            <div className="w-8 h-8 md:w-16 md:h-16 rounded-lg bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center text-indigo-400 ring-1 ring-white/10 shrink-0">
                               {tool.icon}
                             </div>
                             <div className="flex-1">
-                               <h4 className="text-lg md:text-xl font-bold text-white mb-3 leading-tight">{tool.title}</h4>
-                               <div className="flex flex-wrap gap-2">
-                                 {tool.tags.map(t => <span key={t} className="text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white/60">{t}</span>)}
+                               <h4 className="text-[9px] md:text-xl font-bold text-white mb-0.5 md:mb-3 leading-tight truncate">{tool.title}</h4>
+                               <div className="flex flex-wrap gap-1">
+                                 {tool.tags.map(t => <span key={t} className="text-[6px] md:text-[10px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-sm bg-white/5 border border-white/10 text-white/40">{t}</span>)}
                                </div>
                             </div>
                           </div>
-                          <p className="text-sm text-white/50 leading-relaxed mb-6 flex-1 relative z-10">{tool.desc}</p>
+                          <p className="text-[8px] md:text-sm text-white/30 leading-tight mb-3 flex-1 relative z-10 line-clamp-2 md:line-clamp-none">{tool.desc}</p>
                           
-                          <div className="space-y-3 mt-auto pt-6 border-t border-white/5 relative z-10">
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Key Feature</span>
-                              <span className="text-xs text-white/80 font-medium">{tool.feature}</span>
+                          <div className="space-y-1.5 mt-auto pt-2 md:pt-6 border-t border-white/5 relative z-10">
+                            <div className="flex flex-col">
+                              <span className="text-[6px] md:text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Feature</span>
+                              <span className="text-[8px] md:text-xs text-white/60 font-medium truncate">{tool.feature}</span>
                             </div>
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[9px] font-bold text-fuchsia-400 uppercase tracking-widest">Workflow Benefit</span>
-                              <span className="text-xs text-white/40 italic">{tool.benefit}</span>
+                            <div className="flex flex-col">
+                              <span className="text-[6px] md:text-[10px] font-bold text-fuchsia-400 uppercase tracking-widest">Benefit</span>
+                              <span className="text-[8px] md:text-xs text-white/30 italic truncate">{tool.benefit}</span>
                             </div>
                           </div>
                         </div>
@@ -4706,37 +4984,37 @@ export default function App() {
                        <p className="text-white/50 text-sm md:text-base max-w-3xl mx-auto px-4">See how Jamini transforms raw intent into production-ready commercial assets across different industries.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5 md:gap-8">
                       {[
                         {
-                          industry: "Luxury Watchmaking",
-                          objective: "Extreme macro photography with complex caustic lighting on sapphire crystal and brushed platinum.",
+                          industry: "Luxury Watch",
+                          objective: "Extreme macro with caustic lighting on sapphire.",
                           steps: [
-                            "Upload: 4K macro shot of a dial.",
-                            "Style: 'Swiss Precision' with dramatic rim lighting.",
-                            "Result: Jamini calculated the light refraction through the crystal, creating perfect 'caustic' patterns on the dial surface."
+                            "Upload: 4K macro dial.",
+                            "Style: 'Swiss Precision'.",
+                            "Result: Calculated refraction."
                           ],
                           color: "from-amber-500/20 to-amber-500/0"
                         },
                         {
-                          industry: "Automotive Marketing",
-                          objective: "Synthesize a sleek electric sedan into a futuristic neon-drenched Tokyo street at midnight.",
+                          industry: "Automotive",
+                          objective: "Sedan into neon Tokyo street at midnight.",
                           steps: [
-                            "Upload: CAD render or high-res photo of the car profile.",
-                            "Style: 'Cyberpunk Cinematic' with wet road reflections.",
-                            "Result: The 'Semantic Material Matrix' automatically applied neon reflections to the car's paintwork based on the synthesized environment depth."
+                            "Upload: Car profile.",
+                            "Style: 'Cyberpunk'.",
+                            "Result: Painters reflections."
                           ],
                           color: "from-indigo-500/20 to-indigo-500/0"
                         }
                       ].map((study, i) => (
-                        <div key={i} className="p-8 rounded-[38px] bg-[#121215] border border-white/10 relative overflow-hidden group hover:border-white/20 transition-all">
+                        <div key={i} className="p-2 md:p-8 rounded-lg md:rounded-[38px] bg-[#121215] border border-white/10 relative overflow-hidden group hover:border-white/20 transition-all">
                           <div className={`absolute inset-0 bg-gradient-to-br ${study.color} opacity-30 pointer-events-none`} />
-                          <h4 className="text-xl font-bold text-white mb-4 relative z-10">{study.industry}</h4>
-                          <p className="text-sm text-white/70 mb-6 relative z-10 italic">"{study.objective}"</p>
-                          <ul className="space-y-3 relative z-10">
+                          <h4 className="text-[9px] md:text-xl font-bold text-white mb-1 md:mb-4 relative z-10 leading-tight">{study.industry}</h4>
+                          <p className="text-[7px] md:text-sm text-white/40 mb-1.5 md:mb-6 relative z-10 italic leading-tight px-1">"{study.objective}"</p>
+                          <ul className="space-y-1 md:space-y-3 relative z-10">
                             {study.steps.map((step, sIdx) => (
-                              <li key={sIdx} className="flex gap-3 text-xs md:text-sm text-white/50 items-start">
-                                <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-1.5 shrink-0" />
+                              <li key={sIdx} className="flex gap-1 md:gap-3 text-[6px] md:text-sm text-white/30 items-start leading-tight px-1">
+                                <div className="w-0.5 md:w-1.5 h-0.5 md:h-1.5 rounded-full bg-white/20 mt-1 md:mt-1.5 shrink-0" />
                                 <span>{step}</span>
                               </li>
                             ))}
@@ -4749,11 +5027,12 @@ export default function App() {
                   <div className="text-center pt-12 pb-8 lg:pb-32 sticky bottom-[-20px] bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent z-20">
                     <button 
                       onClick={() => setActiveStep(1)}
-                      className="px-10 md:px-14 py-5 md:py-6 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white font-black text-sm md:text-lg uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_20px_60px_rgba(99,102,241,0.5)] active:scale-95 transition-all shadow-[0_10px_40px_rgba(99,102,241,0.3)] group overflow-hidden relative"
+                      className="px-8 md:px-14 py-4 md:py-6 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white font-black text-xs md:text-lg uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_20px_60px_rgba(99,102,241,0.5)] active:scale-95 transition-all shadow-[0_10px_40px_rgba(99,102,241,0.3)] group overflow-hidden relative"
+                      style={{ transformStyle: 'preserve-3d' }}
                     >
                       <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full group-hover:translate-x-full ease-in-out duration-1000 transform skew-x-12" />
-                      <span className="relative flex items-center justify-center gap-4">
-                        <Zap className="w-6 h-6 fill-white" /> Initialize Workspace Studio
+                      <span className="relative flex items-center justify-center gap-2 md:gap-4 transform translate-z-10 text-shadow-lg">
+                        <Zap className="w-5 h-5 md:w-6 md:h-6 fill-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" /> Initialize Workspace Studio
                       </span>
                     </button>
                   </div>
@@ -4975,9 +5254,18 @@ export default function App() {
         color: 'from-orange-600 to-red-500',
         glow: 'rgba(234, 88, 12, 0.4)'
       },
+      { 
+        id: 'ci-generator', 
+        title: 'CI Generator', 
+        desc: 'Complete corporate identity.',
+        longDesc: 'Automated CI Bible, logo generation, brand voice, and industry-standard marketing guideline document generation in a single workflow.',
+        icon: Book, 
+        color: 'from-blue-600 to-indigo-500',
+        glow: 'rgba(37, 99, 235, 0.4)'
+      },
     ];
 
-    const selectObjective = (id: 'logo' | 'poster' | 'video' | 'motion-lab') => {
+    const selectObjective = (id: 'logo' | 'poster' | 'video' | 'motion-lab' | 'ci-generator') => {
       if (id === 'motion-lab') {
         setCurrentView('storyboard');
         return;
@@ -5057,60 +5345,67 @@ export default function App() {
           </motion.div>
 
           {/* Objective Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 w-full max-w-[1200px] mx-auto px-2 md:px-0 group/container">
+          <div className="grid grid-cols-2 lg:flex lg:flex-row justify-center items-stretch gap-2 md:gap-4 w-full max-w-[1400px] mx-auto px-2 md:px-8 group/container pb-8 md:pb-0 min-h-max md:min-h-[400px]" style={{ perspective: '2000px', transformStyle: 'preserve-3d' }}>
             {objectives.map((obj, i) => {
-              const puzzleShapes = [
-                "rounded-tl-[64px] rounded-br-[64px] rounded-tr-[16px] rounded-bl-[16px]",
-                "rounded-tr-[64px] rounded-bl-[64px] rounded-tl-[16px] rounded-br-[16px]",
-                "rounded-br-[64px] rounded-tl-[64px] rounded-tr-[16px] rounded-bl-[16px]",
-                "rounded-bl-[64px] rounded-tr-[64px] rounded-tl-[16px] rounded-br-[16px]",
+              const puzzleShapesDesktop = [
+                "md:rounded-tl-[80px] md:rounded-br-[80px] md:rounded-tr-[10px] md:rounded-bl-[10px]",
+                "md:rounded-t-[80px] md:rounded-b-[10px]",
+                "md:rounded-tl-[10px] md:rounded-br-[10px] md:rounded-tr-[80px] md:rounded-bl-[80px]",
+                "md:rounded-b-[80px] md:rounded-t-[10px]",
+                "md:rounded-[40px]",
               ];
-              const shapeClass = puzzleShapes[i % puzzleShapes.length];
+              const shapeClass = `rounded-xl md:rounded-3xl ${puzzleShapesDesktop[i % puzzleShapesDesktop.length]}`;
+              const yOffsets = [20, -20, 30, -10, 40];
+              const zOffsets = [40, 0, 80, 20, 60];
 
               return (
               <motion.button
                 key={obj.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 0.1 + i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, z: zOffsets[i % zOffsets.length], y: 0 }}
+                transition={{ delay: 0.1 + i * 0.1, duration: 1.2, type: 'spring', bounce: 0.2 }}
                 whileHover={{ 
-                  scale: 1.02, 
-                  boxShadow: `0 30px 60px -20px ${obj.glow}` 
+                  scale: 1.05,
+                  z: 120,
+                  rotateY: 15,
+                  rotateX: 10,
+                  boxShadow: `0 40px 80px -20px ${obj.glow}` 
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => selectObjective(obj.id as any)}
-                className={`col-span-1 group relative flex flex-col items-start p-4 md:p-6 ${shapeClass} bg-[#0c0c0e]/80 backdrop-blur-md border border-white/5 hover:border-white/20 text-left transition-all overflow-hidden isolation-auto min-h-[200px] md:min-h-[320px]`}
+                className={`w-full md:flex-1 group relative flex flex-col items-start p-2.5 md:p-8 ${shapeClass} bg-[#0c0c0e]/90 backdrop-blur-xl border border-white/5 border-b-indigo-500/30 hover:border-white/20 text-left transition-all overflow-hidden md:min-w-[200px] min-h-[110px] md:min-h-[160px] md:-translate-y-[var(--md-y-offset)] ${i === 4 && 'col-span-2 lg:col-span-1'}`}
+                style={{ transformStyle: 'preserve-3d', '--md-y-offset': `${-yOffsets[i % yOffsets.length]}px` } as React.CSSProperties}
               >
                 {/* Dynamic Lighting Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`, WebkitMaskImage: 'linear-gradient(black, transparent)' }} />
-                <div className={`absolute right-[-20%] top-[-20%] w-[150%] h-[150%] bg-gradient-to-bl ${obj.color} opacity-0 group-hover:opacity-10 blur-[80px] rounded-full transition-opacity duration-700 pointer-events-none`} />
-                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`, WebkitMaskImage: 'linear-gradient(black, transparent)' }} />
+                <div className={`absolute right-[-30%] top-[-10%] w-[150%] h-[150%] bg-gradient-to-bl ${obj.color} opacity-0 group-hover:opacity-10 blur-[100px] rounded-full transition-opacity duration-700 pointer-events-none transform translate-z-0`} />
+                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
 
                 {/* Content */}
-                <div className="relative z-10 w-full h-full flex flex-col">
+                <div className="relative z-10 w-full h-full flex flex-col transform translate-z-10">
                   {/* Header / Icon */}
-                  <div className="flex items-center justify-between w-full mb-6 relative">
-                    <div className="relative h-14 w-14 rounded-2xl bg-white/[0.03] flex items-center justify-center border border-white/[0.05] shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] overflow-hidden group-hover:border-white/20 transition-colors">
+                  <div className="flex items-center justify-between w-full mb-2 md:mb-8 relative">
+                    <div className="relative h-9 w-9 md:h-16 md:w-16 rounded-xl md:rounded-3xl bg-white/[0.04] flex items-center justify-center border border-white/[0.08] shadow-[inset_0_2px_20px_rgba(255,255,255,0.02)] overflow-hidden group-hover:border-white/30 transition-colors transform group-hover:-translate-y-2 duration-500">
                       <div className={`absolute inset-0 bg-gradient-to-br ${obj.color} opacity-20`} />
-                      <obj.icon className="w-6 h-6 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] z-10" />
+                      <obj.icon className="w-4 h-4 md:w-8 md:h-8 text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)] z-10 transform group-hover:scale-110 transition-transform duration-500" />
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/30 group-hover:bg-white/10 transition-all">
-                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-white/90 transition-colors group-hover:translate-x-0.5" />
+                    <div className="w-5 h-5 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/40 group-hover:bg-white/20 transition-all transform group-hover:rotate-[-45deg] duration-500">
+                      <ArrowRight className="w-2.5 h-2.5 md:w-4 md:h-4 text-white/50 group-hover:text-white transition-colors" />
                     </div>
                   </div>
                   
                   {/* Typography */}
-                  <div className="mt-auto">
-                    <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none mb-3 drop-shadow-xl">
+                  <div className="mt-auto relative">
+                    <h3 className="text-[13px] md:text-4xl font-black text-white/90 tracking-tighter leading-none mb-1 md:mb-5 drop-shadow-2xl group-hover:text-white transition-colors">
                       {obj.title}
                     </h3>
-                    <div className={`w-10 h-1 rounded-full bg-gradient-to-r ${obj.color} mb-4 opacity-50 group-hover:w-16 transition-all duration-500`} />
+                    <div className={`w-8 h-1 md:w-12 md:h-1.5 rounded-full bg-gradient-to-r ${obj.color} mb-2 md:mb-6 opacity-60 group-hover:w-full transition-all duration-700 ease-out`} />
                     
-                    <p className="text-sm font-semibold text-white/80 mb-2 group-hover:text-white transition-colors">
+                    <p className="text-[8px] md:text-sm font-bold text-white/70 mb-1 md:mb-4 group-hover:text-white transition-colors tracking-wide uppercase">
                       {obj.desc}
                     </p>
                     
-                    <p className="text-[11px] md:text-xs text-white/40 leading-relaxed font-medium group-hover:text-white/60 transition-colors">
+                    <p className="hidden md:block text-[10px] md:text-xs text-white/30 leading-relaxed font-medium group-hover:text-white/60 transition-colors">
                       {obj.longDesc}
                     </p>
                   </div>
@@ -5170,7 +5465,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-white/20"
+              className="flex flex-row items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-white/20"
             >
               <div className="flex items-center gap-2">
                 <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />

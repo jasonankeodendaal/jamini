@@ -511,7 +511,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
                     </div>
                   </div>
 
-                  <div className="p-4 md:p-8 bg-indigo-500/5 border border-indigo-500/20 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col md:flex-row gap-4 md:gap-8 items-center">
+                  <div className="p-4 md:p-8 bg-indigo-500/5 border border-indigo-500/20 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-row shrink-0 gap-4 md:gap-8 items-center">
                     <div className="w-12 h-12 md:w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center shrink-0">
                       <ExternalLink className="w-6 h-6 md:w-8 h-8 text-indigo-400" />
                     </div>
