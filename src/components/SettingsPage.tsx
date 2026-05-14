@@ -74,7 +74,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
       let found: string[] = [];
 
       // 1. Environment Variables Scan (Vite Client Standard)
-      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY', 'VERCEL_API_KEY', 'VERCEL_TOKEN', 'VITE_VERCEL_API_KEY', 'VITE_VERCEL_TOKEN'];
       baseNames.forEach(baseName => {
         const val = (import.meta as any).env?.[baseName];
         if (val && typeof val === 'string') {
@@ -91,6 +91,8 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
       const staticEnv = [
         process.env.GEMINI_API_KEY, process.env.VITE_GEMINI_API_KEY,
         process.env.API_KEY, process.env.VITE_API_KEY,
+        process.env.VERCEL_API_KEY, process.env.VERCEL_TOKEN,
+        process.env.VITE_VERCEL_API_KEY, process.env.VITE_VERCEL_TOKEN,
         process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
         process.env.GEMINI_API_KEY_6, process.env.GEMINI_API_KEY_7, process.env.GEMINI_API_KEY_8, process.env.GEMINI_API_KEY_9, process.env.GEMINI_API_KEY_10,
         process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5,
@@ -176,7 +178,7 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
       let found: string[] = [];
       
       // Vite Environment
-      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      const baseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY', 'VERCEL_API_KEY', 'VERCEL_TOKEN'];
       baseNames.forEach(baseName => {
         const val = (import.meta as any).env?.[baseName];
         if (val && typeof val === 'string') found.push(...val.split(',').map(m => m.trim()).filter(Boolean));
@@ -185,16 +187,18 @@ export default function SettingsPage({ onBack }: { onBack: () => void }) {
            if (vN && typeof vN === 'string') found.push(vN.trim());
         }
       });
-
+      
       // Static Define
       const staticEnv = [
         process.env.GEMINI_API_KEY, process.env.VITE_GEMINI_API_KEY,
         process.env.API_KEY, process.env.VITE_API_KEY,
+        process.env.VERCEL_API_KEY, process.env.VERCEL_TOKEN,
         process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4,
         process.env.GEMINI_API_KEY_5, process.env.GEMINI_API_KEY_6, process.env.GEMINI_API_KEY_7, process.env.GEMINI_API_KEY_8,
         process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4,
         process.env.VITE_GEMINI_API_KEY_5, process.env.VITE_GEMINI_API_KEY_6, process.env.VITE_GEMINI_API_KEY_7, process.env.VITE_GEMINI_API_KEY_8,
-        process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4
+        process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4,
+        process.env.VERCEL_API_KEY_1, process.env.VERCEL_API_KEY_2
       ];
       found.push(...staticEnv.filter(k => k && typeof k === 'string') as string[]);
       found.push(...keys.map(k => k.key).filter(Boolean));

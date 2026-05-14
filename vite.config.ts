@@ -76,6 +76,8 @@ export default defineConfig(({mode}) => {
       'process.env.VITE_APP_VERSION': JSON.stringify(`${Date.now()}`),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || ''),
       'process.env.API_KEY': JSON.stringify(env.API_KEY || env.VITE_API_KEY || ''),
+      'process.env.VERCEL_API_KEY': JSON.stringify(env.VERCEL_API_KEY || env.VITE_VERCEL_API_KEY || ''),
+      'process.env.VERCEL_TOKEN': JSON.stringify(env.VERCEL_TOKEN || env.VITE_VERCEL_TOKEN || ''),
       ...Object.fromEntries(
         Array.from({ length: 10 }, (_, i) => [
           [`process.env.GEMINI_API_KEY_${i + 1}`, JSON.stringify(env[`GEMINI_API_KEY_${i + 1}`] || env[`VITE_GEMINI_API_KEY_${i + 1}`] || '')],

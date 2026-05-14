@@ -492,7 +492,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
 
         {/* Left Section: Conversation Log */}
         <div className="flex-1 flex flex-col h-full lg:border-r border-white/5 order-2 lg:order-1 bg-transparent relative overflow-hidden">
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0B0B0E] to-transparent pointer-events-none z-10" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#09090B] to-transparent pointer-events-none z-10" />
           
           {/* Header (Desktop Only) */}
           <div className="hidden lg:flex p-8 border-b border-white/5 items-center justify-between bg-black/40">
@@ -544,69 +544,31 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
             )}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 p-5 lg:p-10 bg-gradient-to-t from-[#09090B] via-[#09090B]/90 to-transparent z-20">
-            <div className="flex flex-col gap-4 max-w-5xl mx-auto">
-              {uploadedImages.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                  {uploadedImages.map((file, i) => (
-                    <div key={i} className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 shadow-lg">
-                      <ImageIcon className="w-4 h-4 text-indigo-400" />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-row items-center gap-4 lg:gap-8">
+          {/* Mobile Only Input (Hidden on Desktop) */}
+          <div className="lg:hidden absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-[#09090B] via-[#09090B]/90 to-transparent z-20">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-row items-center gap-4">
                 <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-12 h-12 lg:w-auto lg:px-6 lg:py-4 lg:h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 hover:bg-white/10 transition-all shadow-xl shrink-0"
+                    onClick={toggleListening}
+                    disabled={isFinished}
+                    className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center transition-all bg-indigo-600 text-white shadow-2xl shrink-0",
+                      isListening && "bg-fuchsia-600 animate-pulse"
+                    )}
                   >
-                    <UploadCloud className="w-5 h-5 lg:mr-3" />
-                    <span className="hidden lg:inline">Ingest Intent</span>
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                 </button>
-                
-                <div className="relative group shrink-0">
-                  <button 
-                      onClick={toggleListening}
-                      disabled={isFinished}
-                      className={cn(
-                        "w-12 h-12 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl relative z-10",
-                        isListening 
-                          ? "bg-fuchsia-600 text-white" 
-                          : "bg-indigo-600 text-white hover:bg-indigo-500",
-                        isFinished && "opacity-20 cursor-not-allowed"
-                      )}
-                    >
-                      {isListening && (
-                        <div className="absolute inset-0 rounded-xl lg:rounded-2xl animate-pulse-slow">
-                          <div className="absolute inset-[-4px] rounded-xl lg:rounded-2xl border-2 border-fuchsia-500/50 animate-ping" />
-                        </div>
-                      )}
-                      {isListening ? <MicOff className="w-5 h-5 lg:w-8 lg:h-8" /> : <Mic className="w-5 h-5 lg:w-8 lg:h-8" />}
-                  </button>
-                </div>
-
-                <div className="flex-1 flex items-center gap-4 bg-white/[0.03] p-3 lg:p-4 h-12 lg:h-20 rounded-xl lg:rounded-2xl border border-white/10 focus-within:border-indigo-500/50 transition-all shadow-2xl group">
-                  <Terminal className="hidden sm:block w-5 h-5 text-white/20 group-focus-within:text-indigo-500 transition-colors" />
+                <div className="flex-1 flex items-center gap-4 bg-white/[0.03] p-3 h-12 rounded-xl border border-white/10 shadow-2xl">
                   <input
                     type="text"
                     value={typedMessage}
                     onChange={(e) => setTypedMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && typedMessage.trim()) {
-                        handleUserResponse(typedMessage);
-                      }
-                    }}
-                    placeholder="SYNTHESIZE ARCHITECTURAL COMMAND..."
-                    disabled={isProcessing || isFinished}
-                    className="w-full bg-transparent text-white/90 placeholder:text-white/10 text-[10px] lg:text-sm font-mono uppercase tracking-[0.2em] outline-none"
+                    onKeyDown={(e) => e.key === 'Enter' && typedMessage.trim() && handleUserResponse(typedMessage)}
+                    placeholder="COMMAND..."
+                    className="w-full bg-transparent text-white/90 placeholder:text-white/10 text-[10px] font-mono uppercase tracking-[0.2em] outline-none"
                   />
-                  <button
-                    onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)}
-                    disabled={isProcessing || isFinished || !typedMessage.trim()}
-                    className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 disabled:opacity-30 transition-all"
-                  >
-                    <ArrowRight className="w-4 h-4 lg:w-6 lg:h-6" />
+                  <button onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)} className="p-2 text-indigo-400">
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -614,14 +576,14 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
           </div>
         </div>
 
-        {/* Right Section: Diagnostics & Controls */}
-        <div className="w-full lg:w-[320px] flex flex-col h-auto lg:h-full bg-black/40 backdrop-blur-2xl p-4 lg:p-8 lg:pt-12 order-1 lg:order-2 border-b lg:border-b-0 lg:border-l border-white/5 relative overflow-hidden shrink-0">
+        {/* Right Section: Diagnostics & Controls (Relocated Inputs here for Desktop) */}
+        <div className="w-full lg:w-[280px] flex flex-col h-auto lg:h-full bg-black/40 backdrop-blur-2xl p-4 lg:p-6 lg:pt-10 order-1 lg:order-2 border-b lg:border-b-0 lg:border-l border-white/5 relative overflow-hidden shrink-0">
           <div className="absolute -top-32 -right-32 w-80 h-80 bg-indigo-500/10 blur-[100px] rounded-full" />
           <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-fuchsia-500/10 blur-[100px] rounded-full" />
 
-          <div className="hidden lg:flex items-center justify-between mb-8">
+          <div className="hidden lg:flex items-center justify-between mb-6">
             <div className="flex flex-col">
-              <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] mb-1">Neural Diagnostic</h4>
+              <h4 className="text-[9px] font-black text-white/40 uppercase tracking-[0.5em] mb-1">Neural Diagnostic</h4>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[9px] font-mono text-emerald-500/70 uppercase">System Nominal</span>
@@ -632,85 +594,140 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
             </button>
           </div>
 
-          <div className="space-y-4 lg:space-y-6 mb-auto relative z-10">
-             <div className="hidden lg:block bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/10 rounded-[2rem] p-6 shadow-3xl relative overflow-hidden group">
+          <div className="space-y-4 lg:space-y-5 mb-auto relative z-10 overflow-y-auto custom-scrollbar pr-1">
+             <div className="hidden lg:block bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/10 rounded-[1.5rem] p-5 shadow-3xl relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="flex items-center gap-5 mb-6">
-                   <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_50px_rgba(99,102,241,0.3)] group-hover:scale-110 transition-transform duration-500">
-                      <ShieldAlert className="w-7 h-7 text-indigo-400" />
+                <div className="flex items-center gap-4 mb-5">
+                   <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                      <ShieldAlert className="w-5 h-5 text-indigo-400" />
                    </div>
                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] mb-1.5">Primary Node</p>
-                      <p className="text-lg font-black text-white truncate tracking-tighter leading-tight drop-shadow-2xl">{clientDetails.company || 'Jamini Engine'}</p>
+                      <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] mb-0.5">Primary Node</p>
+                      <p className="text-sm font-black text-white truncate tracking-tighter leading-tight">{clientDetails.company || 'Jamini Engine'}</p>
                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
                    <div>
-                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Architect</p>
-                      <div className="flex items-center gap-2">
-                         <div className="w-1 h-1 rounded-full bg-indigo-500" />
-                         <p className="text-xs font-bold text-white/80 tracking-tight truncate">{clientDetails.name || 'Anonymous'}</p>
-                      </div>
+                      <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Architect</p>
+                      <p className="text-[10px] font-bold text-white/70 truncate">{clientDetails.name || 'Anonymous'}</p>
                    </div>
                    <div>
-                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Industry</p>
-                      <div className="flex items-center gap-2">
-                         <div className="w-1 h-1 rounded-full bg-fuchsia-500" />
-                         <p className="text-xs font-bold text-white/80 tracking-tight truncate">{clientDetails.industry || 'General'}</p>
-                      </div>
+                      <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Industry</p>
+                      <p className="text-[10px] font-bold text-white/70 truncate">{clientDetails.industry || 'General'}</p>
                    </div>
                 </div>
              </div>
 
-             {/* Bento Grid Stats */}
-             <div className="hidden lg:grid grid-cols-2 gap-3">
+             {/* Bento Grid Stats (Shrunken) */}
+             <div className="hidden lg:grid grid-cols-2 gap-2">
                 {[
-                  { icon: BrainCircuit, label: 'Neural Link', value: 'Prime', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-                  { icon: Workflow, label: 'Logic Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
-                  { icon: Cpu, label: 'Compute', value: 'Titan v4', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-                  { icon: Signal, label: 'Latency', value: '14ms', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                  { icon: Terminal, label: 'Runtime', value: 'Node 23', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                  { icon: Headphones, label: 'Audio', value: 'Vivid v2', color: 'text-rose-400', bg: 'bg-rose-500/10' }
+                  { icon: BrainCircuit, label: 'Link', value: 'Prime', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+                  { icon: Workflow, label: 'Sync', value: Math.round((currentQuestionIndex / allQuestions.length) * 100) + '%', color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
+                  { icon: Cpu, label: 'Core', value: 'Titan 4', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+                  { icon: Signal, label: 'Lat', value: '14ms', color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
                 ].map((stat, i) => (
                   <motion.div 
                     key={i} 
-                    whileHover={{ scale: 1.05, y: -3 }}
-                    className="flex flex-col gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all group shadow-2xl relative overflow-hidden"
+                    className="flex flex-col gap-2 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.06] transition-all relative overflow-hidden"
                   >
-                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/5 to-transparent blur-2xl" />
-                    <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center border", stat.bg, "border-white/5 group-hover:rotate-12 transition-transform duration-500")}>
-                       <stat.icon className={cn("w-4 h-4", stat.color)} />
+                    <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center border", stat.bg, "border-white/5")}>
+                       <stat.icon className={cn("w-3.5 h-3.5", stat.color)} />
                     </div>
                     <div>
-                       <span className="block text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">{stat.label}</span>
-                       <span className={cn("text-[10px] font-black uppercase tracking-[0.1em]", stat.color)}>{stat.value}</span>
+                       <span className="block text-[7px] font-black text-white/20 uppercase tracking-widest">{stat.label}</span>
+                       <span className={cn("text-[9px] font-black uppercase tracking-tight", stat.color)}>{stat.value}</span>
                     </div>
                   </motion.div>
                 ))}
              </div>
 
-             {/* Connection Visualization Space */}
-             <div className="hidden lg:block bg-black/40 border border-white/5 rounded-2xl p-5 mt-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h5 className="text-[9px] font-black text-white/40 uppercase tracking-widest">Neural Stream</h5>
+             {/* Connection Viz (Shrunken) */}
+             <div className="hidden lg:block bg-black/40 border border-white/5 rounded-2xl p-4 mt-2">
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="text-[8px] font-black text-white/40 uppercase tracking-widest">Neural Stream</h5>
                   <div className="flex gap-1">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="w-1 h-1 rounded-full bg-indigo-500/50 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+                      <div key={i} className="w-0.5 h-0.5 rounded-full bg-indigo-500/50 animate-pulse" />
                     ))}
                   </div>
                 </div>
-                <div className="h-16 flex items-end gap-1">
-                   {Array.from({ length: 24 }).map((_, i) => (
+                <div className="h-10 flex items-end gap-0.5">
+                   {Array.from({ length: 20 }).map((_, i) => (
                       <motion.div 
                         key={i}
-                        animate={{ height: [ 10, Math.random() * 40 + 10, 10 ] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }}
-                        className="flex-1 bg-gradient-to-t from-indigo-500/10 to-indigo-500/40 rounded-full"
+                        animate={{ height: [ 5, Math.random() * 20 + 5, 5 ] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+                        className="flex-1 bg-indigo-500/30 rounded-full"
                       />
                    ))}
                 </div>
              </div>
+          </div>
+
+          {/* Desktop Control Center Area (Mic and Entry Box) */}
+          <div className="hidden lg:flex flex-col gap-3 mt-6 pt-6 border-t border-white/10 relative z-20">
+             <div className="flex items-center justify-between mb-1">
+                <h5 className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Command Input</h5>
+                {isListening && <span className="text-[8px] font-mono text-fuchsia-500 animate-pulse">RECORDING...</span>}
+             </div>
+
+             <div className="flex items-center gap-3">
+                <button 
+                  onClick={toggleListening}
+                  disabled={isFinished}
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 shadow-xl relative",
+                    isListening ? "bg-fuchsia-600 text-white" : "bg-white/5 text-indigo-400 hover:bg-white/10 border border-white/10",
+                    isFinished && "opacity-20 translate-y-2"
+                  )}
+                >
+                  {isListening && (
+                    <div className="absolute inset-0 rounded-xl animate-pulse ring-2 ring-fuchsia-500/50" />
+                  )}
+                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </button>
+
+                <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl text-indigo-400 hover:text-indigo-300 hover:bg-white/10 transition-all shadow-xl shrink-0"
+                  >
+                    <UploadCloud className="w-5 h-5" />
+                </button>
+             </div>
+
+             <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-fuchsia-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                <div className="relative flex items-center gap-2 bg-[#0C0C0E] p-3 rounded-xl border border-white/10 group-focus-within:border-indigo-500/30 transition-all">
+                  <Terminal className="w-3.5 h-3.5 text-white/20 group-focus-within:text-indigo-500" />
+                  <input
+                    type="text"
+                    value={typedMessage}
+                    onChange={(e) => setTypedMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && typedMessage.trim() && handleUserResponse(typedMessage)}
+                    placeholder="ENTER COMMAND..."
+                    disabled={isProcessing || isFinished}
+                    className="w-full bg-transparent text-white/90 placeholder:text-white/10 text-[9px] font-mono uppercase tracking-[0.2em] outline-none"
+                  />
+                  <button
+                    onClick={() => typedMessage.trim() && handleUserResponse(typedMessage)}
+                    disabled={isProcessing || isFinished || !typedMessage.trim()}
+                    className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+             </div>
+
+             {uploadedImages.length > 0 && (
+                <div className="flex gap-1.5 overflow-x-auto py-2 custom-scrollbar">
+                  {uploadedImages.map((file, i) => (
+                    <div key={i} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                      <ImageIcon className="w-3 h-3 text-indigo-400" />
+                    </div>
+                  ))}
+                </div>
+             )}
           </div>
 
           <input 

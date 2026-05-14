@@ -1463,9 +1463,14 @@ export default function App() {
     if (availableKeys.length === 0) {
       const env = (import.meta as any).env || {};
       
-      // Check all environment keys starting with VITE_GEMINI_API_KEY
+      // Check all environment keys starting with recognized prefix patterns
       Object.keys(env).forEach(key => {
-        if (key.startsWith('VITE_GEMINI_API_KEY') || key.startsWith('GEMINI_API_KEY')) {
+        if (
+          key.startsWith('VITE_GEMINI_API_KEY') || 
+          key.startsWith('GEMINI_API_KEY') ||
+          key.startsWith('VERCEL_API_KEY') ||
+          key.startsWith('VITE_VERCEL_API_KEY')
+        ) {
           const val = env[key];
           if (val && typeof val === 'string') {
             const keys = val.split(',').map((k: string) => k.trim()).filter(Boolean);
@@ -1474,7 +1479,7 @@ export default function App() {
         }
       });
       
-      const staticBaseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
+      const staticBaseNames = ['VITE_GEMINI_API_KEY', 'VITE_API_KEY', 'GEMINI_API_KEY', 'API_KEY', 'VERCEL_API_KEY', 'VERCEL_TOKEN'];
       staticBaseNames.forEach(baseName => {
         const val = env?.[baseName];
         if (val && typeof val === 'string') {
@@ -1483,14 +1488,17 @@ export default function App() {
         }
       });
 
-      // Also consider static define mappings (Wrapped in try/catch to avoid ReferenceError if Vite doesn't replace them)
+      // Also consider static define mappings
       try {
          if (process.env.GEMINI_API_KEY) availableKeys.push(...process.env.GEMINI_API_KEY.split(','));
          if (process.env.VITE_GEMINI_API_KEY) availableKeys.push(...process.env.VITE_GEMINI_API_KEY.split(','));
+         if (process.env.VERCEL_API_KEY) availableKeys.push(...process.env.VERCEL_API_KEY.split(','));
+         if (process.env.VERCEL_TOKEN) availableKeys.push(...process.env.VERCEL_TOKEN.split(','));
          
          const staticKeys = [
            process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2, process.env.GEMINI_API_KEY_3, process.env.GEMINI_API_KEY_4, process.env.GEMINI_API_KEY_5,
-           process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5
+           process.env.VITE_GEMINI_API_KEY_1, process.env.VITE_GEMINI_API_KEY_2, process.env.VITE_GEMINI_API_KEY_3, process.env.VITE_GEMINI_API_KEY_4, process.env.VITE_GEMINI_API_KEY_5,
+           process.env.VERCEL_API_KEY_1, process.env.VERCEL_API_KEY_2
          ];
          staticKeys.forEach(k => {
            if (k && typeof k === 'string' && k !== 'undefined' && k !== 'null') {
