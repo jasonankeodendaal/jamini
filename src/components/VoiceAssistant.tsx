@@ -705,17 +705,35 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ onClose, getApiK
                 <h5 className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-3">Engine Principles</h5>
                 <ul className="space-y-2">
                   {[
-                    'Intent-First Synthesis',
-                    'Context-Aware Heuristics',
-                    'Zero-Config Deployment',
-                    'Atomic State Locking'
+                    'Intent-First Synthesis: We prioritize your vision above all.',
+                    'Context-Aware Heuristics: Understanding your unique market.',
+                    'Zero-Config Deployment: From thought to production, instantly.',
+                    'Atomic State Locking: Ensuring perfect data integrity.'
                   ].map((principle, i) => (
-                    <li key={i} className="flex items-center gap-2 text-[8px] text-white/60">
-                      <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                    <li key={i} className="flex items-start gap-2 text-[8px] text-white/60">
+                      <div className="w-1 h-1 rounded-full bg-indigo-500 mt-1 shrink-0" />
                       {principle}
                     </li>
                   ))}
                 </ul>
+             </div>
+
+             {/* Why JAMINI */}
+             <div className="hidden lg:block bg-black/40 border border-white/5 rounded-2xl p-4 mt-2">
+                <h5 className="text-[8px] font-black text-white/40 uppercase tracking-widest mb-3">Why JAMINI?</h5>
+                <p className="text-[8px] text-white/50 leading-relaxed mb-3">
+                  JAMINI isn't just an AI; it's a creative partner. We bridge the gap between abstract design intent and production-ready technical assets through high-status conversational synthesis.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                        <p className="text-[9px] font-bold text-white mb-0.5">Rapid Iteration</p>
+                        <p className="text-[7px] text-white/40">From verbal sketches to refined models in minutes.</p>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                        <p className="text-[9px] font-bold text-white mb-0.5">High-Fidelity</p>
+                        <p className="text-[7px] text-white/40">Industry-leading visual output quality.</p>
+                    </div>
+                </div>
              </div>
 
              {/* Bento Grid Stats (Shrunken) */}
