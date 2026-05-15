@@ -32,11 +32,92 @@ export const JaminiAssistant: React.FC = () => {
   const [currentResponse, setCurrentResponse] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [lastSpeechTime, setLastSpeechTime] = useState<number | null>(null);
+  
+  const recognitionRef = useRef<any>(null);
+  const voiceModeRef = useRef(isVoiceMode);
+  const streamingRef = useRef(isStreaming);
+
+  useEffect(() => { voiceModeRef.current = isVoiceMode; }, [isVoiceMode]);
+  useEffect(() => { streamingRef.current = isStreaming; }, [isStreaming]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, currentResponse]);
+
+  // Init Speech Recognition Once
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event: any) => {
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              setInput(prev => prev + transcript + ' ');
+            }
+          }
+          setLastSpeechTime(Date.now());
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Speech recognition error', event.error);
+          if (event.error === 'not-allowed') setIsVoiceMode(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          // Auto restart if voice mode is ON and assistant is NOT streaming
+          if (voiceModeRef.current && !streamingRef.current) {
+            setTimeout(() => {
+              try {
+                recognitionRef.current?.start();
+                setIsListening(true);
+              } catch (e) {}
+            }, 100);
+          }
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+    
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
+
+  // Handle Voice Mode toggling & Streaming pauses
+  useEffect(() => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+
+    if (isVoiceMode && !isStreaming) {
+      if (!isListening) {
+        try {
+          recognition.start();
+          setIsListening(true);
+        } catch (e) {}
+      }
+    } else {
+      if (isListening) {
+        recognition.stop();
+        setIsListening(false);
+      }
+    }
+  }, [isVoiceMode, isStreaming, isListening]);
+
+  const toggleVoiceMode = () => {
+    setIsVoiceMode(!isVoiceMode);
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isStreaming) return;
@@ -51,6 +132,7 @@ export const JaminiAssistant: React.FC = () => {
     setInput('');
     setIsStreaming(true);
     setCurrentResponse('');
+    setLastSpeechTime(null);
 
     try {
       const response = await fetch('/api/chat', {
@@ -110,6 +192,20 @@ export const JaminiAssistant: React.FC = () => {
       setIsStreaming(false);
     }
   };
+
+  // Handle Auto Send
+  const handleSendRef = useRef(handleSend);
+  useEffect(() => { handleSendRef.current = handleSend; }, [handleSend]);
+
+  useEffect(() => {
+    if (!isVoiceMode || isStreaming || !input.trim() || !lastSpeechTime) return;
+    
+    const timeout = setTimeout(() => {
+      handleSendRef.current();
+    }, 1500); // 1.5 seconds of silence = send message automatically
+    
+    return () => clearTimeout(timeout);
+  }, [input, lastSpeechTime, isVoiceMode, isStreaming]);
 
   return (
     <div className="flex flex-col h-screen bg-[#0c0c0e] text-white overflow-hidden font-sans selection:bg-indigo-500/30">
@@ -268,8 +364,23 @@ export const JaminiAssistant: React.FC = () => {
               
               <div className="w-[1px] h-6 bg-white/10 mx-1" />
               
-              <button className="p-2.5 text-white/30 hover:text-white/60 transition-colors">
-                <Mic className="w-5 h-5" />
+              <button 
+                className={cn(
+                  "p-2.5 transition-colors rounded-xl",
+                  isVoiceMode ? "text-red-400 bg-red-500/10 hover:text-red-300 hover:bg-red-500/20" : "text-white/30 hover:text-white/60 hover:bg-white/5"
+                )}
+                onClick={toggleVoiceMode}
+              >
+                <div className="relative">
+                  <Mic className="w-5 h-5" />
+                  {isListening && (
+                    <motion.span
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="absolute inset-0 bg-red-500 rounded-full"
+                    />
+                  )}
+                </div>
               </button>
             </div>
           </div>
@@ -282,6 +393,16 @@ export const JaminiAssistant: React.FC = () => {
              <div className="flex items-center gap-1.5 text-[10px] text-white/20 uppercase tracking-widest font-bold">
                <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
                Stable Interface
+             </div>
+             <div className={cn(
+               "flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold transition-colors",
+               isVoiceMode ? "text-red-400/80" : "text-white/20"
+             )}>
+               <span className={cn(
+                 "w-1.5 h-1.5 rounded-full transition-all duration-300", 
+                 isVoiceMode ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "bg-white/10"
+               )} />
+               {isVoiceMode ? "Live Interaction" : "Push to Talk"}
              </div>
           </div>
         </div>
