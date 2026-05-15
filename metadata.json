@@ -1,8 +1,11 @@
 {
-  "name": "JAMINI CORE V4",
-  "description": "Multi-modal AI Creative Orchestrator for hyper-specialized branding, cinematic storyboarding, and vision synthesis.",
+  "name": "Jamini AI",
+  "description": "A highly responsive, human-like AI assistant designed for seamless interaction.",
   "requestFramePermissions": [
     "camera",
     "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }
