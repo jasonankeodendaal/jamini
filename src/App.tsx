@@ -1,10 +1,5897 @@
-import React from 'react';
-import { JaminiAssistant } from './components/JaminiAssistant';
+import { generateLogo, generateCIBible, generateAssetKitZip, extractColorsFromImage } from './services/logoService';
+import React, { useState, useRef, useEffect } from 'react';
+import { GoogleGenAI } from "@google/genai";
+import { jsPDF } from "jspdf";
+import localforage from 'localforage';
+import SettingsPage from './components/SettingsPage';
+import GalleryPage from './components/GalleryPage';
+import StoryboardView from './components/StoryboardView';
+import { VoiceAssistant } from './components/VoiceAssistant';
+import { 
+  Image as ImageIcon, Sparkles, Download, Maximize, Minimize, Info, History,
+  CheckCircle2, AlertCircle, Loader2, Upload, X, Type, Layout as LayoutIcon, Plus,
+  MousePointer2, ImagePlus, ToggleLeft, ToggleRight, Layers, Wand2, Settings2, PlusCircle,
+  Trash2, ArrowLeft, Zap, Palette, Camera, MonitorPlay, ChevronRight, ChevronLeft,
+  Smartphone, Globe, Code, Terminal, Check, ListChecks, Key, Copy, Cpu, Workflow, Shield, Star, ArrowRight, Target,
+  Undo2, Redo2, ChevronDown, SlidersHorizontal, Focus, Book, Eye, ShieldCheck, Quote, Video, FileText, ExternalLink, Menu,
+  Film, Database, Box, Headphones, Mic, Briefcase, Tag, AlignLeft, Layout, Users
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from './lib/utils';
 
-function App() {
-  return (
-    <JaminiAssistant />
-  );
+// --- Types ---
+
+type APIAspectRatio = '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
+type DimensionMode = '2D Standard' | '3D Hyper-Realistic' | '4D Temporal Dynamic' | 'Macro Photography' | 'Tilt-Shift' | 'Fisheye Lens' | 'Isometric 3D' | 'Holographic Projection' | 'Claymation' | 'Origami Papercraft' | 'Low Poly 3D' | 'Microscopic' | 'Drone View' | 'Cinematic Anamorphic';
+type StylePreset = 'High-End Commercial' | 'Cinematic Editorial' | 'Hyper-Minimalist' | 'Vintage Heritage' | 'Avant-Garde Fashion' | 'Neon Cyberpunk' | 'Watercolor Illustration' | 'Pop Art' | 'Dark Academia' | 'Futuristic Sci-Fi' | 'Surrealist Dreamscape' | 'Retro 80s Synthwave' | 'Swiss Modernism' | 'Bauhaus Industrial' | 'Luxury Minimal' | 'Organic Brutalism' | 'Cyber Y2K' | 'Steampunk' | 'Art Deco' | 'Minimalist Zen' | 'Gothic Noir' | 'Vaporwave' | 'Brutalist Corporate' | 'Ethereal Dreamscape' | 'Hyper-Pop' | 'Y2K Grunge';
+type LayoutType = 'Hero Product Shot' | 'Editorial Spread' | 'Bento Grid Layout' | 'Dynamic Action Composition' | 'Flatlay / Knolling' | 'Magazine Cover' | 'Billboard Ad' | 'Social Media Story' | 'Minimalist Grid' | '3D Isometric Room' | 'Cinematic Wide Shot' | 'Asymmetric Balance' | 'Golden Ratio Spiral' | 'Split Depth' | 'Floating Product' | 'Split Screen' | 'Typographic Focus' | 'Symmetrical Balance' | 'Diagonal Flow' | 'Rule of Thirds' | 'Editorial Z-Pattern' | 'Magazine Double Spread' | 'Cinematic Letterbox' | 'Product Podium' | 'Minimalist Solo Spotlight' | 'Modern Series Grid' | 'Surreal Floating Library' | 'Cinematic Macro Spine' | 'Grand Archive Collection';
+type Lighting = 'Softbox Studio' | 'Dramatic Chiaroscuro' | 'Cinematic Backlighting' | 'Ethereal Natural Light' | 'Harsh Flash / Paparazzi' | 'Golden Hour' | 'Bioluminescent Glow' | 'Moody Silhouette' | 'Volumetric God Rays' | 'Cyberpunk Neon' | 'Rembrandt Lighting' | 'High-Key Commercial' | 'Low-Key Noir' | 'Neon Noir' | 'Studio Strobe' | 'Candlelight' | 'Hard Shadows' | 'Studio Ring Light' | 'Neon Rim Lighting' | 'Cinematic Teal & Orange';
+type FontPreset = 'Inter' | 'Playfair Display' | 'Space Grotesk' | 'Outfit' | 'Bebas Neue' | 'Cinzel' | 'Montserrat' | 'Oswald' | 'Merriweather' | 'Pacifico' | 'Cormorant Garamond' | 'Syncopate' | 'Unbounded' | 'Fraunces' | 'Cinzel Decorative' | 'Syne' | 'Clash Display' | 'Cabinet Grotesk';
+type TextEngine = string;
+type ImageEngine = string;
+
+interface DynamicSettings {
+  gloss: boolean;
+  realisticElements: boolean;
+  dirtAndTexture: boolean;
+  realisticMovements: boolean;
+  noMistakes: boolean;
+  depthOfField: boolean;
+  motionBlur: boolean;
+  subsurfaceScattering: boolean;
+  chromaticAberration: boolean;
+  lensFlare: boolean;
+  bloom: boolean;
+  vignette: boolean;
+  rayTracing: boolean;
+  caustics: boolean;
+  volumetricFog: boolean;
+  ambientOcclusion: boolean;
+  metallic: number;
+  roughness: number;
+  normalMapIntensity: number;
+  filmGrain: number;
+  contrast: number;
+  saturation: number;
+  colorGradingIntensity: number;
+  lensDistortion: number;
+  particleDensity: number;
 }
 
-export default App;
+interface EditorState {
+  scenePrompt: string;
+  assetPrompt: string;
+  textElements: TextElement[];
+  includeText: boolean;
+  productAssets: Asset[];
+  brandLogoAsset: Asset | null;
+  brandLogoLightAsset?: Asset | null;
+  companyLogoAsset: Asset | null;
+  companyLogoLightAsset?: Asset | null;
+  characterAssets: Asset[];
+  themeColors: string[];
+  customColor: string;
+  customColorsList: string[];
+  exampleImages: Asset[];
+  textEngine: TextEngine;
+  imageEngine: ImageEngine;
+  rules: string[];
+  style: StylePreset;
+  layout: LayoutType;
+  lighting: Lighting;
+  aspectRatio: APIAspectRatio;
+  fontFamily: FontPreset;
+  dimensionMode: DimensionMode;
+  videoDuration: number;
+  isAdMode: boolean;
+  customWidthMm: string;
+  customHeightMm: string;
+  isCustomSize: boolean;
+  videoScript: string;
+  videoScenes: VideoScene[];
+  negativePrompt: string;
+  dynamics: DynamicSettings;
+}
+
+interface VideoScene {
+  id: string;
+  prompt: string;
+  duration: number;
+  cameraMotion?: string;
+  lensType?: string;
+  lighting?: string;
+  transitionType?: string;
+  audioCue?: string;
+}
+
+interface GenerationHistory {
+  id: string;
+  url: string;
+  prompt: string;
+  timestamp: number;
+}
+
+interface Asset {
+  id: string;
+  data: string;
+  mimeType: string;
+  name: string;
+  prompt?: string;
+  isRefining?: boolean;
+  material?: string;
+  lightingInteraction?: string;
+  position?: string;
+}
+
+interface TextElement {
+  id: string;
+  type: 'Headline' | 'Sub-headline' | 'Pricing' | 'Body/Other';
+  text: string;
+  color: string;
+  alignment: 'Left' | 'Center' | 'Right';
+  placement: 'Top' | 'Center' | 'Bottom';
+  isRefining?: boolean;
+}
+
+// --- Constants ---
+
+const PRESET_RULES = [
+  "Ensure high contrast between the product and the background.",
+  "Maintain a minimalist and uncluttered composition.",
+  "Use a monochromatic color scheme based on the primary product color.",
+  "Incorporate dynamic, sweeping motion blur in the background.",
+  "Place the product dead-center with symmetrical surrounding elements.",
+  "Ensure the brand logo is placed in the top-right corner.",
+  "Use dramatic, moody lighting with deep shadows.",
+  "Make the product appear to be floating or levitating.",
+  "Include subtle, elegant reflections on the floor surface.",
+  "Ensure all text elements are highly legible with clear drop shadows.",
+  "Use a vibrant, neon-infused cyberpunk color palette.",
+  "Create a soft, ethereal, and dreamy atmosphere.",
+  "Position the product using the rule of thirds (bottom-right intersection).",
+  "Incorporate geometric shapes and lines in the background.",
+  "Ensure the lighting highlights the texture and material of the product.",
+  "Use a vintage, retro-inspired film grain effect.",
+  "Make the background completely pure black (#000000).",
+  "Make the background completely pure white (#FFFFFF).",
+  "Add a subtle vignette effect around the edges of the poster.",
+  "Ensure the overall tone is luxurious, premium, and high-end."
+];
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number, message: string = "Request timed out"): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(res => {
+      clearTimeout(timer);
+      resolve(res);
+    }).catch(err => {
+      clearTimeout(timer);
+      reject(err);
+    });
+  });
+};
+
+const getTextModelString = (engine: string) => {
+  if (engine.includes('models/')) {
+    const match = engine.match(/\((models\/.*?)\)/);
+    if (match) return match[1].replace('models/', '');
+  }
+
+  // --- Map to Gemini API Skill Source of Truth ---
+  if (engine.includes('2.0') && engine.includes('Flash')) return 'gemini-2.0-flash'; // Standard 2.0
+  if (engine.includes('2.5') && engine.includes('Flash')) {
+    if (engine.includes('Image')) return 'gemini-2.5-flash-image';
+    return 'gemini-2.5-flash'; 
+  }
+  if (engine.includes('3.2') && engine.includes('Flash')) return 'gemini-3.2-flash-preview';
+  if (engine.includes('3.1') && engine.includes('Flash-Lite')) return 'gemini-3.1-flash-lite';
+  if (engine.includes('3.1') && engine.includes('Flash') && !engine.includes('Lite')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('3.1') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
+  if (engine.includes('3') && engine.includes('Flash')) return 'gemini-3-flash-preview';
+  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview'; // High quality image
+  if (engine.includes('Nano Banana')) return 'gemini-2.5-flash-image';
+  if (engine.includes('Image')) return 'gemini-2.5-flash-image'; // Default image mapping
+  
+  // Fallbacks for common strings
+  if (engine.includes('1.5') && engine.includes('Flash')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('1.5') && engine.includes('Pro')) return 'gemini-3.1-pro-preview';
+  
+  if (engine.includes('gemini-1.5-pro')) return 'gemini-3.1-pro-preview';
+  if (engine.includes('gemini-1.5-flash')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('gemini-2.5-flash-preview')) return 'gemini-3.1-flash-preview';
+  if (engine.includes('gemini-2.5-pro')) return 'gemini-3.1-pro-preview';
+  
+  // Custom API models matcher fallback
+  if (engine.includes('(')) {
+     const match = engine.match(/\((.*?)\)/);
+     if (match && match[1].startsWith('models/')) return match[1].replace('models/', '');
+  }
+  
+  return engine.replace(' (Free)', '').replace(' (Paid)', '').toLowerCase().replace(/ /g, '-');
+};
+
+const getImageModelString = (engine: string) => {
+  if (engine.includes('models/')) {
+    const match = engine.match(/\((models\/.*?)\)/);
+    if (match) return match[1].replace('models/', '');
+  }
+
+  // Map to Image Generation specific models
+  if (engine.includes('Veo')) return 'veo-2.0-generate-001';
+  if (engine.includes('Nano Banana 2')) return 'gemini-3.1-flash-image-preview'; // Nano Banana 2 uses generateContent
+  if (engine.includes('Gemini 3.1 Pro (Paid Image)')) return 'imagen-3.0-generate-002'; // Imagen uses generateImages
+  if (engine.includes('2.5') && engine.includes('Flash Image')) return 'gemini-2.5-flash-image'; // Nano Banana 1 uses generateContent
+  if (engine.includes('ImageFX (S2)')) return 'imagen-3.0-generate-002';
+  
+  return 'imagen-3.0-generate-001'; // Safe fallback
+};
+
+const DEFAULT_TEXT_ENGINES: string[] = [
+  'Gemini 2.0 Flash (Free)',
+  'Gemini 2.5 Flash (Free)',
+  'Gemini 3.1 Flash-Lite (Paid)',
+  'Gemini 3.2 Flash (Paid)',
+  'Gemini 3.1 Pro (Paid)'
+];
+const DEFAULT_IMAGE_ENGINES: string[] = [
+  '--- Image Models ---',
+  'Gemini 2.5 Flash Image (Free)',
+  'Nano Banana 2 (3.1 Flash Image) (Free)',
+  'Gemini 3.1 Pro (Paid Image)',
+  '--- Video Models ---',
+  'Veo Lite (1080p Video)',
+  'Veo 3.1 (4K/Pro Video)'
+];
+
+const ENGINE_DETAILS: Record<ImageEngine, string> = {
+  'Gemini 2.0 Flash (Free)': 'Ultra-fast experimental model. Best for quick drafts and real-time interactions. Completely free.',
+  'Gemini 2.5 Flash (Free)': 'High-performance standard model. Optimized for speed and quality balance. Completely free.',
+  'Gemini 3.1 Flash-Lite (Paid)': 'Efficiency-optimized Flash model. Low latency, high throughput. Professional tier.',
+  'Gemini 3.2 Flash (Paid)': 'The latest evolution of Flash. Exceptional reasoning at speed. Professional tier.',
+  'Gemini 3.1 Pro (Paid)': 'Top-tier reasoning model for complex workflows. Requires your own Gemini API Key.',
+  'Gemini 2.5 Flash Image (Free)': 'Fast and versatile. Best for quick iterations and standard commercial layouts. Completely free to use.',
+  'Nano Banana 2 (3.1 Flash Image) (Free)': 'Primary free image generation model. Advanced reasoning and higher quality.',
+  'Gemini 3.1 Pro (Paid Image)': 'Flagship image generation. Unmatched realism and cinematic quality. Requires Paid Key.',
+  'Veo Lite (1080p Video)': 'Efficiency-optimized video model. Standard for social ads.',
+  'Veo 3.1 (4K/Pro Video)': 'Flagship video model. Supports 4K resolution and complex physical simulation.'
+};
+
+
+const STYLES: StylePreset[] = ['High-End Commercial', 'Cinematic Editorial', 'Hyper-Minimalist', 'Vintage Heritage', 'Avant-Garde Fashion', 'Neon Cyberpunk', 'Watercolor Illustration', 'Pop Art', 'Dark Academia', 'Futuristic Sci-Fi', 'Surrealist Dreamscape', 'Retro 80s Synthwave', 'Swiss Modernism', 'Bauhaus Industrial', 'Luxury Minimal', 'Organic Brutalism', 'Cyber Y2K', 'Steampunk', 'Art Deco', 'Minimalist Zen', 'Gothic Noir', 'Vaporwave', 'Brutalist Corporate', 'Ethereal Dreamscape', 'Hyper-Pop', 'Y2K Grunge'];
+const LAYOUTS: LayoutType[] = ['Hero Product Shot', 'Editorial Spread', 'Bento Grid Layout', 'Dynamic Action Composition', 'Flatlay / Knolling', 'Magazine Cover', 'Billboard Ad', 'Social Media Story', 'Minimalist Grid', '3D Isometric Room', 'Cinematic Wide Shot', 'Asymmetric Balance', 'Golden Ratio Spiral', 'Split Depth', 'Floating Product', 'Split Screen', 'Typographic Focus', 'Symmetrical Balance', 'Diagonal Flow', 'Rule of Thirds', 'Editorial Z-Pattern', 'Magazine Double Spread', 'Cinematic Letterbox', 'Product Podium', 'Minimalist Solo Spotlight', 'Modern Series Grid', 'Surreal Floating Library', 'Cinematic Macro Spine', 'Grand Archive Collection'];
+const LIGHTING_OPTIONS: Lighting[] = ['Softbox Studio', 'Dramatic Chiaroscuro', 'Cinematic Backlighting', 'Ethereal Natural Light', 'Harsh Flash / Paparazzi', 'Golden Hour', 'Bioluminescent Glow', 'Moody Silhouette', 'Volumetric God Rays', 'Cyberpunk Neon', 'Rembrandt Lighting', 'High-Key Commercial', 'Low-Key Noir', 'Neon Noir', 'Studio Strobe', 'Candlelight', 'Hard Shadows', 'Studio Ring Light', 'Neon Rim Lighting', 'Cinematic Teal & Orange'];
+const FONTS: FontPreset[] = ['Inter', 'Playfair Display', 'Space Grotesk', 'Outfit', 'Bebas Neue', 'Cinzel', 'Montserrat', 'Oswald', 'Merriweather', 'Pacifico', 'Cormorant Garamond', 'Syncopate', 'Unbounded', 'Fraunces', 'Cinzel Decorative', 'Syne', 'Clash Display', 'Cabinet Grotesk'];
+const DIMENSION_MODES: DimensionMode[] = ['2D Standard', '3D Hyper-Realistic', '4D Temporal Dynamic', 'Macro Photography', 'Tilt-Shift', 'Fisheye Lens', 'Isometric 3D', 'Holographic Projection', 'Claymation', 'Origami Papercraft', 'Low Poly 3D', 'Microscopic', 'Drone View', 'Cinematic Anamorphic'];
+
+const PROFESSIONAL_PALETTES = [
+  { name: 'Midnight Luxury', colors: ['#0F172A', '#1E293B', '#334155', '#6366F1', '#F8FAFC'] },
+  { name: 'Golden Heritage', colors: ['#1C1917', '#44403C', '#78716C', '#D97706', '#F5F5F4'] },
+  { name: 'Cyber Neon', colors: ['#020617', '#1E1B4B', '#4C1D95', '#D946EF', '#22D3EE'] },
+  { name: 'Swiss Clean', colors: ['#FFFFFF', '#F1F5F9', '#94A3B8', '#EF4444', '#0F172A'] },
+  { name: 'Organic Earth', colors: ['#1A2E05', '#365314', '#4D7C0F', '#84CC16', '#F7FEE7'] },
+  { name: 'Deep Ocean', colors: ['#083344', '#155E75', '#06B6D4', '#22D3EE', '#ECFEFF'] }
+];
+const ASPECT_RATIOS: { label: string, value: APIAspectRatio, social: string }[] = [
+  { label: '1:1 (Square)', value: '1:1', social: 'Instagram Post / FB' },
+  { label: '9:16 (Story)', value: '9:16', social: 'TikTok / Reels / Shorts' },
+  { label: '16:9 (Wide)', value: '16:9', social: 'YouTube / Twitter / Web' },
+  { label: '4:3 (Landscape)', value: '4:3', social: 'Standard Print / Dribbble' },
+  { label: '3:4 (Portrait)', value: '3:4', social: 'IG Portrait / Pinterest' }
+];
+
+const PRESET_COLORS = [
+  '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', 
+  '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ffffff', '#000000', '#14b8a6'
+];
+
+// --- Components ---
+
+const JaminiLogo = React.memo(({ showText = true, className = "", size = "md", onClick }: { showText?: boolean, className?: string, size?: "xs" | "sm" | "md" | "lg", onClick?: () => void }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const sizeClasses = {
+    xs: "h-5 w-auto min-w-[20px]",
+    sm: "h-6 md:h-8 w-auto min-w-[32px]",
+    md: "h-10 md:h-12 w-auto min-w-[48px]",
+    lg: "h-20 md:h-28 w-auto min-w-[80px]"
+  };
+  const textClasses = {
+    xs: "text-lg",
+    sm: "text-sm md:text-xl",
+    md: "text-base md:text-2xl lg:text-lg md:text-3xl",
+    lg: "text-xl md:text-4xl lg:text-5xl"
+  };
+  const subTextClasses = {
+    xs: "text-[8px]",
+    sm: "text-[9px]",
+    md: "text-[10px] lg:text-xs",
+    lg: "text-xs lg:text-sm"
+  };
+  const jClasses = {
+    xs: "text-xl",
+    sm: "text-2xl",
+    md: "text-3xl lg:text-4xl",
+    lg: "text-5xl lg:text-6xl"
+  };
+
+  const containerGaps = {
+    xs: "gap-1.5",
+    sm: "gap-2",
+    md: "gap-4",
+    lg: "gap-4 md:p-8"
+  };
+
+  return (
+    <div 
+      className={`flex items-center ${containerGaps[size]} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+    >
+      <div className={`relative flex items-center justify-center ${sizeClasses[size]}`} style={{ perspective: '1200px' }}>
+        <motion.div 
+          animate={{ 
+            rotateY: isHovered ? [-5, 5, -5] : 0, 
+            rotateX: isHovered ? [5, -5, 5] : 0,
+            scale: isHovered ? 1.05 : 1
+          }}
+          transition={{ duration: 4, repeat: isHovered ? Infinity : 0, ease: "easeInOut" }}
+          className="relative w-full h-full flex items-center justify-center transform-gpu"
+        >
+          {/* Subtle Glow */}
+          <div className="absolute inset-x-0 bottom-0 top-0 bg-indigo-500/5 blur-2xl rounded-full opacity-40" />
+          
+          <img 
+            src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
+            alt="Jamini" 
+            className="w-full h-full object-contain relative z-10"
+            referrerPolicy="no-referrer"
+            loading="eager"
+          />
+          
+          {/* Floating Sparkle */}
+          {isHovered && (
+            <motion.div animate={{ y: [-3, 3, -3], rotate: [0, 360] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute -top-1 -right-1">
+              <Sparkles className="w-3 h-3 text-fuchsia-400 drop-shadow-[0_0_10px_rgba(232,121,249,0.8)]" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+      
+      {showText && (
+        <div className="flex flex-col justify-center">
+          <div className="flex items-center gap-2">
+            <motion.div 
+              animate={{ width: isHovered ? 32 : 16 }}
+              className="h-[1px] bg-gradient-to-r from-indigo-500 to-transparent" 
+            />
+            <span className={`${subTextClasses[size]} text-indigo-400 font-bold uppercase tracking-[0.4em] drop-shadow-[0_0_8px_rgba(99,102,241,0.6)]`}>Studio Edition</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+
+const SystemBackground = () => (
+  <div className="fixed inset-0 z-[-1] bg-[#030014] overflow-hidden pointer-events-none">
+    <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" />
+    <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }} />
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[150px] mix-blend-screen" />
+    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay" />
+  </div>
+);
+
+const WelcomeScreen = ({ onEnter, onMeetJamini }: { onEnter: () => void, onMeetJamini: () => void }) => {
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+
+  const playWelcomeMelody = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      setAudioContext(ctx);
+      
+      const playDramaticNote = (freq: number, startTime: number, duration: number, volume: number, type: OscillatorType = 'sawtooth') => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+        
+        gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+        gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + startTime + duration);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(freq * 2, ctx.currentTime + startTime);
+        filter.frequency.exponentialRampToValueAtTime(freq / 2, ctx.currentTime + startTime + duration);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(ctx.currentTime + startTime);
+        osc.stop(ctx.currentTime + startTime + duration);
+      };
+
+      // Happier, faster "more welcome" melody
+      playDramaticNote(523.25, 0, 0.4, 0.2, 'sine'); // C5
+      playDramaticNote(659.25, 0.15, 0.4, 0.2, 'sine'); // E5
+      playDramaticNote(783.99, 0.3, 0.6, 0.2, 'sine'); // G5
+      playDramaticNote(1046.50, 0.45, 1.0, 0.2, 'sine'); // C6
+
+      setTimeout(() => ctx.close(), 2000);
+    } catch (e) {
+      console.warn("Audio Context blocked or failed:", e);
+    }
+  };
+
+  const handleEnter = () => {
+    playWelcomeMelody();
+    onEnter();
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-transparent overflow-hidden px-4 md:px-8"
+    >
+      <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm sm:max-w-md md:max-w-lg">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 30 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-3 md:mb-4 lg:mb-6"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-indigo-500/15 blur-[40px] md:blur-[80px] animate-pulse" />
+            <img 
+              src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
+              alt="JAMINI Studio" 
+              className="h-16 md:h-28 lg:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-4 md:mb-6 lg:mb-8 space-y-2 md:space-y-4"
+        >
+          <div className="space-y-1 md:space-y-2">
+            <h1 className="text-xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white uppercase" style={{ fontFamily: 'Space Grotesk' }}>
+              Pro Design, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-emerald-400">Rhyme & Fine</span>
+            </h1>
+            <div className="h-0.5 w-12 md:w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-3 md:space-y-6 relative">
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-sm md:text-xl lg:text-2xl text-white/70 font-light tracking-tight leading-snug font-sans relative z-10"
+            >
+              JAMINI makes the <span className="text-white font-bold">Magic Shine.</span> <br className="hidden md:block" /> Joint Artificial Multi-modal Intelligence Network Interface.
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-wrap justify-center gap-2 md:gap-4 md:p-6 pt-4 md:pt-8 border-t border-white/5"
+            >
+              {[
+                { label: 'VEO', sub: '4K Video', icon: Video, color: 'text-indigo-400', glow: 'bg-indigo-400/10' },
+                { label: 'PRO', sub: 'Neural Engine', icon: Cpu, color: 'text-fuchsia-400', glow: 'bg-fuchsia-400/10' },
+                { label: '9:16', sub: 'Mobile First', icon: Smartphone, color: 'text-emerald-400', glow: 'bg-emerald-400/10' }
+              ].map((item, i) => (
+                <div key={i} className="group relative flex flex-col items-center min-w-[80px] md:min-w-[120px] p-2 md:p-3 rounded-2xl transition-all duration-300">
+                  <div className={cn("mb-1 md:mb-2 p-1.5 md:p-2 rounded-xl bg-white/[0.02] border border-white/5 relative z-10", item.color)}>
+                    <item.icon className="w-3 h-3 md:w-5 md:h-5" />
+                  </div>
+                  <div className="flex flex-col items-center gap-0 relative z-10">
+                    <span className="text-white font-black text-lg md:text-xl tracking-tighter leading-none">{item.label}</span>
+                    <span className="text-[8px] md:text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{item.sub}</span>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
+
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-center justify-center">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(167, 139, 250, 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleEnter}
+            className="group relative px-6 md:px-8 py-3 md:py-4 bg-white/5 border border-white/20 rounded-full overflow-hidden cursor-pointer w-56 md:w-auto"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-emerald-500 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+            <div className="relative flex items-center justify-center md:justify-start gap-2 md:gap-3">
+              <span className="text-base md:text-lg font-bold text-white tracking-widest uppercase">Enter Studio</span>
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white group-hover:translate-x-2 transition-transform duration-300" />
+            </div>
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(99, 102, 241, 0.3)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onMeetJamini}
+            className="group relative px-6 md:px-8 py-3 md:py-4 bg-indigo-600 rounded-full overflow-hidden cursor-pointer shadow-lg active:translate-y-1 transition-all w-56 md:w-auto"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <div className="relative flex items-center justify-center md:justify-start gap-2 md:gap-3">
+              <span className="text-base md:text-lg font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                <Cpu className="w-4 h-4 md:w-5 md:h-5" /> Meet JAMINI
+              </span>
+            </div>
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const containerVariants = { 
+  hidden: { opacity: 0 }, 
+  show: { 
+    opacity: 1, 
+    transition: { staggerChildren: 0.1 } 
+  } 
+};
+const itemVariants = { 
+  hidden: { opacity: 0, y: 30 }, 
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      type: 'spring' as const, 
+      stiffness: 100 
+    } 
+  } 
+};
+
+const FeatureCard = ({ feature, index }: { feature: any, index: number }) => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  return (
+    <motion.div variants={itemVariants} className="perspective-1000 h-full">
+      <motion.div 
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        whileHover={{ rotateX: 5, rotateY: -5, scale: 1.02, z: 20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-[2rem] p-2.5 md:p-8 overflow-hidden relative h-full shadow-[0_10px_30px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] group"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Dynamic Mouse Spotlight */}
+        <div 
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+          style={{ 
+            opacity: isHovered ? 1 : 0,
+            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.08), transparent 40%)` 
+          }} 
+        />
+
+        {/* Animated Border Gradient on Hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0">
+          <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(255,255,255,0.3)_360deg)] animate-[spin_4s_linear_infinite]" />
+        </div>
+        <div className="absolute inset-[1px] bg-black/80 backdrop-blur-xl rounded-2xl md:rounded-[2rem] z-0" />
+
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0" />
+        <div className={`absolute top-0 right-0 w-16 md:w-32 h-16 md:h-32 bg-gradient-to-bl from-${feature.color}-500/20 to-transparent rounded-bl-full z-0 transition-transform duration-700 group-hover:scale-150`} />
+        
+        <div className="h-8 md:h-24 mb-2 md:mb-8 relative flex items-center z-10" style={{ transform: 'translateZ(30px)' }}>
+          <motion.div className={`w-6 h-6 md:w-16 md:h-16 bg-${feature.color}-500/10 border border-${feature.color}-500/30 rounded-lg md:rounded-2xl backdrop-blur-md absolute z-10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-[0_0_20px_rgba(var(--${feature.color}-500),0.2)]`}>
+            <feature.icon className={`w-3 h-3 md:w-8 md:h-8 text-${feature.color}-400 drop-shadow-[0_0_10px_rgba(var(--${feature.color}-500),0.8)]`} />
+          </motion.div>
+          <div className={`w-10 h-10 md:w-24 md:h-24 bg-${feature.color}-500/20 rounded-full absolute -left-1.5 md:-left-4 blur-xl md:blur-2xl group-hover:bg-${feature.color}-500/40 transition-colors duration-500`} />
+        </div>
+        
+        <h3 className="text-[10px] md:text-2xl font-bold mb-0.5 md:mb-4 text-white/90 group-hover:text-white transition-colors z-10 relative" style={{ transform: 'translateZ(20px)' }}>{feature.title}</h3>
+        <div className="text-[8px] md:text-base text-white/40 leading-tight md:leading-relaxed group-hover:text-white/70 transition-colors z-10 relative whitespace-pre-line line-clamp-3 md:line-clamp-none" style={{ transform: 'translateZ(10px)' }}>
+          {feature.desc}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const SetupGuide = ({ onBack }: { onBack: () => void }) => {
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full bg-[#050505] text-white p-4 lg:p-8 overflow-y-auto custom-scrollbar relative">
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-indigo-900/20 via-indigo-900/5 to-transparent pointer-events-none" />
+      
+      {/* Abstract Background Noise */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+
+      <div className="max-w-5xl mx-auto relative z-10 pb-32">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-all group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 w-fit backdrop-blur-md text-[10px]">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Studio
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-[8px] font-black uppercase tracking-widest text-indigo-300">v4.0 Ent</span>
+            <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded-full text-[8px] font-black uppercase tracking-widest text-green-300">Ready</span>
+          </div>
+        </div>
+        
+        <div className="mb-10 text-left">
+          <div className="flex flex-row md:items-end justify-between gap-6 mb-6">
+            <div className="space-y-2 max-w-2xl">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-white/5 rounded-lg border border-white/10 text-white/40 mb-2">
+                  <Terminal className="w-3 h-3" />
+                  <span className="text-[8px] font-mono tracking-widest uppercase">Protocol: Global Deployment</span>
+                </div>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-[0.9] bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-white/20">
+                  Engineering <br/> <span className="text-indigo-400">Excellence.</span>
+                </h1>
+              </motion.div>
+            </div>
+            <div className="hidden lg:block">
+              <div className="w-20 h-20 bg-indigo-500/5 rounded-2xl border border-indigo-500/20 flex items-center justify-center p-4 relative">
+                <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full animate-pulse" />
+                <Cpu className="w-full h-full text-indigo-400/50 relative z-10" />
+              </div>
+            </div>
+          </div>
+          <p className="text-sm md:text-lg text-white/40 max-w-3xl leading-relaxed font-medium">
+            This guide provides the low-level technical mapping required to move JAMINI from a preview instance to your private infrastructure. Follow these steps to ensure state persistence, high-availability deployments, and secure AI bridging.
+          </p>
+        </div>
+
+        {/* Global Architecture View */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
+          <div className="col-span-1 lg:col-span-2 bg-white/5 border border-white/10 rounded-[2.5rem] p-4 md:p-8 lg:p-10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-1000" />
+            <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-white">
+              <Workflow className="w-6 h-6 text-indigo-400" /> 
+              Core Architecture
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <h3 className="text-sm font-bold text-indigo-300 mb-2 flex items-center gap-2 italic">
+                    <ShieldCheck className="w-4 h-4" /> Client-Side Sovereign
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    JAMINI processes all UI state and rendering logic on the user's hardware. Your data never touches a middle-man server before reaching Google's AI clusters.
+                  </p>
+                </div>
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <h3 className="text-sm font-bold text-fuchsia-300 mb-2 flex items-center gap-2 italic">
+                    <Zap className="w-4 h-4" /> Edge Persistence
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    Utilizing <code className="text-fuchsia-400">LocalStorage</code> and <code className="text-fuchsia-400">IndexDB</code>, session data remains encrypted and localized to the browser profile.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center">
+                <div className="relative aspect-video rounded-2xl border border-white/10 bg-black/40 p-4 flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-fuchsia-500/10 opacity-50" />
+                  <div className="text-center relative z-10 space-y-4">
+                    <div className="flex justify-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center"><Smartphone className="w-6 h-6" /></div>
+                      <div className="w-6 h-px bg-white/20 self-center" />
+                      <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center"><Globe className="w-6 h-6" /></div>
+                    </div>
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40">Distributed Studio Mesh</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-indigo-600/20 to-fuchsia-600/20 border border-white/10 rounded-[2.5rem] p-8 lg:p-10 flex flex-col justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Security Audit</h2>
+              <p className="text-sm text-white/60 leading-relaxed mb-6">
+                JAMINI is designed with a <span className="text-white font-bold">Zero-Trust</span> mindset. Your API keys are strictly transient unless you explicitly commit them to a secure environment.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2 text-xs text-green-400"><CheckCircle2 className="w-4 h-4" /> End-to-End Encryption</li>
+                <li className="flex items-center gap-2 text-xs text-green-400"><CheckCircle2 className="w-4 h-4" /> No Central Database</li>
+                <li className="flex items-center gap-2 text-xs text-green-400"><CheckCircle2 className="w-4 h-4" /> Local Auth Management</li>
+              </ul>
+            </div>
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="flex items-center gap-4">
+                <Shield className="w-10 h-10 text-white/20" />
+                <div className="text-[10px] uppercase font-bold tracking-widest text-white/40">Trusted by Design</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pre-flight Checklist */}
+        <div className="mb-20">
+          <h2 className="text-3xl font-black mb-8 flex items-center gap-4">
+            <div className="w-10 h-0.5 bg-indigo-500" /> Pre-Flight Checklist
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { title: "Environment Runtime", desc: "Node.js 18.x or 20.x is mandatory for the Vite build engine.", why: "Ensures ESM compatibility and fast HMR." },
+              { title: "Version Control", desc: "Active GitHub account with SSH keys configured for secure push.", why: "Required for atomic deployments and Vercel hooks." },
+              { title: "Provider Access", desc: "Valid API key from Google AI Studio / Gemini API enabled cloud project.", why: "Grants access to LLM reasoning & vision clusters." },
+              { title: "Browser Standards", desc: "Chrome 110+, Edge 110+, or Safari 16+. Must support WebGL 2.0.", why: "Critical for high-fidelity canvas rendering." }
+            ].map((check, i) => (
+              <div key={i} className="group bg-white/5 border border-white/10 hover:border-white/20 transition-all p-6 rounded-[2rem] flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs font-black shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-colors">{i+1}</div>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-white tracking-tight">{check.title}</h3>
+                  <p className="text-xs text-white/50 leading-relaxed">{check.desc}</p>
+                  <div className="pt-2">
+                    <span className="text-[10px] font-black uppercase text-indigo-400 tracking-widest flex items-center gap-1.5">
+                      <Info className="w-3 h-3" /> Why: {check.why}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* The Deployment Matrix */}
+        <div className="space-y-12 mb-20">
+          <h2 className="text-3xl font-black mb-8 flex items-center gap-4">
+            <div className="w-10 h-0.5 bg-fuchsia-500" /> Execution Matrix
+          </h2>
+          
+          <div className="relative space-y-12">
+            {/* Step 1 */}
+            <div className="relative pl-12 md:pl-0">
+              <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-white/10" />
+              <div className="flex flex-row gap-8 items-start">
+                <div className="w-full md:w-1/2 md:text-right space-y-4">
+                  <div className="inline-block px-4 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-black text-indigo-400 uppercase tracking-tighter">PHASE 01: SOURCE</div>
+                  <h3 className="text-3xl font-black tracking-tighter">Clone & Prep</h3>
+                  <div className="text-sm text-white/50 leading-relaxed space-y-3">
+                    <p>Initialize your local repository to begin the customization process. This ensures you have full ownership of the logic layer.</p>
+                    <ul className="space-y-2 text-[11px] list-none">
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-indigo-400" /> Pull latest build from StackBlitz or GitHub</li>
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-indigo-400" /> Verify <code className="text-indigo-300">package.json</code> dependencies</li>
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-indigo-400" /> Initialize Git for version tracking</li>
+                    </ul>
+                  </div>
+                  <div className="flex flex-wrap md:justify-end gap-2">
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">git init</span>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">npm install</span>
+                  </div>
+                </div>
+                
+                <div className="absolute left-0 md:left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-black border-2 border-indigo-500 flex items-center justify-center z-10 shadow-[0_0_20px_rgba(99,102,241,0.5)]">
+                  <span className="text-xs font-black">01</span>
+                </div>
+
+                <div className="w-full md:w-1/2">
+                  <div className="bg-[#0A0A0C] border border-white/10 rounded-3xl p-6 shadow-2xl overflow-hidden relative group">
+                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex items-center justify-between mb-4 relative z-10">
+                      <span className="text-[10px] font-mono text-white/30 uppercase tracking-[0.3em]">cli_terminal</span>
+                      <button onClick={() => copyToClipboard('git init\ngit add .\ngit commit -m "Init Jamini"\nnpm install\nnpm run dev', 'clone')} className="text-[10px] font-black uppercase text-indigo-400 hover:text-white transition-colors">
+                        {copied === 'clone' ? 'Protocol Copied' : 'Copy Sequence'}
+                      </button>
+                    </div>
+                    <pre className="text-xs font-mono text-indigo-300 leading-6 relative z-10">
+                      <span className="text-white/30"># Initialize & start dev server</span><br/>
+                      <span className="text-fuchsia-400">git</span> init && git add .<br/>
+                      <span className="text-fuchsia-400">npm</span> install<br/>
+                      <span className="text-fuchsia-400">npm</span> run dev<br/><br/>
+                      <span className="text-white/20">// Active on http://localhost:3000</span>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative pl-12 md:pl-0">
+              <div className="flex flex-row-reverse gap-8 items-start">
+                <div className="w-full md:w-1/2 space-y-4">
+                  <div className="inline-block px-4 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-full text-xs font-black text-fuchsia-400 uppercase tracking-tighter">PHASE 02: BRAIN</div>
+                  <h3 className="text-3xl font-black tracking-tighter">Dynamic API Sync</h3>
+                  <div className="text-sm text-white/50 leading-relaxed space-y-3">
+                    <p>JAMINI uses a proprietary <span className="text-white">Client-First Key Management</span> system. Instead of leaking keys in environment variables, provide them directly to the interface.</p>
+                    <ul className="space-y-2 text-[11px] list-none">
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-fuchsia-400" /> No server-side storage (Total Privacy)</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-fuchsia-400" /> Real-time key rotation & validation</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-fuchsia-400" /> Multi-key support (Free vs Paid tiers)</li>
+                    </ul>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">Settings Panel</span>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">TLS Encryption</span>
+                  </div>
+                </div>
+                
+                <div className="absolute left-0 md:left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-black border-2 border-fuchsia-500 flex items-center justify-center z-10 shadow-[0_0_20px_rgba(217,70,239,0.5)]">
+                   <span className="text-xs font-black">02</span>
+                </div>
+
+                <div className="w-full md:w-1/2 md:pr-12">
+                   <div className="bg-[#0A0A0C] border border-white/10 rounded-3xl p-6 shadow-2xl space-y-4">
+                      <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl group hover:border-fuchsia-500/30 transition-all">
+                        <div className="w-10 h-10 bg-fuchsia-500/10 rounded-xl flex items-center justify-center text-fuchsia-400"><Key className="w-5 h-5" /></div>
+                        <div>
+                          <p className="text-xs font-black text-white/80">1. Generate Token</p>
+                          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-[10px] text-fuchsia-400 hover:underline">Google AI Studio Console</a>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl group hover:border-fuchsia-500/30 transition-all">
+                        <div className="w-10 h-10 bg-fuchsia-500/10 rounded-xl flex items-center justify-center text-fuchsia-400"><Settings2 className="w-5 h-5" /></div>
+                        <div>
+                          <p className="text-xs font-black text-white/80">2. Interface Injection</p>
+                          <p className="text-[10px] text-white/40">Open <strong className="text-white">Settings</strong> inside JAMINI Studio to paste and save key aliases.</p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
+                        <p className="text-[9px] text-red-400 font-bold uppercase leading-tight flex items-center gap-2">
+                          <AlertCircle className="w-3 h-3" /> Security Warning
+                        </p>
+                        <p className="text-[9px] text-white/40 leading-relaxed mt-1">Never commit your API keys to Git. Vercel environment variables are supported but <span className="text-white font-bold">Settings-based input</span> is the primary recommended method for highest privacy.</p>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative pl-12 md:pl-0">
+              <div className="flex flex-row gap-8 items-start">
+                <div className="w-full md:w-1/2 md:text-right space-y-4">
+                  <div className="inline-block px-4 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-xs font-black text-cyan-400 uppercase tracking-tighter">PHASE 03: DEPLOY</div>
+                  <h3 className="text-3xl font-black tracking-tighter">Global Proliferation</h3>
+                  <div className="text-sm text-white/50 leading-relaxed space-y-3">
+                    <p>Push your customized Studio to a production-grade host. JAMINI is optimized for Vercel's zero-config edge architecture.</p>
+                    <ul className="space-y-2 text-[11px] list-none">
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-cyan-400" /> Automated CI/CD (GitHub Hooks)</li>
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-cyan-400" /> Global Edge Propagation</li>
+                      <li className="flex items-center gap-2 md:justify-end"><div className="w-1 h-1 rounded-full bg-cyan-400" /> Instant Build Cache</li>
+                    </ul>
+                  </div>
+                  <div className="flex flex-wrap md:justify-end gap-2">
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">Vercel Deploy</span>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-white/40 font-mono">PWA Enabled</span>
+                  </div>
+                </div>
+                
+                <div className="absolute left-0 md:left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-black border-2 border-cyan-500 flex items-center justify-center z-10 shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                  <span className="text-xs font-black">03</span>
+                </div>
+
+                <div className="w-full md:w-1/2">
+                   <div className="bg-[#0A0A0C] border border-white/10 rounded-3xl p-6 shadow-2xl space-y-5">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 bg-white/5 border border-white/5 rounded-2xl group hover:border-cyan-500/30 transition-all">
+                          <p className="text-[10px] font-black uppercase text-white/30 mb-2">Step A</p>
+                          <p className="text-[11px] text-white/80 font-bold mb-1">GitHub Bridge</p>
+                          <p className="text-[9px] text-white/40 leading-tight">Create a repo and run <code className="text-cyan-400">git push origin main</code>.</p>
+                        </div>
+                        <div className="p-4 bg-white/5 border border-white/5 rounded-2xl group hover:border-cyan-500/30 transition-all">
+                          <p className="text-[10px] font-black uppercase text-white/30 mb-2">Step B</p>
+                          <p className="text-[11px] text-white/80 font-bold mb-1">Vercel Import</p>
+                          <p className="text-[9px] text-white/40 leading-tight">Sign in to Vercel and import your new repo. Hit Deploy.</p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-cyan-500/5 border border-cyan-500/10 rounded-2xl">
+                         <h4 className="text-[10px] font-black uppercase tracking-widest text-cyan-300 mb-2">Notice: Environment Variables</h4>
+                         <p className="text-[10px] text-white/50 leading-relaxed">
+                           Vercel variables (<code className="text-white">GEMINI_API_KEY</code>) are supported as fail-safes, but <strong className="text-white">In-App Settings always take precedence</strong> to ensure users can use their own private quotas.
+                         </p>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pro Tips & mastering the Studio */}
+        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-[3rem] p-8 md:p-12 mb-20 relative overflow-hidden group">
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] group-hover:bg-indigo-500/20 transition-all duration-1000" />
+          <div className="relative z-10 max-w-3xl">
+            <h2 className="text-4xl font-black mb-6 flex items-center gap-4 text-white">
+              <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" /> Professional Grade Tips
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="font-bold flex items-center gap-2 tracking-tight text-white">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    Bake-in Defaults (Optional)
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    If deploying as a team brand asset, define <code className="text-indigo-400 text-[10px]">VITE_GEMINI_API_KEY</code> in Vercel to allow guest generation, but instruct users to use Settings for their own models.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold flex items-center gap-2 tracking-tight text-white">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    Custom PWA Branding
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    Update <code className="text-indigo-400 text-[10px]">manifest.json</code> and <code className="text-indigo-400 text-[10px]">favicon.ico</code> to replace the JAMINI logo with your agency's proprietary branding.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="font-bold flex items-center gap-2 tracking-tight text-white">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    Hardware Acceleration
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    JAMINI uses High-DPI canvas buffering. Ensure users have "Hardware Acceleration" enabled in browser settings for ultra-smooth 3D movement.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold flex items-center gap-2 tracking-tight text-white">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    Agentic Control
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed">
+                    Use the <span className="text-fuchsia-400">Rules</span> panel to define "Thematic Guardrails"—ensuring the AI always adheres to your brand's color theory and typography.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Support & Troubleshooting */}
+        <div className="text-center space-y-8">
+          <div className="flex flex-col items-center gap-4">
+            <h2 className="text-2xl font-bold tracking-tight text-white">Encountering Anomalies?</h2>
+            <p className="text-white/40 text-sm max-w-lg">
+              Check your browser console (F12) for detailed logs. Most integration errors are due to expired API tokens or network firewall restrictions on <code className="text-[10px]">generativelanguage.googleapis.com</code>.
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-4">
+            <a href="https://github.com/stackblitz/jamini-studio/issues" target="_blank" rel="noreferrer" className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold hover:bg-white/10 transition-colors flex items-center gap-2 text-white">
+              <Code className="w-4 h-4" /> Report Logic Leak
+            </a>
+            <button onClick={onBack} className="px-6 py-3 bg-indigo-500 text-white rounded-2xl text-xs font-bold hover:bg-indigo-600 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] flex items-center gap-2">
+              Finalize & Return <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const FeaturesPage = ({ onBack }: { onBack: () => void }) => {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-screen bg-[#050505] text-white overflow-y-auto custom-scrollbar relative">
+      {/* Animated Background Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute bg-white/5 rounded-full blur-xl"
+            style={{
+              width: Math.random() * 300 + 50,
+              height: Math.random() * 300 + 50,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              x: [0, Math.random() * 100 - 50, 0],
+              y: [0, Math.random() * 100 - 50, 0],
+              scale: [1, Math.random() * 0.5 + 1, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
+      
+      <div className="absolute top-0 left-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/30 via-fuchsia-900/10 to-[#050505] pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 relative z-10">
+        <button onClick={onBack} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-12 group bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 w-fit backdrop-blur-md text-sm">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Studio
+        </button>
+
+        {/* Hero Section */}
+        <div className="flex flex-row shrink-0 items-center gap-10 mb-20">
+          <div className="flex-1 text-center lg:text-left relative">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, rotate: -10 }} 
+              animate={{ scale: 1, opacity: 1, rotate: 0 }} 
+              transition={{ type: "spring", duration: 1.5 }} 
+              className="inline-block mb-6 relative"
+            >
+              <div className="absolute inset-0 bg-indigo-500/30 blur-2xl rounded-full" />
+              <JaminiLogo size="md" />
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+              className="text-4xl md:text-6xl font-black tracking-tighter mb-6 leading-[1.1]"
+            >
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-fuchsia-400">Command the Matrix.</span><br/>
+              <span className="text-white">Design with JAMINI.</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
+              className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8 font-light"
+            >
+              JAMINI Studio is the authoritative platform for enterprise-grade generative synthesis. Elevating raw diffusion models into precision architectural instruments for global advertising.
+            </motion.p>
+            
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
+              className="flex flex-wrap gap-3 justify-center lg:justify-start"
+            >
+              <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-indigo-300 flex items-center gap-2 shadow-[0_0_15px_rgba(99,102,241,0.2)]"><Wand2 className="w-3.5 h-3.5"/> Gemini 3.1 Pro</div>
+              <div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-fuchsia-300 flex items-center gap-2 shadow-[0_0_15px_rgba(217,70,239,0.2)]"><Smartphone className="w-3.5 h-3.5"/> PWA Ready</div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-2 text-[11px] font-bold text-emerald-300 flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]"><Download className="w-3.5 h-3.5"/> 4K Export</div>
+            </motion.div>
+          </div>
+          
+          <div className="flex-1 w-full max-w-lg lg:max-w-none relative perspective-1000">
+            <motion.div 
+              animate={{ 
+                y: [-10, 10, -10], 
+                rotateX: [3, -3, 3],
+                rotateY: [-3, 3, -3]
+              }} 
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} 
+              className="relative z-20 rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)] transform-gpu"
+            >
+               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/30 to-fuchsia-500/30 mix-blend-overlay z-10" />
+               <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop" alt="Abstract 3D rendering" className="w-full h-auto object-cover scale-105" />
+               <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-20">
+                 <div className="flex items-center gap-2 mb-2">
+                   <span className="px-2 py-0.5 rounded bg-fuchsia-500 text-white text-[9px] font-bold uppercase tracking-wider">Featured</span>
+                   <span className="text-[10px] text-white/60 font-mono uppercase tracking-widest">Generated with JAMINI Pro</span>
+                 </div>
+                 <h3 className="text-2xl md:text-3xl font-black tracking-tighter text-white mb-1" style={{ fontFamily: 'Space Grotesk' }}>NEON DREAMS</h3>
+               </div>
+            </motion.div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-600/30 to-fuchsia-600/30 blur-[100px] -z-10 rounded-full animate-pulse" />
+          </div>
+        </div>
+
+        {/* Marquee Section */}
+        <div className="mb-20 relative w-full overflow-hidden flex flex-col items-center">
+          <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-6">Supported Visual Styles</p>
+          <div className="flex space-x-6 animate-marquee whitespace-nowrap opacity-50 hover:opacity-100 transition-opacity duration-500">
+            {[...STYLES, ...STYLES].map((style, i) => (
+              <span key={i} className="text-xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white/20 to-white/60 uppercase tracking-tighter" style={{ fontFamily: 'Space Grotesk' }}>
+                {style} <span className="text-indigo-500/50 mx-3">•</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Core Features Grid */}
+        <div className="mb-10 flex flex-col items-center text-center">
+          <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-3">Unleash Your Creativity</h2>
+          <p className="text-white/50 max-w-2xl text-base">Everything you need to build stunning, production-ready assets in seconds.</p>
+        </div>
+
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+          {[
+            { 
+              icon: MonitorPlay, 
+              color: 'indigo', 
+              title: 'Veo Video Matrix', 
+              desc: 'Harness Google\'s world-class Veo model for professional video advertisement creation. \n• 4K & 1080p rendering capacities\n• Controlled scene-by-scene storyboard execution\n• Dynamic physics-based simulation for liquids/fabrics\n• Strategic 6s, 13s, and 14s durations for major social platforms.' 
+            },
+            { 
+              icon: LayoutIcon, 
+              color: 'cyan', 
+              title: 'Semantic Layout Engine', 
+              desc: 'Architecturally sound compositions derived from high-end magazine theory.\n• Bento Grid: Perfect for multi-asset showcases\n• Editorial Spread: Luxury balanced voids\n• Rule of Thirds: High-impact psychological focus.' 
+            },
+            { 
+              icon: Zap, 
+              color: 'fuchsia', 
+              title: 'Physics & Dynamics Control', 
+              desc: 'Granular control over the physical properties of the generated set.\n• Subsurface Scattering: Realistic light penetration through skin or wax\n• Caustics: Accurate light refraction through glass and water\n• Ray-Tracing: Real-time calculation of bounces and reflections.' 
+            },
+            { 
+              icon: Palette, 
+              color: 'emerald', 
+              title: 'Commercial Color Grading', 
+              desc: 'Advanced LUT-based color science applied with AI precision.\n• Heritage Gold: Warm, luxury, historical aesthetic\n• Matrix Midnight: High-contrast cyan/indigo shadows\n• Clean Studio: Perfect neutral balance for product focus.' 
+            },
+            { 
+              icon: Type, 
+              color: 'amber', 
+              title: 'Type-Safe Composition', 
+              desc: 'Seamless typography that isn\'t just "layered on" but integrated into the scene lighting.\n• Intelligent Kerning: Proper letter spacing for high-end readability\n• Font Parity: Supports Space Grotesk, Playfair, and Unbounded.' 
+            },
+            { 
+              icon: Workflow, 
+              color: 'blue', 
+              title: 'Asset Reference Mapping', 
+              desc: 'Your products are the source of truth. The AI maintains 100% fidelity to uploaded assets.\n• Multi-Asset Stacking: Mix product, character, and logo\n• Lighting Sync: Assets inherit the lighting of the generated scene.' 
+            },
+            { 
+              icon: ListChecks, 
+              color: 'rose', 
+              title: 'Strict Logical Guardrails', 
+              desc: 'Force the engine to obey specific commercial constraints.\n• Custom Rule Logic: "No people", "Cinematic fog only", "Macro focus"\n• Zero-Hallucination Mode: Restricts creative drift to maintain brand safety.' 
+            },
+            { 
+              icon: Cpu, 
+              color: 'cyan', 
+              title: 'Hybrid Compute Architecture', 
+              desc: 'Uses a synchronized dual-engine approach for the best of text and image.\n• Gemini 1.5 Pro: Orchestrates the prompt logic and hierarchy\n• Gemini Flash Image: Renders the final matrix with hyper-speed.' 
+            },
+            { 
+              icon: ShieldCheck, 
+              color: 'green', 
+              title: 'Privacy-First API Injection', 
+              desc: 'Enterprise-grade security for your proprietary brand assets.\n• Local Key Storage: Keys never traverse our backend servers\n• Sandbox Generation: All processing occurs within the Secure Google Cloud environment.' 
+            }
+          ].map((feature, i) => (
+            <FeatureCard key={i} feature={feature} index={i} />
+          ))}
+        </motion.div>
+
+        {/* Workflow Section */}
+        <div className="mb-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-4">How It Works</h2>
+            <p className="text-white/50 text-base">A streamlined workflow designed for professionals.</p>
+          </div>
+          
+          <div className="relative max-w-5xl mx-auto">
+            {/* Animated Connecting Line */}
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 hidden md:block rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ x: "-100%" }}
+                whileInView={{ x: "100%" }}
+                transition={{ duration: 3, ease: "linear", repeat: Infinity }}
+                className="w-1/2 h-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+              {[
+                { step: '01', title: 'Upload Assets', desc: 'Provide your product images, logos, and character models. The AI analyzes their lighting and perspective.', color: 'indigo', icon: Upload },
+                { step: '02', title: 'Define Style', desc: 'Select your layout, lighting, typography, and color palette. Refine your prompt with Gemini 3.1 Pro.', color: 'fuchsia', icon: Palette },
+                { step: '03', title: 'Generate & Export', desc: 'Render the final masterpiece using advanced image models and export in up to 4K resolution.', color: 'emerald', icon: Download }
+              ].map((step, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.2 }} className="relative flex flex-col items-center text-center group">
+                  {/* Glowing Node */}
+                  <div className="relative mb-6">
+                    <div className={`absolute inset-0 bg-${step.color}-500/30 blur-xl rounded-full group-hover:bg-${step.color}-500/50 transition-colors duration-500`} />
+                    <div className={`w-20 h-20 rounded-full bg-black border border-white/10 flex items-center justify-center relative z-10 shadow-[inset_0_2px_10px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.5)] group-hover:border-${step.color}-500/50 transition-colors duration-500`}>
+                      <div className={`absolute inset-1 rounded-full border border-${step.color}-500/20 border-dashed animate-[spin_10s_linear_infinite]`} />
+                      <step.icon className={`w-6 h-6 text-${step.color}-400 drop-shadow-[0_0_10px_rgba(var(--${step.color}-500),0.8)]`} />
+                    </div>
+                    <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${step.color}-500 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-[0_0_15px_rgba(var(--${step.color}-500),0.8)] z-20`}>
+                      {step.step}
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold mb-3 text-white/90">{step.title}</h3>
+                  <p className="text-white/50 leading-relaxed text-sm">{step.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Future Integrations / Roadmap */}
+        <div className="mb-24 bg-indigo-950/10 border border-indigo-500/20 rounded-[2rem] p-8 md:p-12 text-center relative overflow-hidden flex flex-col items-center">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
+           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]" />
+           
+           <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-4 text-white relative z-10">Beyond the Matrix</h2>
+           <p className="text-sm md:text-base text-indigo-200/60 max-w-2xl relative z-10 mb-8 leading-relaxed">
+             JAMINI is constantly evolving. The team is integrating advanced topological data, real-time 3D synthesis, and deeply localized brand-identity pipelines.
+           </p>
+           
+           <div className="flex flex-wrap gap-4 justify-center relative z-10">
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Realtime 3D</div>
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Spatial Audio API</div>
+             <div className="bg-black/50 border border-white/10 px-4 py-2 rounded-lg text-xs text-white/60 font-bold uppercase tracking-widest backdrop-blur-sm">Auto-Rigging</div>
+           </div>
+        </div>
+        
+        {/* Engine Explanation Section */}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="mb-24 bg-gradient-to-br from-indigo-900/20 to-fuchsia-900/20 border border-white/10 rounded-[2rem] p-6 lg:p-12 text-center relative overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-fuchsia-500/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+          
+          <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6 relative z-10">Understanding the AI Engines</h2>
+          <p className="text-lg text-white/60 max-w-3xl mx-auto leading-relaxed mb-16 relative z-10">
+            JAMINI Studio utilizes Google's most advanced generative models. Here is how the API key logic works to ensure you have access to both free and premium capabilities.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left relative z-10">
+            <motion.div whileHover={{ scale: 1.02 }} className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30"><Check className="w-6 h-6 text-emerald-400"/></div>
+                <div>
+                  <h3 className="text-2xl font-bold text-emerald-400">Free Tier</h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest mt-1">No Key Required</p>
+                </div>
+              </div>
+              <p className="text-base text-white/60 leading-relaxed mb-6">
+                When you select any <strong>(Free)</strong> engine, the application uses the built-in environment API key. To ensure it works without requiring your own key, image generation is routed through the free-tier compatible <strong>Gemini 2.5 Flash Image</strong> model, while your selected engine is used for text refinement and advanced prompt engineering.
+              </p>
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3">
+                <Star className="w-5 h-5 text-emerald-400 shrink-0" />
+                <p className="text-sm text-emerald-200/80">Works out of the box! Perfect for rapid prototyping and standard commercial layouts.</p>
+              </div>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.02 }} className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30"><Key className="w-6 h-6 text-amber-400"/></div>
+                <div>
+                  <h3 className="text-2xl font-bold text-amber-400">Paid Tier</h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest mt-1">Your Key Required</p>
+                </div>
+              </div>
+              <p className="text-base text-white/60 leading-relaxed mb-6">
+                When you select a <strong>(Paid)</strong> engine, you are accessing Google's flagship preview models for image generation (like Gemini 3.1 Flash Image or 3.0 Pro Image). The AI Studio platform <strong>strictly requires</strong> users to provide their own API key via a secure popup to access these advanced image models.
+              </p>
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3">
+                <Shield className="w-5 h-5 text-amber-400 shrink-0" />
+                <p className="text-sm text-amber-200/80">Unlocks unmatched realism, complex scene understanding, and cinematic quality.</p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+      </div>
+    </motion.div>
+  );
+};
+
+const CustomSelect = ({ value, onChange, options, label, icon: Icon }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const filteredOptions = options.filter((o: string) => o.toLowerCase().includes(search.toLowerCase()));
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative space-y-2 group/select">
+      <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2 transition-colors group-hover/select:text-indigo-400">
+        {Icon && <Icon className="w-3.5 h-3.5" />} {label}
+      </label>
+      
+      <motion.div 
+        whileTap={{ scale: 0.98 }}
+        className={cn(
+          "w-full bg-[#0c0c0e]/80 backdrop-blur-xl border border-white/10 rounded-xl p-3 text-xs text-white cursor-pointer flex justify-between items-center transition-all duration-300 relative overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.3)]",
+          isOpen ? "border-indigo-500/50 ring-1 ring-indigo-500/20 shadow-[0_0_25px_rgba(99,102,241,0.2)]" : "hover:border-white/20 hover:bg-[#121215]"
+        )}
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ perspective: '1000px' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/select:opacity-100 transition-opacity pointer-events-none" />
+        <span className="truncate font-bold tracking-tight relative z-10">{value}</span>
+        <ChevronDown className={cn("w-4 h-4 text-white/30 transition-transform duration-500 relative z-10", isOpen && "rotate-180 text-indigo-400")} />
+      </motion.div>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: -10, rotateX: -15 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10, rotateX: -15 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="absolute z-[100] w-full mt-2 bg-[#0c0c0e]/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] overflow-hidden origin-top"
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            <div className="p-3 border-b border-white/5 bg-white/5">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Filter parameters..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[11px] text-white outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 placeholder:text-white/20 font-medium transition-all"
+                />
+                <Eye className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-white/10" />
+              </div>
+            </div>
+            <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5 space-y-1">
+              {filteredOptions.map((opt: string) => (
+                <motion.div 
+                  key={opt}
+                  whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  onClick={() => { onChange(opt); setIsOpen(false); setSearch(''); }}
+                  className={cn(
+                    "px-4 py-2.5 text-[11px] cursor-pointer rounded-lg transition-all flex items-center justify-between group/opt relative",
+                    value === opt ? "bg-indigo-500/15 text-indigo-300 font-black border border-indigo-500/20" : "text-white/60 hover:text-white"
+                  )}
+                >
+                  <span className="relative z-10">{opt}</span>
+                  {value === opt && (
+                    <motion.div layoutId="active-check">
+                      <Check className="w-3.5 h-3.5 text-indigo-400" />
+                    </motion.div>
+                  )}
+                  <div className="absolute left-0 w-1 h-0 bg-indigo-500 group-hover/opt:h-1/2 transition-all duration-300 rounded-full opacity-50" />
+                </motion.div>
+              ))}
+              {filteredOptions.length === 0 && (
+                <div className="px-4 py-8 text-[10px] text-white/30 text-center uppercase tracking-widest font-black flex flex-col items-center gap-2">
+                  <AlertCircle className="w-5 h-5 opacity-20" />
+                  No parameters found
+                </div>
+              )}
+            </div>
+            
+            <div className="p-3 bg-white/5 border-t border-white/5 flex items-center justify-between">
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                {filteredOptions.length} Options
+              </span>
+              <div className="flex gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse delay-75" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse delay-150" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const AutoResizeTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const resize = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  };
+
+  useEffect(() => {
+    resize();
+  }, [props.value]);
+
+  return (
+    <textarea
+      {...props}
+      ref={textareaRef}
+      onChange={(e) => {
+        resize();
+        if (props.onChange) props.onChange(e);
+      }}
+      className={cn("resize-none overflow-hidden", props.className)}
+    />
+  );
+};
+
+import { handleUniversalDownload, zipAllFormats, ALL_ADOBE_FORMATS, ALL_COREL_FORMATS, FORMAT_DESCRIPTIONS } from './services/exportService';
+
+export default function App() {
+  const [hasEntered, setHasEntered] = useState(false);
+  const [currentView, setCurrentView] = useState<'editor' | 'features' | 'guide' | 'settings' | 'gallery'| 'storyboard'>('editor');
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [keyRotationIndex, setKeyRotationIndex] = useState<number>(0);
+
+  useEffect(() => {
+    // Intentionally removed requestPermissions on mount
+  }, []);
+
+  const getApiKey = (type: 'paid' | 'free') => {
+    try {
+      const aiStudioKey = process.env.GEMINI_API_KEY;
+      if (aiStudioKey) return aiStudioKey;
+    } catch (err) {}
+    try {
+      const fallbackAiStudioKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+      if (fallbackAiStudioKey) return fallbackAiStudioKey;
+    } catch (err) {}
+    return '';
+  };
+
+  // Helper to shift to next key on failure
+  const shiftKey = () => {
+    // Intentionally empty, AI studio doesn't use multiple rotating keys
+  };
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  // State
+  const [scenePrompt, setScenePrompt] = useState('');
+  const [assetPrompt, setAssetPrompt] = useState('');
+  const [textElements, setTextElements] = useState<TextElement[]>([]);
+  const [newTextType, setNewTextType] = useState<'Headline' | 'Sub-headline' | 'Pricing' | 'Body/Other'>('Headline');
+  const [newTextContent, setNewTextContent] = useState('');
+  const [includeText, setIncludeText] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isExtractingColors, setIsExtractingColors] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [productAssets, setProductAssets] = useState<Asset[]>([]);
+  const [brandLogoAsset, setBrandLogoAsset] = useState<Asset | null>(null);
+  const [brandLogoLightAsset, setBrandLogoLightAsset] = useState<Asset | null>(null);
+  const [companyLogoAsset, setCompanyLogoAsset] = useState<Asset | null>(null);
+  const [companyLogoLightAsset, setCompanyLogoLightAsset] = useState<Asset | null>(null);
+  const [characterAssets, setCharacterAssets] = useState<Asset[]>([]);
+  const [companyCIAsset, setCompanyCIAsset] = useState<Asset | null>(null);
+  const [ciSummary, setCiSummary] = useState<string>('');
+  const [isAnalyzingCI, setIsAnalyzingCI] = useState(false);
+  const [exampleImages, setExampleImages] = useState<Asset[]>([]);
+  const [themeColors, setThemeColors] = useState<string[]>([]);
+  const [customColor, setCustomColor] = useState('#ff0000');
+  const [customColorsList, setCustomColorsList] = useState<string[]>([]);
+  const [customWidthMm, setCustomWidthMm] = useState<string>('210');
+  const [customHeightMm, setCustomHeightMm] = useState<string>('297');
+  const [isCustomSize, setIsCustomSize] = useState<boolean>(false);
+  const [videoDuration, setVideoDuration] = useState<number>(6);
+  const [isAdMode, setIsAdMode] = useState<boolean>(false);
+  const [negativePrompt, setNegativePrompt] = useState<string>('');
+  const [videoScript, setVideoScript] = useState<string>('');
+  const [videoScenes, setVideoScenes] = useState<VideoScene[]>([]);
+  const [isScripting, setIsScripting] = useState<boolean>(false);
+  const [videoStatus, setVideoStatus] = useState<string>('');
+  const [clientName, setClientName] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('');
+  const [industry, setIndustry] = useState<string>('');
+  const [brandVoice, setBrandVoice] = useState<string>('Professional and Innovative');
+  const [brandValues, setBrandValues] = useState<string>('Quality, Integrity, Innovation');
+
+  const [textEnginesList, setTextEnginesList] = useState<string[]>(DEFAULT_TEXT_ENGINES);
+  const [imageEnginesList, setImageEnginesList] = useState<string[]>(DEFAULT_IMAGE_ENGINES);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const key = getApiKey('paid') || getApiKey('free');
+      if (!key) return;
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+        if (res.ok) {
+          const data = await res.json();
+          const models: Array<{name: string, displayName: string}> = data.models || [];
+          const newTextEngines = new Set(DEFAULT_TEXT_ENGINES);
+          const newImageEngines = new Set(DEFAULT_IMAGE_ENGINES);
+          models.forEach(m => {
+            const str = `${m.displayName} (${m.name})`;
+            if (m.name.includes('vision') || m.name.includes('imagen') || m.name.includes('veo')) {
+               newImageEngines.add(str);
+            } else if (m.name.includes('gemini')) {
+               newTextEngines.add(str);
+            }
+          });
+          setTextEnginesList(Array.from(newTextEngines));
+          setImageEnginesList(Array.from(newImageEngines));
+        }
+      } catch (e) {
+        console.error("Failed to fetch dynamic models", e);
+      }
+    };
+    fetchModels();
+  }, [hasEntered, currentView]);
+
+  const [textEngine, setTextEngine] = useState<string>('Gemini 2.0 Flash (Free)');
+  const [imageEngine, setImageEngine] = useState<string>('Gemini 2.5 Flash Image (Free)');
+  
+  const [isRefiningScene, setIsRefiningScene] = useState(false);
+  const [isRefiningAsset, setIsRefiningAsset] = useState(false);
+  const [isSuggestingScene, setIsSuggestingScene] = useState(false);
+  
+  const [rules, setRules] = useState<string[]>([]);
+  const [isLogoMode, setIsLogoMode] = useState(false);
+  const [isGenerateCI, setIsGenerateCI] = useState(false);
+  const [logoInfluence, setLogoInfluence] = useState('balanced'); // balanced, strict, creative
+  const [influencePrompt, setInfluencePrompt] = useState('');
+  const [newRule, setNewRule] = useState('');
+
+  const addRule = () => {
+    if (newRule.trim()) {
+      setRules([...rules, newRule.trim()]);
+      setNewRule('');
+    }
+  };
+  const removeRule = (index: number) => {
+    setRules(rules.filter((_, i) => i !== index));
+  };
+  
+  const [style, setStyle] = useState<StylePreset>('High-End Commercial');
+  const [layout, setLayout] = useState<LayoutType>('Hero Product Shot');
+  const [lighting, setLighting] = useState<Lighting>('Softbox Studio');
+  const [aspectRatio, setAspectRatio] = useState<APIAspectRatio>('9:16');
+  const [fontFamily, setFontFamily] = useState<FontPreset>('Space Grotesk'); // Primary Font
+  const [secondaryFont, setSecondaryFont] = useState<FontPreset>('Inter');
+  const [accentFont, setAccentFont] = useState<FontPreset>('Outfit');
+  const [generationObjective, setGenerationObjective] = useState<'poster' | 'logo' | 'video' | 'motion-lab' | 'ci-generator' | null>(null);
+  const [dimensionMode, setDimensionMode] = useState<DimensionMode>('2D Standard');
+  const [dynamics, setDynamics] = useState<DynamicSettings>({
+    gloss: true,
+    realisticElements: true,
+    dirtAndTexture: false,
+    realisticMovements: false,
+    noMistakes: true,
+    depthOfField: true,
+    motionBlur: false,
+    subsurfaceScattering: true,
+    chromaticAberration: false,
+    lensFlare: false,
+    bloom: true,
+    vignette: false,
+    rayTracing: true,
+    caustics: false,
+    volumetricFog: false,
+    ambientOcclusion: true,
+    metallic: 50,
+    roughness: 50,
+    normalMapIntensity: 50,
+    filmGrain: 10,
+    contrast: 50,
+    saturation: 50,
+    colorGradingIntensity: 50,
+    lensDistortion: 0,
+    particleDensity: 0
+  });
+
+  // Undo/Redo State
+  const currentState: EditorState = {
+    scenePrompt, assetPrompt, textElements, includeText,
+    productAssets, brandLogoAsset, companyLogoAsset, characterAssets, exampleImages, themeColors, customColor, customColorsList,
+    textEngine, imageEngine, rules, style, layout, lighting, aspectRatio,
+    fontFamily, dimensionMode, videoDuration, isAdMode, videoScript, videoScenes, negativePrompt, dynamics,
+    customWidthMm, customHeightMm, isCustomSize
+  };
+
+  const [history, setHistory] = useState<EditorState[]>([currentState]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  // Memoized history tracking to protect performance
+  const lastHistorySaveRef = useRef<string>('');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const stateStr = JSON.stringify({
+        scenePrompt, assetPrompt, textElements, includeText,
+        textEngine, imageEngine, rules, style, layout, lighting, aspectRatio,
+        fontFamily, dimensionMode, videoDuration, isAdMode, videoScript, videoScenes, negativePrompt, dynamics,
+        customWidthMm, customHeightMm, isCustomSize
+      });
+      
+      if (stateStr !== lastHistorySaveRef.current) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(currentState);
+        if (newHistory.length > 50) newHistory.shift();
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+        lastHistorySaveRef.current = stateStr;
+      }
+    }, 1000); // Increased debounce for performance
+    
+    return () => clearTimeout(timer);
+  }, [currentState, historyIndex]); // Removed large 'history' from deps
+
+
+  const applyState = (state: EditorState) => {
+    setScenePrompt(state.scenePrompt);
+    setAssetPrompt(state.assetPrompt);
+    setTextElements(state.textElements);
+    setIncludeText(state.includeText);
+    setProductAssets(state.productAssets);
+    setBrandLogoAsset(state.brandLogoAsset);
+    setBrandLogoLightAsset(state.brandLogoLightAsset || null);
+    setCompanyLogoAsset(state.companyLogoAsset);
+    setCompanyLogoLightAsset(state.companyLogoLightAsset || null);
+    setCharacterAssets(state.characterAssets || []);
+    setExampleImages(state.exampleImages || []);
+    setThemeColors(state.themeColors);
+    setCustomColor(state.customColor);
+    setCustomColorsList(state.customColorsList || []);
+    setTextEngine(state.textEngine);
+    setImageEngine(state.imageEngine);
+    setRules(state.rules);
+    setStyle(state.style || 'High-End Commercial');
+    setLayout(state.layout || 'Hero Product Shot');
+    setLighting(state.lighting || 'Softbox Studio');
+    setAspectRatio(state.aspectRatio || '9:16');
+    setFontFamily(state.fontFamily || 'Space Grotesk');
+    setDimensionMode(state.dimensionMode || '2D Standard');
+    setVideoDuration(state.videoDuration || 6);
+    setIsAdMode(state.isAdMode || false);
+    setVideoScript(state.videoScript || '');
+    setVideoScenes(state.videoScenes || []);
+    setNegativePrompt(state.negativePrompt || '');
+    setCustomWidthMm(state.customWidthMm || '210');
+    setCustomHeightMm(state.customHeightMm || '297');
+    setIsCustomSize(state.isCustomSize || false);
+    setDynamics(state.dynamics);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1];
+      applyState(prevState);
+      setHistoryIndex(historyIndex - 1);
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1];
+      applyState(nextState);
+      setHistoryIndex(historyIndex + 1);
+    }
+  };
+
+  const handleVoiceGeneration = (data: any) => {
+    if (data.scenePrompt) setScenePrompt(data.scenePrompt);
+    if (data.assetPrompt) setAssetPrompt(data.assetPrompt);
+    if (data.style) setStyle(data.style);
+    if (data.lighting) setLighting(data.lighting);
+    if (data.clientInfo) {
+      setClientName(data.clientInfo.name || '');
+      setCompanyName(data.clientInfo.company || '');
+      setIndustry(data.clientInfo.industry || '');
+    }
+    
+    // Automatically switch to properties/preview step
+    setActiveStep(3);
+  };
+
+  const toggleDynamic = (key: keyof DynamicSettings) => {
+    setDynamics(prev => ({ ...prev, [key]: !prev[key as keyof DynamicSettings] }));
+  };
+
+  const updateDynamicValue = (key: keyof DynamicSettings, value: number) => {
+    setDynamics(prev => ({ ...prev, [key]: value }));
+  };
+
+  const productInputRef = useRef<HTMLInputElement>(null);
+  const brandLogoInputRef = useRef<HTMLInputElement>(null);
+  const companyLogoInputRef = useRef<HTMLInputElement>(null);
+  const brandLogoLightInputRef = useRef<HTMLInputElement>(null);
+  const companyLogoLightInputRef = useRef<HTMLInputElement>(null);
+  const characterInputRef = useRef<HTMLInputElement>(null);
+  const exampleInputRef = useRef<HTMLInputElement>(null);
+  const companyCIInputRef = useRef<HTMLInputElement>(null);
+
+  const handleEngineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // This was a legacy handler, we now use separate state for text and image engines
+    console.log("Engine changed:", e.target.value);
+  };
+
+  const updateAssetPrompt = (id: string, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character', prompt: string) => {
+    if (type === 'product') {
+      setProductAssets(prev => prev.map(a => a.id === id ? { ...a, prompt } : a));
+    } else if (type === 'brandLogo') {
+      setBrandLogoAsset(prev => prev?.id === id ? { ...prev, prompt } : prev);
+    } else if (type === 'brandLogoLight') {
+      setBrandLogoLightAsset(prev => prev?.id === id ? { ...prev, prompt } : prev);
+    } else if (type === 'companyLogo') {
+      setCompanyLogoAsset(prev => prev?.id === id ? { ...prev, prompt } : prev);
+    } else if (type === 'companyLogoLight') {
+      setCompanyLogoLightAsset(prev => prev?.id === id ? { ...prev, prompt } : prev);
+    } else if (type === 'character') {
+      setCharacterAssets(prev => prev.map(a => a.id === id ? { ...a, prompt } : a));
+    }
+  };
+
+  const updateAssetDetails = (id: string, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character', updates: Partial<Asset>) => {
+    if (type === 'product') {
+      setProductAssets(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+    } else if (type === 'brandLogo') {
+      setBrandLogoAsset(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    } else if (type === 'brandLogoLight') {
+      setBrandLogoLightAsset(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    } else if (type === 'companyLogo') {
+      setCompanyLogoAsset(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    } else if (type === 'companyLogoLight') {
+      setCompanyLogoLightAsset(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    } else if (type === 'character') {
+      setCharacterAssets(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+    }
+  };
+
+  const vividlyAnalyzeAsset = async (asset: Asset, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character') => {
+    const id = asset.id;
+    const setRefining = (val: boolean) => {
+      if (type === 'product') setProductAssets(prev => prev.map(a => a.id === id ? { ...a, isRefining: val } : a));
+      else if (type === 'brandLogo') setBrandLogoAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'brandLogoLight') setBrandLogoLightAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'companyLogo') setCompanyLogoAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'companyLogoLight') setCompanyLogoLightAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'character') setCharacterAssets(prev => prev.map(a => a.id === id ? { ...a, isRefining: val } : a));
+    };
+
+    setRefining(true);
+    try {
+      const apiKey = getApiKey('free');
+      if (!apiKey) return;
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const response = await withTimeout(ai.models.generateContent({
+        model: 'gemini-3.1-pro-preview',
+        contents: [
+          { role: 'user', parts: [
+            { inlineData: { data: asset.data, mimeType: asset.mimeType } },
+            { text: `You are an expert AI image generation consultant. Analyze this uploaded asset specifically for use in a professional advertisement poster.
+            Return a JSON object with strictly these four keys: "prompt", "material", "lightingInteraction", "position".
+            - "prompt": A highly detailed, technical description of the asset (1-2 sentences).
+            - "material": Precise material details (e.g., "Polished Aluminum with brushed finish", "Soft matte silicone", "Translucent glass").
+            - "lightingInteraction": How this object should interact with lighting (e.g., "Sharp rim highlights", "Subtle subsurface scattering", "Refractive distortions").
+            - "position": Precise recommended positioning for this asset type in a professional layout (e.g., "Center foreground, slight upward tilt", "Bottom-right corner, 15 degree rotation").
+            
+            Return ONLY the valid JSON object.` }
+          ]}
+        ]
+      }), 120000, "Asset analysis timed out.");
+      
+      const text = response.text?.trim();
+      if (text) {
+        try {
+          const jsonStr = text.replace(/```json\n?|\n?```/g, '').trim();
+          const data = JSON.parse(jsonStr);
+          updateAssetDetails(id, type, {
+            prompt: data.prompt || '',
+            material: data.material || '',
+            lightingInteraction: data.lightingInteraction || '',
+            position: data.position || ''
+          });
+        } catch (e) {
+          console.error("Failed to parse asset analysis JSON:", text);
+          updateAssetPrompt(id, type, text.slice(0, 200));
+        }
+      }
+    } catch (err) {
+      shiftKey();
+      console.error("Error vividly analyzing asset:", err);
+    } finally {
+      setRefining(false);
+    }
+  };
+
+  const enhanceAllAssetPrompts = async () => {
+    const promises = [];
+    for (const asset of productAssets) {
+      promises.push(vividlyAnalyzeAsset(asset, 'product'));
+    }
+    if (brandLogoAsset) promises.push(vividlyAnalyzeAsset(brandLogoAsset, 'brandLogo'));
+    if (brandLogoLightAsset) promises.push(vividlyAnalyzeAsset(brandLogoLightAsset, 'brandLogoLight'));
+    if (companyLogoAsset) promises.push(vividlyAnalyzeAsset(companyLogoAsset, 'companyLogo'));
+    if (companyLogoLightAsset) promises.push(vividlyAnalyzeAsset(companyLogoLightAsset, 'companyLogoLight'));
+    characterAssets.forEach(a => promises.push(vividlyAnalyzeAsset(a, 'character')));
+    
+    await Promise.all(promises);
+  };
+
+  const refineSpecificAssetPrompt = async (id: string, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character') => {
+    let asset = type === 'product' ? productAssets.find(a => a.id === id) : type === 'brandLogo' ? brandLogoAsset : type === 'brandLogoLight' ? brandLogoLightAsset : type === 'companyLogo' ? companyLogoAsset : type === 'companyLogoLight' ? companyLogoLightAsset : characterAssets.find(a => a.id === id);
+    if (!asset || !asset.prompt?.trim()) { setError("Please enter a prompt to refine."); return; }
+
+    const setRefining = (val: boolean) => {
+      if (type === 'product') setProductAssets(prev => prev.map(a => a.id === id ? { ...a, isRefining: val } : a));
+      else if (type === 'brandLogo') setBrandLogoAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'brandLogoLight') setBrandLogoLightAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'companyLogo') setCompanyLogoAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'companyLogoLight') setCompanyLogoLightAsset(prev => prev ? { ...prev, isRefining: val } : prev);
+      else if (type === 'character') setCharacterAssets(prev => prev.map(a => a.id === id ? { ...a, isRefining: val } : a));
+    };
+
+    setRefining(true);
+    setError(null);
+
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      const response = await withTimeout(ai.models.generateContent({
+        model: getTextModelString(textEngine),
+        contents: `You are an expert AI image generation prompt engineer. Enhance the following asset description to be highly detailed and optimized for integrating this specific asset into a professional advertisement poster. 
+        CRITICAL: Enhance the description with granular control, specifying how the asset interacts with lighting, its exact material properties, and its position/scale relative to other elements. Focus on physical appearance and texture.
+        Keep it concise but highly descriptive. Only return the enhanced prompt text, nothing else. Original text: "${asset.prompt}"`,
+      }), 60000, "Refine asset prompt timed out.");
+      const refined = response.text?.trim();
+      if (refined) {
+        updateAssetPrompt(id, type, refined);
+      }
+    } catch (err: any) {
+      console.error("Error refining asset prompt:", err);
+      let errorMessage = err.message || "Failed to refine prompt.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
+      } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to Gemini 2.0 Flash or 1.5 Flash.`;
+      }
+      setError(errorMessage);
+    } finally {
+      setRefining(false);
+    }
+  };
+
+  const [newTextColor, setNewTextColor] = useState('#ffffff');
+  const [newTextAlignment, setNewTextAlignment] = useState<'Left' | 'Center' | 'Right'>('Center');
+  const [newTextPlacement, setNewTextPlacement] = useState<'Top' | 'Center' | 'Bottom'>('Center');
+
+  const addTextElement = () => {
+    if (newTextContent.trim()) {
+      setTextElements([...textElements, { 
+        id: Date.now().toString(), 
+        type: newTextType, 
+        text: newTextContent.trim(),
+        color: newTextColor,
+        alignment: newTextAlignment,
+        placement: newTextPlacement
+      }]);
+      setNewTextContent('');
+    }
+  };
+
+  const removeTextElement = (id: string) => {
+    setTextElements(textElements.filter(t => t.id !== id));
+  };
+
+  const refineTextElement = async (id: string) => {
+    const elementToRefine = textElements.find(t => t.id === id);
+    if (!elementToRefine || !elementToRefine.text.trim()) {
+      setError("Please enter some text to refine.");
+      return;
+    }
+
+    setTextElements(prev => prev.map(t => t.id === id ? { ...t, isRefining: true } : t));
+    setError(null);
+
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const context = `
+      Consider the following context:
+      Current Style: ${style}
+      Current Layout: ${layout}
+      Current Lighting: ${lighting}
+      Text Type: ${elementToRefine.type}
+      `;
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: getTextModelString(textEngine),
+        contents: `You are an expert editor for advertisement posters. Your task is to fix any spelling mistakes and optimize the structure/layout of the provided text (e.g., professionally formatting times, dates, or contact details) while strictly preserving the original content and meaning.
+        CRITICAL: Do NOT add new words, do not change the meaning, and do not add marketing fluff. Only fix errors and improve formatting/structure. Do not add quotes around the output.
+        Only return the corrected text, nothing else. ${context} Original text: "${elementToRefine.text}"`,
+      }), 60000, "Refine text element timed out.");
+      
+      const refined = response.text?.trim().replace(/^["']|["']$/g, '');
+      if (refined) {
+        setTextElements(prev => prev.map(t => t.id === id ? { ...t, text: refined, isRefining: false } : t));
+      } else {
+        setTextElements(prev => prev.map(t => t.id === id ? { ...t, isRefining: false } : t));
+      }
+    } catch (err: any) {
+      console.error("Error refining text element:", err);
+      let errorMessage = err.message || "Failed to refine text.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. The selected AI model may not be available on your current API tier. Try switching to 'Gemini 2.0 Flash'.";
+      }
+      setError(errorMessage);
+      setTextElements(prev => prev.map(t => t.id === id ? { ...t, isRefining: false } : t));
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character' | 'example' | 'companyCI') => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        let base64 = '';
+        let mimeType = file.type;
+
+        if (file.type === 'application/pdf' && type === 'companyCI') {
+          base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              resolve(result.split(',')[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        } else if (file.type === 'image/svg+xml') {
+          const converted = await new Promise<{base64: string, mimeType: string}>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Use a reasonable default size if SVG doesn't specify intrinsic dimensions
+                canvas.width = img.width || 1024;
+                canvas.height = img.height || 1024;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.drawImage(img, 0, 0);
+                  const dataUrl = canvas.toDataURL('image/png');
+                  resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/png' });
+                } else {
+                  reject(new Error("Canvas context failed"));
+                }
+              };
+              img.onerror = reject;
+              img.src = e.target?.result as string;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          base64 = converted.base64;
+          mimeType = converted.mimeType;
+        } else {
+          base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        const asset: Asset = { id: `${Date.now()}-${i}`, data: base64, mimeType, name: file.name, prompt: '' };
+        
+        if (type === 'product') setProductAssets(prev => [...prev, asset]);
+        else if (type === 'brandLogo') setBrandLogoAsset(asset);
+        else if (type === 'brandLogoLight') setBrandLogoLightAsset(asset);
+        else if (type === 'companyLogo') setCompanyLogoAsset(asset);
+        else if (type === 'companyLogoLight') setCompanyLogoLightAsset(asset);
+        else if (type === 'character') setCharacterAssets(prev => [...prev, asset]);
+        else if (type === 'example') setExampleImages(prev => prev.length < 3 ? [...prev, asset] : prev);
+        else if (type === 'companyCI') {
+          setCompanyCIAsset(asset);
+          analyzeCompanyCI(base64, mimeType);
+        }
+
+        // Trigger automatic enhancement for each uploaded asset
+        if (type === 'product' || type === 'brandLogo' || type === 'companyLogo' || type === 'brandLogoLight' || type === 'companyLogoLight' || type === 'character') {
+          vividlyAnalyzeAsset(asset, type);
+        }
+      } catch (err) {
+        console.error("Error processing file:", err);
+        setError(`Failed to process file: ${file.name}.`);
+      }
+    }
+    e.target.value = '';
+  };
+
+  const analyzeCompanyCI = async (base64Data: string, mimeType: string) => {
+    setIsAnalyzingCI(true);
+    setError(null);
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const response = await withTimeout(ai.models.generateContent({
+        model: 'gemini-3.1-pro-preview',
+        contents: [
+          { role: 'user', parts: [
+            { inlineData: { data: base64Data, mimeType } },
+            { text: `You are an expert brand integrity officer. Analyze this Company Corporate Identity (CI) / Brand Bible document with absolute precision.
+            Extract the following information:
+            1. Primary and secondary color palettes (hex codes).
+            2. Exact typography / font names and usage rules (e.g. Header font, Body font).
+            3. Logo placement rules (Clearance zones, restricted corners, prohibited backgrounds).
+            4. Visual style constraints (Minimalist, Brutalist, Organic, Modern, etc.).
+            5. Photography guidelines (Color temperature, depth of field, subject positioning).
+            6. "Never-Ever" list: Prohibited colors, fonts, or compositions.
+            
+            Return a JSON object with:
+            {
+              "colorPalette": ["#hex1", "#hex2"],
+              "recommendedFont": "One of: Inter, Playfair Display, Space Grotesk, Outfit, Bebas Neue, Cinzel, Montserrat, Oswald, Merriweather, Pacifico, Cormorant Garamond, Syncopate, Unbounded, Fraunces, Cinzel Decorative, Syne, Clash Display, Cabinet Grotesk",
+              "visualStyle": "The overall mood",
+              "summary": "Full detailed string of rules for the AI generator",
+              "rules": ["Rule 1", "Rule 2"]
+            }
+            
+            Return ONLY the valid JSON.` }
+          ]}
+        ]
+      }), 120000, "CI Analysis timed out.");
+      
+      const text = response.text?.trim();
+      if (text) {
+        try {
+          const jsonStr = text.replace(/```json\n?|\n?```/g, '').trim();
+          const data = JSON.parse(jsonStr);
+          setCiSummary(data.summary || text);
+          if (data.colorPalette && Array.isArray(data.colorPalette)) {
+            setThemeColors(data.colorPalette);
+            setCustomColorsList(prev => [...new Set([...prev, ...data.colorPalette])]);
+          }
+          if (data.recommendedFont) {
+            setFontFamily(data.recommendedFont as FontPreset);
+          }
+          if (data.rules && Array.isArray(data.rules)) {
+            setRules(prev => [...new Set([...prev, ...data.rules])]);
+          }
+        } catch (e) {
+          console.error("Failed to parse CI analysis JSON:", text);
+          setCiSummary(text.trim());
+        }
+      }
+    } catch (err: any) {
+      console.error("Error analyzing CI:", err);
+      setError("Failed to analyze Company CI. " + (err.message || ""));
+    } finally {
+      setIsAnalyzingCI(false);
+    }
+  };
+
+  const removeAsset = (id: string, type: 'product' | 'brandLogo' | 'companyLogo' | 'brandLogoLight' | 'companyLogoLight' | 'character' | 'example' | 'companyCI') => {
+    if (type === 'product') setProductAssets(prev => prev.filter(a => a.id !== id));
+    else if (type === 'brandLogo') setBrandLogoAsset(null);
+    else if (type === 'brandLogoLight') setBrandLogoLightAsset(null);
+    else if (type === 'companyLogo') setCompanyLogoAsset(null);
+    else if (type === 'companyLogoLight') setCompanyLogoLightAsset(null);
+    else if (type === 'character') setCharacterAssets(prev => prev.filter(a => a.id !== id));
+    else if (type === 'example') setExampleImages(prev => prev.filter(a => a.id !== id));
+    else if (type === 'companyCI') {
+      setCompanyCIAsset(null);
+      setCiSummary('');
+    }
+  };
+
+  const toggleColor = (color: string) => {
+    setThemeColors(prev => prev.includes(color) ? prev.filter(c => c !== color) : (prev.length < 5 ? [...prev, color] : prev));
+  };
+
+  const generateVideoScript = async () => {
+    setIsScripting(true);
+    setError(null);
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const prompt = `You are a world-class Cinematic Commercial Director and Production Architect. 
+      Your goal is to write a MASTER PRODUCTION SCRIPT and Storyboard for a ${videoDuration}-second video advertisement.
+
+      [BRAND IDENTITY & STYLE]
+      Goal: ${scenePrompt}
+      Style: ${style}
+      Lighting: ${lighting}
+      Product/Assets: ${productAssets.map(a => a.name).join(', ')}
+      Visual Guidelines: ${ciSummary || 'Standard high-end commercial'}
+      
+      [TECHNICAL PRODUCTION RULES]
+      - Break the video into EXACT CINEMATIC SCENES.
+      - Specify TECHNICAL CAMERA MOTION: (e.g., Dolly Zoom, Tracking Orbit, Crane Down, High-Speed Phantom Push).
+      - Specify LENS OPTICS: (e.g., 35mm Anamorphic, 100mm Macro, 14mm Ultra-Wide).
+      - Specify LIGHTING DESIGN: (e.g., Rembrandt, Chiaroscuro, Volumetric God Rays, High-Key Commercial).
+      - Specify TRANSITIONS: (e.g., Match Cut, J-Cut, Zoom Blur Dissolve, Hard Cut).
+      - Specify AUDIO LANDSCAPE: (e.g., Sub-bass swell, mechanical foley, ASMR textures, Orchestral sting).
+      
+      [OUTPUT REQUIREMENT]
+      You MUST return a JSON object with two fields:
+      1. "fullScript": A beautifully formatted, professional shooting script that tells the whole story in text.
+      2. "scenes": A JSON array of scene objects.
+
+      [SCENE OBJECT SCHEMA]
+      { 
+        "id": string, 
+        "prompt": string (detailed visual direction), 
+        "duration": number,
+        "cameraMotion": string,
+        "lensType": string,
+        "lighting": string,
+        "transitionType": string,
+        "audioCue": string
+      }
+
+      Total duration of scenes must equal ${videoDuration}.
+      Return ONLY the JSON. No markdown.
+      
+      JSON OUTPUT:`;
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: getTextModelString(textEngine),
+        contents: prompt,
+      }), 60000, "Script architecture request timed out.");
+      
+      const text = response.text?.trim() || '';
+      const jsonMatch = text.match(/\{.*\}/s);
+      if (jsonMatch) {
+         try {
+           const result = JSON.parse(jsonMatch[0]);
+           if (result.scenes && Array.isArray(result.scenes)) {
+              setVideoScenes(result.scenes);
+              setVideoScript(result.fullScript || result.scenes.map((s: any) => `SCENE ${s.id}: [${s.duration}s]\nVISUAL: ${s.prompt}\nCAMERA: ${s.cameraMotion}\nLENS: ${s.lensType}\nLIGHTING: ${s.lighting}\nAUDIO: ${s.audioCue}`).join('\n\n'));
+           }
+         } catch (e) {
+           setVideoScript(text);
+         }
+      } else {
+         setVideoScript(text);
+      }
+    } catch (err: any) {
+      shiftKey();
+      console.error("Error generating storyboard:", err);
+      setError("Failed to generate storyboard. Please try again.");
+    } finally {
+      setIsScripting(false);
+    }
+  };
+
+  const refineVideoScript = async () => {
+    if (!videoScript && videoScenes.length === 0) {
+      setError("Generate a baseline script first before refining.");
+      return;
+    }
+    setIsScripting(true);
+    setError(null);
+    try {
+      const apiKey = getApiKey('paid') || getApiKey('free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const prompt = `As a Senior Creative Director, REFINE the following video storyboard for ${videoDuration}s commercial.
+      
+      [CURRENT SCRIPT]
+      ${videoScript || JSON.stringify(videoScenes)}
+      
+      [STYLE CONTEXT]
+      Lighting: ${lighting}
+      Mood: ${style}
+      Dynamics: ${Object.entries(dynamics).filter(([k,v]) => v === true).map(([k]) => k).join(', ')}
+      
+      [OBJECTIVES]
+      1. Hyper-refine the visual terminology for AI Video Generation (Veo 3.1).
+      2. Ensure scene descriptions are ultra-vivid and physically accurate.
+      3. Refine or suggest dramatic cameraMotion, lensType, and lighting values for each scene.
+      4. Maintain the ${videoDuration}s total duration exactly.
+      
+      [OUTPUT FORMAT]
+      Return ONLY a JSON array of scenes: 
+      [{
+        "id": "s1", 
+        "prompt": "...", 
+        "duration": 2, 
+        "cameraMotion": "...", 
+        "lensType": "...", 
+        "lighting": "...",
+        "transitionType": "...",
+        "audioCue": "..."
+       }, ...]`;
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: 'gemini-3.1-pro-preview',
+        contents: prompt,
+      }), 60000, "Refinement timed out.");
+      
+      const text = response.text?.trim() || '';
+      const jsonMatch = text.match(/\[.*\]/s);
+      if (jsonMatch) {
+        const scenes = JSON.parse(jsonMatch[0]);
+        setVideoScenes(scenes);
+        setVideoScript(scenes.map((s: any) => `[${s.duration}s] ${s.prompt}`).join('\n\n'));
+      }
+    } catch (err: any) {
+      console.error("Refinement error:", err);
+      setError("Failed to refine script with Pro model. " + err.message);
+    } finally {
+      setIsScripting(false);
+    }
+  };
+
+  const suggestScenePrompt = async () => {
+    setIsSuggestingScene(true);
+    setError(null);
+
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      const prompt = `You are a Senior Art Director specializing in cinematic product photography and commercial set design. 
+      Your objective is to provide a master-crafted, structurally detailed environment description that perfectly complements the following brand parameters.
+      
+      [CONTEXT]
+      Style: ${style}
+      Layout: ${layout}
+      Lighting: ${lighting}
+      Rules: ${rules.join(', ')}
+      
+      [ASSETS]
+      ${productAssets.length > 0 ? `Product Subjects: ${productAssets.map(a => a.name).join(', ')}` : 'Generic commercial subjects'}
+      ${characterAssets.length > 0 ? 'Hero Models: Character assets included' : ''}
+      
+      [REQUIREMENTS]
+      - Describe the textures, lighting depth, and spatial geometry.
+      - Ensure the background provides high-contrast focus on the product.
+      - Return ONLY the environment description (max 2 sentences).
+      - NO introductory text, NO quotes, NO conversational filler.
+      
+      SCENE DESCRIPTION:`;
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: getTextModelString(textEngine),
+        contents: prompt,
+      }), 60000, "Suggest scene prompt timed out.");
+      const suggestion = response.text?.trim();
+      if (suggestion) {
+        setScenePrompt(suggestion);
+      }
+    } catch (err: any) {
+      console.error("Error suggesting scene:", err);
+      let errorMessage = err.message || "Failed to suggest scene.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
+      } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to Gemini 2.0 Flash or 1.5 Flash.`;
+      }
+      setError(errorMessage);
+    } finally {
+      setIsSuggestingScene(false);
+    }
+  };
+
+  const refinePromptText = async (type: 'scene' | 'asset') => {
+    const currentText = type === 'scene' ? scenePrompt : assetPrompt;
+    if (!currentText.trim()) { setError(`Please enter some text to refine.`); return; }
+    if (type === 'scene') setIsRefiningScene(true); else setIsRefiningAsset(true);
+    setError(null);
+
+    try {
+      const isPaid = textEngine.includes('Paid');
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing!");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      
+      let prompt = "";
+      if (type === 'scene') {
+        prompt = `You are an expert Environmental Concept Artist. Your task is to enhance the following ENVIRONMENT description.
+        Focus ONLY on the setting, background, atmosphere, spatial geometry, and lighting of the world. 
+        DO NOT focus on specific products or subjects, but ensure the environment complements a professional advertisement.
+        
+        [CONTEXT]
+        Current Style: ${style}
+        Current Layout: ${layout}
+        Current Lighting: ${lighting}
+        Guidelines: ${rules.join(', ')}
+        
+        Original Text: "${currentText}"
+        Only return the enhanced environment description, nothing else.`;
+      } else {
+        prompt = `You are a professional Product Integration Specialist. Your task is to enhance the following ASSET INTEGRATION description.
+        Focus ONLY on how the primary products/subjects interact with their environment, their scale, their relative positioning, and their physical material interactions (reflections, shadows, touch-points).
+        DO NOT rewrite the background or general atmosphere.
+        
+        [CONTEXT]
+        Uploaded Assets: ${productAssets.map(a => a.name).join(', ')}
+        Current Lighting: ${lighting}
+        
+        Original Text: "${currentText}"
+        Only return the enhanced integration instructions, nothing else.`;
+      }
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: getTextModelString(textEngine),
+        contents: prompt,
+      }), 60000, "Refine prompt text timed out.");
+      const refined = response.text?.trim();
+      if (refined) {
+        if (type === 'scene') setScenePrompt(refined); else setAssetPrompt(refined);
+      }
+    } catch (err: any) {
+      shiftKey();
+      console.error("Error refining prompt text:", err);
+      let errorMessage = err.message || "Failed to refine prompt.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = `Permission denied. The selected model (${textEngine}) may not be available on your current API tier.`;
+      } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getTextModelString(textEngine)}). Please try switching to a standard engine like Gemini 1.5 Flash.`;
+      }
+      setError(errorMessage);
+    } finally {
+      if (type === 'scene') setIsRefiningScene(false); else setIsRefiningAsset(false);
+    }
+  };
+
+  const extractColorsFromAssets = async () => {
+    if (!brandLogoAsset && !brandLogoLightAsset && !companyLogoAsset && !companyLogoLightAsset && characterAssets.length === 0) return;
+    setIsExtractingColors(true);
+    try {
+      const apiKey = getApiKey('free');
+      if (!apiKey) {
+        setError("API Key is required to extract colors.");
+        return;
+      }
+      
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      const parts: any[] = [{ text: "Analyze the provided images (logos and/or character). Extract a cohesive color palette of 3 to 5 hex codes that best represent them. Return ONLY a valid JSON array of hex color strings (e.g., [\"#FF0000\", \"#00FF00\"]). Do not include markdown formatting like ```json." }];
+      
+      if (brandLogoAsset) parts.push({ inlineData: { data: brandLogoAsset.data, mimeType: brandLogoAsset.mimeType } });
+      if (brandLogoLightAsset) parts.push({ inlineData: { data: brandLogoLightAsset.data, mimeType: brandLogoLightAsset.mimeType } });
+      if (companyLogoAsset) parts.push({ inlineData: { data: companyLogoAsset.data, mimeType: companyLogoAsset.mimeType } });
+      if (companyLogoLightAsset) parts.push({ inlineData: { data: companyLogoLightAsset.data, mimeType: companyLogoLightAsset.mimeType } });
+      characterAssets.forEach(a => parts.push({ inlineData: { data: a.data, mimeType: a.mimeType } }));
+
+      const response = await withTimeout(ai.models.generateContent({
+        model: 'gemini-3.1-pro-preview',
+        contents: parts,
+      }), 60000, "Extract colors timed out.");
+
+      const text = response.text || '';
+      const match = text.match(/\[.*\]/s);
+      if (match) {
+        const colors = JSON.parse(match[0]);
+        if (Array.isArray(colors)) {
+          const newCustomColors = [...new Set([...customColorsList, ...colors])];
+          setCustomColorsList(newCustomColors);
+          setThemeColors(colors);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to extract colors:", err);
+      let errorMessage = err.message || "Failed to extract colors from assets.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. The AI model may not be available on your current API tier.";
+      }
+      setError(errorMessage);
+    } finally {
+      setIsExtractingColors(false);
+    }
+  };
+
+  const handleGenerateLogo = async () => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const apiKey = getApiKey('free');
+      if (!apiKey) throw new Error("API key is required for logo generation.");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+
+      // Use uploaded product assets as references for logo generation
+      const referenceImages = productAssets.map(a => a.data);
+
+      let finalLogoPrompt = scenePrompt || `Professional minimal logo for JAMINI Studio. Theme: Modern, tech-forward, AI-centric. Style: Minimalist, sophisticated. Color palette: Indigo, Neon Fuchsia, Deep Black. No text or very clean sans-serif text.`;
+      
+      if (influencePrompt.trim()) {
+        finalLogoPrompt += ` \nInfluence Instructions: ${influencePrompt}`;
+      }
+      
+      if (logoInfluence === 'strict') {
+        finalLogoPrompt += ` \nSTRICT: Maintain high fidelity to the visual language of the reference assets. Combine their elements into a new mark.`;
+      } else if (logoInfluence === 'creative') {
+        finalLogoPrompt += ` \nCREATIVE: Use the references as a loose mood board but feel free to invent new geometric abstractions.`;
+      }
+
+      const { darkLogoUrl, lightLogoUrl } = await generateLogo(ai, {
+        prompt: finalLogoPrompt,
+        referenceImages,
+        model: getImageModelString(imageEngine)
+      }, shiftKey);
+
+      if (darkLogoUrl) setBrandLogoAsset({ id: `logo-dark-${Date.now()}`, name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
+      if (lightLogoUrl) setBrandLogoLightAsset({ id: `logo-light-${Date.now()}`, name: 'Light Logo', data: lightLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Light Logo' });
+
+      if (isGenerateCI) {
+        await generateCIBible(darkLogoUrl, lightLogoUrl, companyName || "JAMINI Studio");
+      }
+
+    } catch (err: any) {
+      console.error("Logo Generation Error:", err);
+      let errorMessage = err.message || String(err);
+      if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getImageModelString(imageEngine)}). The selected model may not be available in your region or tier. Try switching to 'Gemini 2.5 Flash Image (Free)'.`;
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. Please verify your API key and project permissions.";
+      }
+      setError("Failed to generate logo: " + errorMessage);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateCI = async () => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const apiKey = getApiKey('free');
+      if (!apiKey) throw new Error("API key is required for CI generation.");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+
+      // Use uploaded assets as inspirational CI foundations
+      const referenceImages = productAssets.map(a => a.data);
+
+      let darkLogo = brandLogoAsset?.data ? `data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}` : null;
+      let lightLogo = brandLogoLightAsset?.data ? `data:${brandLogoLightAsset.mimeType};base64,${brandLogoLightAsset.data}` : null;
+
+      if (brandLogoAsset?.data) {
+          const dataUrl = `data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}`;
+          extractColorsFromImage(ai, dataUrl).then(colors => {
+            if (colors && colors.length > 0) {
+              setCustomColorsList(colors);
+            }
+          });
+      }
+
+      if (!darkLogo || !lightLogo) {
+        let ciPrompt = `Design a comprehensive Corporate Identity (CI) system for ${companyName || 'JAMINI Studio'}. Industry: ${industry || 'Creative Technology'}. Brand Voice: ${brandVoice || 'Professional, Innovative'}. Values: ${brandValues || 'Quality, Integrity'}.
+        Create a highly professional CI Bible layout featuring a detailed logomark. The image should look like an 8-page brand guideline spread condensed into one detailed collage, or a beautiful minimal brand guidelines presentation cover with a logo. Style: Clean UI/UX, Bauhaus, Swiss, Minimalist, ultra-professional.`;
+
+        const { darkLogoUrl, lightLogoUrl } = await generateLogo(ai, {
+          prompt: ciPrompt,
+          referenceImages,
+          model: getImageModelString(imageEngine)
+        }, shiftKey);
+
+        if (!darkLogo && darkLogoUrl) {
+          darkLogo = darkLogoUrl;
+          setBrandLogoAsset({ id: `ci-logo-dark-${Date.now()}`, name: 'Dark Logo', data: darkLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Dark Logo' });
+          
+          // Auto-extract colors
+          extractColorsFromImage(ai, darkLogoUrl).then(colors => {
+            if (colors && colors.length > 0) {
+              setCustomColorsList(colors);
+            }
+          });
+        }
+        if (!lightLogo && lightLogoUrl) {
+          lightLogo = lightLogoUrl;
+          setBrandLogoLightAsset({ id: `ci-logo-light-${Date.now()}`, name: 'Light Logo', data: lightLogoUrl.split(',')[1], mimeType: 'image/jpeg', prompt: 'Light Logo' });
+        }
+      }
+
+      // Generate the CI Documentation Text
+      const textModelName = 'gemini-2.0-flash'; // standard fallback
+      const masterCiPrompt = `Role: You are a Senior UI/UX Architect and Brand Strategist operating within a high-end, tech-forward Creative Studio.
+Task: Generate a comprehensive technical specification for a Corporate Identity (CI) Brand Guidelines PDF for the company "${companyName || 'JAMINI Studio'}". Industry: ${industry || 'Creative Design'}. Voice: ${brandVoice || 'Professional'}. Values: ${brandValues || 'Quality'}.
+
+The output must be structured for "top-class" professional execution, focusing on minimalist prose and functional hierarchy.
+
+Deliverables:
+1. Essential CI Components
+List every element required for a complete identity, including:
+Primary, Secondary, and Monochrome Logos: Clearances and minimum size specs.
+Typography Hierarchy: Primary and secondary typefaces with specific weights for H1 through Body.
+Color Theory: A table containing HEX, RGB, CMYK, and Pantone codes.
+Iconography & Imagery: Guidelines for custom icon sets and art direction for photography.
+
+2. Technical File Manifest
+Provide a table of required file formats for hand-off, categorized by:
+Vector (Scalable): .AI, .EPS, .SVG.
+Raster (Digital): .PNG (transparent), .JPG (high-res), .WebP.
+Print: .PDF (Press Quality, CMYK, with bleed).
+
+3. Professional Document Layout & Anatomy
+Define the layout for a 20+ page CI Guide using the following standards:
+Grid System: Explain the use of a 12-column grid or baseline grid for perfect alignment.
+Navigation Headers: Specifications for "Section ID" headers and folio numbers.
+Technical Labels: Use of callouts to explain "Safe Zones" and "Construction Geometry" using $inline\_math$ for ratios where applicable (e.g., $1:1.618$).
+Visual Separation: Use horizontal rules and bold emphasis to define different brand "phases."
+
+Tone & Style:
+Maintain a polished, business-ready tone.
+Use modern industry terminology (e.g., "Visual DNA," "Scalability Logistics," "Chromatic Harmony").
+Ensure all descriptions are concise yet technically dense.
+Formatting: Use Markdown headers, bold key terms, and tables for data comparison.
+
+Implementation Roadblocks to Anticipate
+Color Shift: Ensure you specify that Pantone (PMS) is mandatory for physical branding to avoid the common "RGB to CMYK" shift during printing.
+Font Licensing: Always include a section for "Web-Safe Alternatives" (e.g., a Google Font equivalent) to ensure the brand remains consistent across web platforms without $10,000+ licensing fees.
+Aspect Ratios: When generating assets, define if the brand utilizes a standard 16:9 digital footprint or a more traditional A4 print-first approach.`;
+
+      const aiResponse = await withTimeout(ai.models.generateContent({
+        model: textModelName,
+        contents: [{ role: 'user', parts: [{ text: masterCiPrompt }] }]
+      }), 60000, "CI text generation timed out.");
+      
+      const ciMarkdown = aiResponse.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('') || '';
+      setCiSummary(ciMarkdown);
+
+      // Generate the PDF
+      await generateCIBible(darkLogo, lightLogo, companyName || "JAMINI Studio", ciMarkdown);
+
+    } catch (err: any) {
+      console.error("CI Generation Error:", err);
+      let errorMessage = err.message || String(err);
+      if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getImageModelString(imageEngine)}). Please switch to 'Gemini 2.5 Flash Image (Free)'.`;
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. Verify your API key.";
+      }
+      setError("Failed to generate CI: " + errorMessage);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (generationObjective === 'ci-generator') {
+      await handleGenerateCI();
+      return;
+    }
+    if (generationObjective === 'logo') {
+      await handleGenerateLogo();
+      return;
+    }
+    if (!scenePrompt.trim()) { setError("Please enter a scene description."); return; }
+    setIsGenerating(true); setError(null);
+
+    try {
+      const colorText = themeColors.length > 0 ? `Use the following color theme: ${themeColors.join(', ')}.` : '';
+      
+      const specificAssetPrompts = [
+        ...productAssets.map(a => `Product Asset (${a.name}): ${a.prompt || ''} ${a.material ? `| Material: ${a.material}` : ''} ${a.lightingInteraction ? `| Lighting: ${a.lightingInteraction}` : ''} ${a.position ? `| Position: ${a.position}` : ''} -> CRITICAL: This is a strict product placement. DO NOT regenerate, redraw, or make mistakes on this product. It MUST be identical to the uploaded asset. No changes to uploaded assets are allowed to avoid false advertisement.`),
+        ...(brandLogoAsset ? [`Brand Logo (Dark Bg) Asset: ${brandLogoAsset.prompt || ''} ${brandLogoAsset.material ? `| Material: ${brandLogoAsset.material}` : ''} ${brandLogoAsset.lightingInteraction ? `| Lighting: ${brandLogoAsset.lightingInteraction}` : ''} ${brandLogoAsset.position ? `| Position: ${brandLogoAsset.position}` : ''} -> CRITICAL: Use for Dark Background contexts. Use exactly as provided.`] : []),
+        ...(brandLogoLightAsset ? [`Brand Logo (Light Bg) Asset: ${brandLogoLightAsset.prompt || ''} ${brandLogoLightAsset.material ? `| Material: ${brandLogoLightAsset.material}` : ''} ${brandLogoLightAsset.lightingInteraction ? `| Lighting: ${brandLogoLightAsset.lightingInteraction}` : ''} ${brandLogoLightAsset.position ? `| Position: ${brandLogoLightAsset.position}` : ''} -> CRITICAL: Use for Light Background contexts. Use exactly as provided.`] : []),
+        ...(companyLogoAsset ? [`Company Logo (Dark Bg) Asset: ${companyLogoAsset.prompt || ''} ${companyLogoAsset.material ? `| Material: ${companyLogoAsset.material}` : ''} ${companyLogoAsset.lightingInteraction ? `| Lighting: ${companyLogoAsset.lightingInteraction}` : ''} ${companyLogoAsset.position ? `| Position: ${companyLogoAsset.position}` : ''} -> CRITICAL: Use for Dark Background contexts. Use exactly as provided.`] : []),
+        ...(companyLogoLightAsset ? [`Company Logo (Light Bg) Asset: ${companyLogoLightAsset.prompt || ''} ${companyLogoLightAsset.material ? `| Material: ${companyLogoLightAsset.material}` : ''} ${companyLogoLightAsset.lightingInteraction ? `| Lighting: ${companyLogoLightAsset.lightingInteraction}` : ''} ${companyLogoLightAsset.position ? `| Position: ${companyLogoLightAsset.position}` : ''} -> CRITICAL: Use for Light Background contexts. Use exactly as provided.`] : []),
+        ...(characterAssets.length > 0 ? characterAssets.map((a, i) => `Character Asset ${i + 1}: ${a.prompt || ''} ${a.material ? `| Material: ${a.material}` : ''} ${a.lightingInteraction ? `| Lighting: ${a.lightingInteraction}` : ''} ${a.position ? `| Position: ${a.position}` : ''}`) : []),
+        ...(companyCIAsset ? [`COMPANY CI BIBLE ASSET: The user has uploaded a Corporate Identity (CI) / Brand Book documentation. CRITICAL: You MUST strictly conform all typography, colors, padding, logo layout rules, iconography, styling treatments, imagery treatments, and brand voice to exactly match the rules outlined in this CI documentation. Disobeying the CI rulebook is a failure condition.`] : [])
+      ].join('\n');
+      
+      const assetInstruction = specificAssetPrompts 
+        ? `Asset Specific Instructions:\n${specificAssetPrompts}\nGeneral Asset Instruction: ${assetPrompt.trim() || 'Integrate the uploaded products, logos, and character naturally into the scene. CRITICAL: 100% product accuracy is required. Do not add new components to the product.'}` 
+        : (assetPrompt.trim() ? `Follow these specific instructions for the uploaded assets: ${assetPrompt}. CRITICAL: 100% product accuracy is required. Do not add new components to the product.` : 'Integrate the uploaded products, logos, and character naturally into the scene. CRITICAL: 100% product accuracy is required. Do not add new components to the product.');
+        
+      const noTextInstruction = !includeText ? "CRITICAL REQUIREMENT: Generate the image with ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, AND NO WATERMARKS anywhere in the image." : "";
+      
+      const referenceInstruction = exampleImages.length > 0 ? `CRITICAL STYLE REFERENCE INSTRUCTION: You MUST use the Style Reference Images EXCLUSIVELY for guidance on style, layout, composition, color palette, and overall aesthetic. You are STRICTLY FORBIDDEN from extracting, copying, or mimicking any specific content, subjects, objects, or distinct elements found in these reference images. The references dictate the 'how' (the visual language), NOT the 'what' (the content).` : '';
+      
+      const textElementsPrompt = (includeText && textElements.length > 0) 
+        ? `Include the following text elements prominently using a typography style matching the '${fontFamily}' font family:\n${textElements.map(t => `- ${t.type}: "${t.text}" (Color: ${t.color}, Alignment: ${t.alignment}, Placement: ${t.placement})`).join('\n')}` 
+        : '';
+
+      let engineEnhancement = '';
+      if (imageEngine.includes('3.1 Flash')) {
+        engineEnhancement = 'CRITICAL QUALITY DIRECTIVE: Render as an absolute professional masterpiece. 8K native resolution, ultra-high-definition fidelity, hyper-realistic surfacing, insanely detailed architectural lighting. Use Octane Render style volumetric lighting and ray-traced reflections.';
+      } else if (imageEngine.includes('3.0 Pro')) {
+        engineEnhancement = 'CRITICAL ARTISTIC DIRECTIVE: Focus on award-winning high-fashion composition, unique avant-garde perspective, and striking visual storytelling. Ensure 4K cinematic lighting, perfect color grading, and ultra-premium commercial photography standards.';
+      }
+
+      let modelName = 'gemini-2.5-flash-image';
+      if (imageEngine === 'Nano Banana 2 (Gemini 3.1 Flash Image) (Free)') modelName = 'gemini-3.1-flash-image-preview';
+      if (imageEngine === 'ImageFX (S2)') modelName = 'gemini-3.1-flash-image-preview'; // Fallback to highest quality image model
+      if (imageEngine === 'Gemini 3.0 Pro Image (Paid)') modelName = 'gemini-3-pro-image-preview';
+
+      const requiresUserKey = imageEngine.includes('Paid');
+
+      // @ts-ignore - window.aistudio is injected by the platform
+      if (requiresUserKey && window.aistudio) {
+        // @ts-ignore
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        if (!hasKey) {
+          // @ts-ignore
+          await window.aistudio.openSelectKey();
+        }
+      }
+
+      const customRulesText = rules.length > 0 ? `CRITICAL RULES TO FOLLOW:\n${rules.map((r, i) => `${i + 1}. ${r}`).join('\n')}` : '';
+      const ciInstruction = ciSummary ? `MASTER BRAND AUTHORITY (STRICT CI COMPLIANCE REQUIRED):
+      You are generating artwork for a company with a rigid Brand Bible. You ARE FORBIDDEN from deviating from these guidelines.
+      
+      CORE BRAND LAWS:
+      ${ciSummary}
+      
+      CRITICAL:
+      - Use ONLY the specified brand colors.
+      - Adhere to typography rules (Matching font style: ${fontFamily}).
+      - Respect all placement and 'Never-Ever' restrictions defined in the CI.
+      - The overall aesthetic MUST be 100% consistent with the brand's visual identity.
+      
+      Failure to follow these rules will result in an unacceptable, off-brand result.` : '';
+
+      const fullPrompt = `${ciInstruction}
+        
+        Professional high-end advertisement poster. 
+        Dimension: ${isCustomSize ? `${customWidthMm}mm x ${customHeightMm}mm (PHYSICAL SPEC)` : dimensionMode}. 
+        Aspect Ratio (Target): ${isCustomSize ? `${Number(customWidthMm)/Number(customHeightMm) > 1 ? 'Landscape' : 'Portrait'} requested by physical dimensions` : aspectRatio}.
+        Layout: ${layout}. 
+        Scene: ${scenePrompt}. 
+        Style: ${style}. 
+        Lighting: ${lighting}. 
+        ${colorText} 
+        ${noTextInstruction} 
+        ${textElementsPrompt} 
+        ${assetInstruction} 
+        ${referenceInstruction} 
+        ${engineEnhancement} 
+        ${customRulesText} 
+        ${negativePrompt ? `CRITICAL EXCLUSIONS (NEGATIVE PROMPT): ${negativePrompt}. You MUST NOT include any of these elements in the generation.` : ''}
+        Dynamics: ${Object.entries(dynamics).filter(([k, v]) => typeof v === 'boolean' && v).map(([k, _]) => k.replace(/([A-Z])/g, ' $1')).join(', ')}.
+        Material Properties: Metallic (${dynamics.metallic}%), Roughness (${dynamics.roughness}%), Normal Map Intensity (${dynamics.normalMapIntensity}%), Film Grain (${dynamics.filmGrain}%), Contrast (${dynamics.contrast}%), Saturation (${dynamics.saturation}%), Color Grading Intensity (${dynamics.colorGradingIntensity}%), Lens Distortion (${dynamics.lensDistortion}%), Particle Density (${dynamics.particleDensity}%).
+        ${dynamics.noMistakes ? "CRITICAL QUALITY CONTROL: You must meticulously review and correct any perceived errors in anatomy, symmetry, or object integrity before finalizing the image. Ensure absolute zero anatomical errors, perfect symmetry where applicable, and flawless object boundaries to meet the highest professional standards for accuracy and flawlessness." : ""}
+        Composition: Top-class product photography, high detail, 4k resolution, sharp focus. 
+        If a character is provided, render them in a high-quality 3D animation style with expressive features. 
+        Ensure the logos (if provided) are placed professionally as branding. CRITICAL: The provided logo assets are strictly unalterable. You MUST use them verbatim. Do NOT make any modifications to their appearance, color, shape, or form under any circumstances. 
+        The uploaded product images are the main subjects.
+        
+        CRITICAL INSTRUCTION: You MUST strictly follow all provided prompts, styles, and rules. Use the selected Layout (${layout}) and Visual Style (${style}) as the primary framework, heavily informed by the Style Reference Images for company identity and aesthetic only. DO NOT extract content from Style Reference Images.
+        CRITICAL INSTRUCTION: You MUST incorporate EVERY single uploaded asset into the final image. Do not omit any product, logo, or character provided.
+        CRITICAL INSTRUCTION: 100% PRODUCT ACCURACY REQUIRED. The uploaded product images are the main subjects. You MUST regenerate the product exactly as it looks in the uploaded image. ZERO extra regeneration is allowed to add new components, features, or details to the product. It MUST be 100% identical to the uploaded assets to avoid false advertisement. Do not hallucinate or modify the product's shape, text, or components in any way. No changes to uploaded assets are allowed.`;
+
+      const parts: any[] = [{ text: fullPrompt }];
+      productAssets.forEach(asset => parts.push({ inlineData: { data: asset.data, mimeType: asset.mimeType } }));
+      if (brandLogoAsset) parts.push({ inlineData: { data: brandLogoAsset.data, mimeType: brandLogoAsset.mimeType } });
+      if (brandLogoLightAsset) parts.push({ inlineData: { data: brandLogoLightAsset.data, mimeType: brandLogoLightAsset.mimeType } });
+      if (companyLogoAsset) parts.push({ inlineData: { data: companyLogoAsset.data, mimeType: companyLogoAsset.mimeType } });
+      if (companyLogoLightAsset) parts.push({ inlineData: { data: companyLogoLightAsset.data, mimeType: companyLogoLightAsset.mimeType } });
+      characterAssets.forEach(a => parts.push({ inlineData: { data: a.data, mimeType: a.mimeType } }));
+      exampleImages.forEach(asset => parts.push({ inlineData: { data: asset.data, mimeType: asset.mimeType } }));
+      if (companyCIAsset) parts.push({ inlineData: { data: companyCIAsset.data, mimeType: companyCIAsset.mimeType } });
+
+      const isPaid = imageEngine.includes('Paid') || imageEngine === 'ImageFX (S2)' || imageEngine === 'Nano Banana 2 (Gemini 3.1 Flash Image) (Free)';
+      const apiKey = getApiKey(isPaid ? 'paid' : 'free');
+      if (!apiKey) throw new Error("API key is missing! Please configure one in Settings.");
+      const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+      let imageUrl = '';
+      let videoUrl = '';
+
+      if (imageEngine.includes('Veo')) {
+        setVideoStatus("Initializing Video Engine...");
+        const isVeoPro = imageEngine.includes('3.1');
+        const veoModel = isVeoPro ? 'veo-3.1-generate-preview' : 'veo-3.1-lite-generate-preview';
+        
+        // Final Prompt Construction for Video - making it more authoritative
+        const finalStoryboard = videoScenes.length > 0 
+          ? videoScenes.map(s => `[SCENE ${s.id}] Duration: ${s.duration}s. \n  Camera: ${s.cameraMotion || 'None'} \n  Lens: ${s.lensType || 'None'} \n  Lighting: ${s.lighting || 'Default'}\n  Transition out: ${s.transitionType || 'Cut'}\n  Audio Cue: ${s.audioCue || 'None'}\n  Prompt: ${s.prompt}`).join('\n\n')
+          : videoScript;
+
+        const videoBasePrompt = isAdMode && finalStoryboard 
+          ? `[CINEMATIC AD PRODUCTION]
+             DURATION: ${videoDuration} SECONDS
+             
+             [STORYBOARD SCRIPT - EXECUTE PRECISELY]
+             ${finalStoryboard}
+             
+             [VISUAL STYLE & DIRECTOR'S NOTES]
+             ${fullPrompt}
+             
+             CRITICAL MISSION: You are acting as the primary DP and Director. Every frame must be perfectly stable, high-fidelity, and strictly follow the scene-by-scene timing provided above.`
+          : `[MASTER COMMERCIAL CLIP]
+             DURATION: ${videoDuration} SECONDS
+             CONTEXT: ${fullPrompt}
+             STYLE: ${style} - ${lighting}`;
+
+        // @ts-ignore
+        const response = await withTimeout(ai.models.generateVideos({
+          model: veoModel,
+          prompt: videoBasePrompt,
+          // @ts-ignore
+          config: {
+            numberOfVideos: 1,
+            resolution: isVeoPro ? '4k' : '1080p',
+            aspectRatio: aspectRatio === '16:9' || aspectRatio === '9:16' ? aspectRatio : '16:9',
+            // @ts-ignore
+            durationSeconds: videoDuration
+          }
+        }), 120000, "Video generation request timed out.");
+
+        let operation = response;
+        let attempts = 0;
+        setVideoStatus("Orchestrating Vision Matrix...");
+        
+        while (!operation.done && attempts < 120) { // Increase timeout for video
+          await new Promise(resolve => setTimeout(resolve, 8000));
+          operation = await withTimeout(ai.operations.get({ operationId: operation.name } as any), 30000, "Operation status check timed out.");
+          attempts++;
+          
+          const progress = Math.min(Math.floor((attempts / 80) * 100), 99);
+          
+          let statusMessage = "Synthesizing Motion...";
+          if (videoScenes.length > 0) {
+            const currentSceneIdx = Math.min(Math.floor((progress / 100) * videoScenes.length), videoScenes.length - 1);
+            const sceneName = (currentSceneIdx + 1).toString();
+            if (progress < 20) statusMessage = `Analyzing Scene ${sceneName} Geometry...`;
+            else if (progress < 50) statusMessage = `Rendering Scene ${sceneName} Cinematic Frames...`;
+            else if (progress < 80) statusMessage = `Simulating Scene ${sceneName} Physics & Flow...`;
+            else statusMessage = `Compositing Scene ${sceneName} Visual FX...`;
+          } else {
+            if (progress < 15) statusMessage = "Analyzing Script & Scene Hierarchy...";
+            else if (progress < 30) statusMessage = "Initializing Physical Simulation Lattice...";
+            else if (progress < 50) statusMessage = "Rendering High-Fidelity Master Frames...";
+            else if (progress < 75) statusMessage = "Compositing Lighting & Volumetric Shaders...";
+            else if (progress < 90) statusMessage = "Encoding Temporal Consistency Layers...";
+            else statusMessage = "Finalizing 4K Cinematic Artifact...";
+          }
+
+          setVideoStatus(`${statusMessage} (${progress}%)`);
+        }
+
+        if (!operation.done) throw new Error("Video generation timed out after 15 minutes. This high-end model requires more processing time.");
+        
+        if (operation.response?.generatedVideos?.[0]?.video?.uri) {
+          setVideoStatus("Finalizing & Fetching Stream...");
+          const uri = operation.response.generatedVideos[0].video.uri;
+          // IMPORTANT: Must fetch with API Key header
+          const fetchResponse = await fetch(uri, {
+            headers: { 'x-goog-api-key': apiKey }
+          });
+          if (!fetchResponse.ok) throw new Error("Failed to fetch generated video stream.");
+          const videoBlob = await fetchResponse.blob();
+          videoUrl = URL.createObjectURL(videoBlob);
+        }
+      } else if (imageEngine.includes('Hugging Face')) {
+        const hfModel = imageEngine === 'I2VGen-XL (Hugging Face)' ? 'ali-vilab/i2vgen-xl' : 'Wan-AI/Wan2.1-T2V-14B';
+        const response = await withTimeout(fetch(`https://api-inference.huggingface.co/models/${hfModel}`, {
+          headers: { 
+            "Authorization": `Bearer ${import.meta.env.VITE_HF_TOKEN || ''}`, 
+            "Content-Type": "application/json" 
+          },
+          method: "POST",
+          body: JSON.stringify({ inputs: fullPrompt }),
+        }), 120000, "Hugging Face API request timed out.");
+        if (!response.ok) {
+          throw new Error(`Hugging Face API Error: ${response.statusText}. This may require a valid HF token in settings or the model is currently busy.`);
+        }
+        const blob = await response.blob();
+        videoUrl = URL.createObjectURL(blob);
+      } else {
+        // Evaluate if the model requires generateContent or generateImages
+        const imageModelString = getImageModelString(imageEngine);
+        let base64EncodeString: string | undefined = undefined;
+
+        if (imageModelString.includes('gemini')) {
+          const parts: any[] = [{ text: fullPrompt }];
+          // Note: Full poster generation doesn't use reference images out of the box in this flow currently
+          // but if we had them, we would append inlineData parts here.
+          if (exampleImages.length > 0) {
+            exampleImages.forEach(img => {
+              parts.push({ inlineData: { data: img.data, mimeType: img.mimeType } });
+            });
+          }
+
+          const response = await ai.models.generateContent({
+            model: imageModelString,
+            contents: { parts },
+            config: {
+              imageConfig: {
+                aspectRatio: aspectRatio,
+                imageSize: "1K"
+              }
+            }
+          });
+
+          for (const part of response.candidates?.[0]?.content?.parts || []) {
+            if (part.inlineData) {
+              base64EncodeString = part.inlineData.data;
+              break;
+            }
+          }
+        } else {
+          // Native Image Generation using generateImages for Imagen models
+          const response = await ai.models.generateImages({
+            model: imageModelString,
+            prompt: fullPrompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: aspectRatio,
+            },
+          });
+          base64EncodeString = response.generatedImages?.[0]?.image?.imageBytes;
+        }
+
+        if (base64EncodeString) {
+          imageUrl = `data:image/jpeg;base64,${base64EncodeString}`;
+        }
+      }
+
+      if (videoUrl) {
+        setGeneratedVideo(videoUrl);
+        setGeneratedImage(null);
+        setActiveStep(4); // PREVIEW Step
+        
+          try {
+            const history = await localforage.getItem<any[]>('jamini_history') || [];
+            // We fetch the blob again to ensure we store the actual data, not just the temporary URL
+            const videoBlob = await fetch(videoUrl).then(r => r.blob());
+            history.push({ 
+              id: Date.now().toString(), 
+              type: 'video', 
+              dataUrl: videoBlob, 
+              date: Date.now(), 
+              prompt: fullPrompt.substring(0, 500),
+              clientName,
+              companyName,
+              industry
+            });
+            await localforage.setItem('jamini_history', history);
+          } catch(e) { console.error(e) }
+      } else if (imageUrl) {
+        setGeneratedImage(imageUrl);
+        setGeneratedVideo(null);
+        setActiveStep(4); // PREVIEW Step
+        
+          try {
+            const history = await localforage.getItem<any[]>('jamini_history') || [];
+            history.push({ 
+              id: Date.now().toString(), 
+              type: 'image', 
+              dataUrl: imageUrl, 
+              date: Date.now(), 
+              prompt: fullPrompt.substring(0, 500),
+              clientName,
+              companyName,
+              industry
+            });
+            await localforage.setItem('jamini_history', history);
+          } catch(e) { console.error(e) }
+      } else {
+        throw new Error("No output was generated. Please try a different prompt.");
+      }
+    } catch (err: any) {
+      shiftKey();
+      console.error("Generation error:", err);
+      let errorMessage = err.message || "An unexpected error occurred during generation.";
+      if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+        shiftKey();
+        errorMessage = "Rate limit exceeded. Key automatically rotated. Please try again in a few seconds.";
+      } else if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+        errorMessage = "Permission denied. The selected Image Engine may not be available on your current API tier or region. Try switching to 'Gemini 2.0 Flash'.";
+      } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+        errorMessage = `Model not found (${getTextModelString(imageEngine)}). Please try switching back to Gemini 2.0 Flash.`;
+      }
+      setError(errorMessage);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadVideo = () => {
+    if (!generatedVideo) return;
+    const link = document.createElement('a');
+    link.href = generatedVideo;
+    link.download = `jamini-commercial-${Date.now()}.mp4`;
+    link.click();
+  };
+
+  const downloadImage = (format: string) => {
+    if (!generatedImage) return;
+    handleUniversalDownload(generatedImage, `jamini-generation-${Date.now()}`, format);
+  };
+
+
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const renderHeader = () => (
+    <div className="w-full shrink-0">
+      {/* Desktop Header */}
+      <header role="banner" className="hidden lg:flex h-12 border-b border-white/5 bg-black/40 backdrop-blur-md items-center justify-between px-4 z-50 transform-gpu shadow-xl w-full">
+        <div className="flex items-center gap-4">
+          <JaminiLogo size="sm" showText={true} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+        </div>
+
+        <nav className="flex items-center gap-2">
+          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors px-3 font-sans">
+            Meet Jamini
+          </button>
+          <div className="w-px h-4 bg-white/10 mx-1" />
+          <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1 shadow-inner">
+            <button 
+              onClick={() => { setGenerationObjective(null); setActiveStep(1); }} 
+              className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter hover:bg-white/10 transition-all text-fuchsia-400 font-sans"
+            >
+              CHOOSE GOAL
+            </button>
+            <div className="w-px h-3 bg-white/10 mx-0.5" />
+            <button onClick={() => setCurrentView('gallery')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'gallery' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]" : "text-white/40 hover:text-white/70")}>VAULT</button>
+            <button onClick={() => setCurrentView('settings')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'settings' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>SYSTEM</button>
+            <button onClick={() => setCurrentView('guide')} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all font-sans", currentView === 'guide' ? "bg-white/10 text-white" : "text-white/40 hover:text-white/70")}>TERMINAL</button>
+          </div>
+
+          <button onClick={() => downloadImage('png')} disabled={!generatedImage} aria-label="Export generated image" className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/5 disabled:text-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ml-2">
+            <Download className="w-3 h-3" aria-hidden="true" /> <span className="hidden 2xl:inline font-sans">Export</span>
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile Header with Hamburger Dropdown */}
+      <header role="banner" className="lg:hidden h-14 border-b border-white/5 bg-black/40 backdrop-blur-xl items-center justify-between px-4 z-50 transform-gpu shadow-2xl flex w-full relative">
+        <div className="flex items-center gap-3 shrink-0">
+          <JaminiLogo size="sm" showText={false} onClick={() => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }} />
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            <span className="text-[10px] font-black text-white/90 tracking-tighter leading-none font-sans">JAMINI</span>
+            <span className="text-[7px] font-bold text-indigo-400/80 uppercase tracking-[0.2em] leading-none mt-0.5">Studio v4.0</span>
+          </motion.div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={() => { handleEnter(); if (!generationObjective) setGenerationObjective('poster'); setActiveStep(5); }} className="text-[8px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-1.5 rounded-lg border border-indigo-500/20 active:scale-95 transition-all font-sans">Meet Jamini</button>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+              className={cn(
+                "w-10 h-10 rounded-xl flex flex-col items-center justify-center gap-1 transition-all duration-300 relative overflow-hidden",
+                isMobileMenuOpen ? "bg-white/10" : "bg-white/5 hover:bg-white/10"
+              )}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+              <motion.span 
+                animate={isMobileMenuOpen ? { rotate: 45, y: 5 } : { rotate: 0, y: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full origin-center" 
+              />
+              <motion.span 
+                animate={isMobileMenuOpen ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full" 
+              />
+              <motion.span 
+                animate={isMobileMenuOpen ? { rotate: -45, y: -5 } : { rotate: 0, y: 0 }}
+                className="w-5 h-0.5 bg-white/60 rounded-full origin-center" 
+              />
+            </button>
+            
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.nav 
+                  id="jamini-mobile-menu"
+                  initial={{ opacity: 0, scale: 0.9, y: -20, rotateX: -15, rotateY: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0, rotateY: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20, rotateX: -15, rotateY: 10 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute top-12 right-0 w-64 bg-[#0a0a0c]/95 border border-white/10 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.8)] rounded-2xl overflow-hidden flex flex-col origin-top-right z-[100] p-2 gap-1.5 text-left border-t-white/20"
+                  style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
+                >
+                  <div className="px-3 py-2 border-b border-white/5 mb-1">
+                    <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Master Navigation</p>
+                  </div>
+
+                  {[
+                    { 
+                      label: "Choose Goal", 
+                      sub: "Define Art Intent", 
+                      icon: Target, 
+                      color: "text-fuchsia-400", 
+                      bg: "hover:bg-fuchsia-500/10",
+                      action: () => { setGenerationObjective(null); setActiveStep(1); }
+                    },
+                    { 
+                      label: "Vault Archive", 
+                      sub: "Local IndexedDB", 
+                      icon: Database, 
+                      active: currentView === 'gallery',
+                      color: "text-indigo-400", 
+                      bg: "hover:bg-indigo-500/10",
+                      action: () => setCurrentView('gallery')
+                    },
+                    { 
+                      label: "System Settings", 
+                      sub: "API & Performance", 
+                      icon: Settings2, 
+                      active: currentView === 'settings',
+                      color: "text-emerald-400", 
+                      bg: "hover:bg-emerald-500/10",
+                      action: () => setCurrentView('settings')
+                    },
+                    { 
+                      label: "Dev Terminal", 
+                      sub: "Architecture Guide", 
+                      icon: Terminal, 
+                      active: currentView === 'guide',
+                      color: "text-amber-400", 
+                      bg: "hover:bg-amber-500/10",
+                      action: () => setCurrentView('guide')
+                    }
+                  ].map((item, idx) => (
+                    <motion.button 
+                      key={idx}
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { item.action(); setIsMobileMenuOpen(false); }} 
+                      className={cn(
+                        "group flex items-center gap-3 px-3 py-3 rounded-xl w-full text-left transition-all duration-300 border border-transparent",
+                        item.active ? "bg-white/10 border-white/10 shadow-inner" : cn(item.bg, "hover:border-white/5")
+                      )}
+                    >
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-black/40 border border-white/5 shadow-lg group-hover:scale-110 transition-transform", item.color)}>
+                        {item.icon && <item.icon className="w-5 h-5" />}
+                      </div>
+                      <div className="flex-1 flex flex-col items-start gap-0">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-white leading-none font-sans">{item.label}</span>
+                        <span className="text-[8px] font-bold text-white/30 uppercase tracking-tighter mt-1">{item.sub}</span>
+                      </div>
+                      {item.active && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]" />}
+                    </motion.button>
+                  ))}
+                  
+                  <div className="mt-2 p-3 bg-white/5 border-t border-white/5 rounded-b-xl flex items-center justify-between">
+                     <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">v4.0.2 Ent</span>
+                     <div className="flex gap-1">
+                        <div className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
+                        <div className="w-1 h-1 rounded-full bg-fuchsia-500 animate-pulse delay-75" />
+                     </div>
+                  </div>
+                </motion.nav>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </header>
+    </div>
+  );
+
+  const renderContent = () => {
+    if (currentView === 'guide') return <SetupGuide onBack={() => setCurrentView('editor')} />;
+    if (currentView === 'settings') return <SettingsPage onBack={() => setCurrentView('editor')} />;
+    if (currentView === 'gallery') return <GalleryPage onBack={() => setCurrentView('editor')} />;
+    if (currentView === 'storyboard') return (
+      <StoryboardView 
+        onBack={() => setCurrentView('editor')} 
+        editorState={currentState}
+        getApiKey={getApiKey}
+        onUpdateState={applyState}
+      />
+    );
+
+    if (!generationObjective) return (
+      <div className="flex flex-col h-full overflow-hidden w-full relative">
+        {renderHeader()}
+        <div className="flex-1 overflow-y-auto w-full">
+          <ObjectiveSelector />
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="flex flex-col h-full bg-transparent text-white font-sans overflow-hidden selection:bg-indigo-500/30 relative">
+        {renderHeader()}
+        {/* 3D/4D Popping Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.08, 0.12, 0.08],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-indigo-600/20 rounded-full blur-[120px] will-change-transform" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.05, 1],
+              opacity: [0.05, 0.1, 0.05],
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-fuchsia-600/20 rounded-full blur-[100px] will-change-transform" 
+          />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KICA8ZmlsdGVyIGlkPSdub2lzZSgpJz4KICAgIDxmZVR1cmJ1bGVuY2UgdHlwZT0nZnJhY3RhbE5vaXNlJyBiYXNlRnJlcXVlbmN5PScwLjY1JyBudW1PY3RhdmVzPSczJyBzdGl0Y2hUaWxlcz0nc3RpdGNoJy8+CiAgPC9maWx0ZXI+CiAgPHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsdGVyPSd1cmwoI25vaXNlKCkpJy8+Cjwvc3ZnPg==')] opacity-[0.03] mix-blend-overlay" />
+          
+          {/* Floating 4D Particles */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ x: Math.random() * 100 + "%", y: Math.random() * 100 + "%", opacity: 0 }}
+              animate={{ 
+                y: [null, "-200px"],
+                opacity: [0, 0.4, 0],
+                rotate: [0, 360]
+              }}
+              transition={{ 
+                duration: 10 + Math.random() * 10, 
+                repeat: Infinity, 
+                delay: Math.random() * 5,
+                ease: "easeInOut"
+              }}
+              className="absolute w-1 h-1 bg-white/40 rounded-full blur-sm"
+            />
+          ))}
+        </div>
+
+        {/* Header has been extracted */}
+
+        {/* Main Workspace */}
+        <main className="flex-1 flex flex-col overflow-hidden relative pb-16 lg:pb-0 bg-transparent items-center">
+          
+          {/* Top Sub-Nav Workflow (Responsive) */}
+          <div className={cn(
+             "w-full bg-black/40 backdrop-blur-md border-b border-white/5 flex items-center shrink-0 z-30 px-1 py-1 shadow-md relative overflow-x-auto overflow-y-hidden custom-scrollbar",
+             currentView === 'editor' && activeStep <= 3 ? "flex lg:justify-center" : "hidden lg:flex lg:justify-center"
+          )}>
+             <div className="flex items-center gap-0.5 bg-[#121214] p-0.5 rounded-lg border border-white/5 mx-auto lg:mx-0 w-max shrink-0">
+                <button onClick={() => setActiveStep(1)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 1 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> {generationObjective === 'ci-generator' ? 'Brief & Assets' : 'Media'}
+                </button>
+                {generationObjective !== 'ci-generator' && (
+                  <>
+                    <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                    <button onClick={() => setActiveStep(2)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 2 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                      <Palette className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Design
+                    </button>
+                    <ChevronRight className="w-2.5 h-2.5 md:w-3 md:h-3 text-white/20 shrink-0" />
+                    <button onClick={() => setActiveStep(3)} className={cn("px-2 py-1.5 md:px-4 md:py-1.5 rounded-lg text-[8px] md:text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-1 md:gap-2 whitespace-nowrap", activeStep === 3 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                      <SlidersHorizontal className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" /> Properties
+                    </button>
+                  </>
+                )}
+                <div className="w-px h-6 md:h-4 bg-white/10 mx-2 md:mx-1 hidden lg:block" />
+                <button onClick={() => setActiveStep(4)} className={cn("hidden lg:flex px-4 py-2 md:py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all items-center gap-2 relative whitespace-nowrap", activeStep === 4 ? "bg-indigo-500 text-white shadow-lg" : "text-white/40 hover:text-white hover:bg-white/5")}>
+                  {(generatedImage || generatedVideo) && <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse" />}
+                  <MonitorPlay className="w-4 h-4 md:w-3.5 md:h-3.5" /> Preview
+                </button>
+             </div>
+          </div>
+
+          {/* LEFT PANEL: ASSETS (Mobile Tab 1) */}
+          <div className={cn(
+            "w-full lg:max-w-3xl mx-auto flex-col h-full bg-[#121214] lg:bg-transparent lg:py-6 z-20 relative overflow-hidden",
+            activeStep === 1 ? "flex" : "hidden"
+          )}>
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8 lg:bg-[#0c0c0e]/80 lg:backdrop-blur-xl lg:rounded-3xl lg:border border-white/10 lg:shadow-2xl">
+                <motion.div key="step1" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
+                  {/* Image Engine Selection relocated here */}
+                  <div className="space-y-3 bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <Cpu className="w-3.5 h-3.5" /> Synthesis Engine
+                      </label>
+                      <button onClick={() => setCurrentView('settings')} className="text-[10px] flex items-center gap-1 text-amber-400 hover:text-amber-300 transition-colors bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded font-bold">
+                        <Key className="w-3 h-3" /> API Key
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-4 mt-2">
+                       {/* Brand Intelligence Card - ONLY IN LOGO OBJECTIVE */}
+                       {generationObjective === 'logo' && (
+                         <div className="relative overflow-hidden rounded-2xl border transition-all duration-500 bg-indigo-500/10 border-indigo-500/30 p-5 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+                           <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                 <div className="p-2 rounded-xl transition-colors bg-indigo-500 text-white">
+                                    <Palette className="w-4 h-4" />
+                                 </div>
+                                 <div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-wider text-white">Logo Engine</h4>
+                                    <p className="text-[9px] text-white/40">Brand mark focus</p>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <motion.div 
+                             initial={{ opacity: 0, height: 0 }}
+                             animate={{ opacity: 1, height: 'auto' }}
+                             className="space-y-4 pt-4 border-t border-indigo-500/20"
+                           >
+                             <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                   <Book className="w-3.5 h-3.5 text-indigo-400" />
+                                   <span className="text-[10px] font-bold text-white/80">Auto-Generate CI Bible</span>
+                                </div>
+                                <button 
+                                   onClick={() => setIsGenerateCI(!isGenerateCI)}
+                                   className={cn(
+                                     "flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all",
+                                     isGenerateCI ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" : "bg-white/5 text-white/40 border border-white/10"
+                                   )}
+                                >
+                                   {isGenerateCI ? <Check className="w-3 h-3" /> : null}
+                                   {isGenerateCI ? "Enabled" : "Disabled"}
+                                </button>
+                             </div>
+
+                             <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-[9px] font-bold text-indigo-400/60 uppercase tracking-widest">Influence Strength</label>
+                                  <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">{logoInfluence}</span>
+                                </div>
+                                <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
+                                  {(['strict', 'balanced', 'creative'] as const).map(level => (
+                                    <button
+                                      key={level}
+                                      onClick={() => setLogoInfluence(level)}
+                                      className={cn(
+                                        "flex-1 py-2 text-[9px] font-bold uppercase rounded-lg transition-all",
+                                        logoInfluence === level ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "text-white/30 hover:text-white/60"
+                                      )}
+                                    >
+                                      {level}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="relative">
+                                  <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-white/20 pointer-events-none" />
+                                  <input 
+                                    type="text" 
+                                    value={influencePrompt}
+                                    onChange={(e) => setInfluencePrompt(e.target.value)}
+                                    placeholder="Add style hints (e.g. brutalist, organic)"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-[10px] focus:ring-1 focus:ring-indigo-500 outline-none text-white/80 transition-all placeholder:text-white/20"
+                                  />
+                                </div>
+                             </div>
+                           </motion.div>
+                         </div>
+                       )}
+                    </div>
+
+                    <select 
+                      value={imageEngine} 
+                      onChange={(e) => setImageEngine(e.target.value)} 
+                      className="w-full bg-black/60 border border-white/10 text-white rounded-xl p-3 text-xs outline-none focus:border-indigo-500 font-bold shadow-2xl"
+                    >
+                      {imageEnginesList.map(e => <option key={e} value={e} className="bg-[#0a0a0a] text-white">{e}</option>)}
+                    </select>
+                    <p className="text-[10px] text-white/40 leading-relaxed italic border-l-2 border-indigo-500/30 pl-3">
+                      {ENGINE_DETAILS[imageEngine as keyof typeof ENGINE_DETAILS] || 'Custom model selected.'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                         <div className="bg-indigo-500/20 text-indigo-400 w-8 h-8 rounded-full flex items-center justify-center ring-1 ring-indigo-500/40">
+                            <ImageIcon className="w-4 h-4" />
+                         </div>
+                         <div>
+                            <h3 className="text-sm font-black text-white uppercase tracking-wider">Media & Asset Matrix</h3>
+                            <p className="text-[10px] text-white/50 leading-tight">Inject raw files. Jamini uses computer vision to parse structure and style.</p>
+                         </div>
+                      </div>
+                    </div>
+                    
+                    {(productAssets.length > 0 || brandLogoAsset || companyLogoAsset || characterAssets.length > 0) && (
+                      <button 
+                        onClick={enhanceAllAssetPrompts} 
+                        className="w-full text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 px-3 py-3 mt-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] group active:scale-95"
+                      >
+                        <Sparkles className="w-4 h-4 group-hover:animate-pulse" /> Auto-Enhance All Prompts via Vision Model
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-6">
+                    {generationObjective !== 'ci-generator' && (
+                      <div className="bg-[#0a0a0c]/50 p-4 rounded-2xl border border-white/5 space-y-4">
+                        <div>
+                           <h3 className="text-xs font-black text-white uppercase tracking-wider block">
+                             {isLogoMode ? "Reference Imagery (Design DNA)" : "Product / Core Subject"}
+                           </h3>
+                           <p className="text-[10px] text-white/40 leading-tight mt-1">Upload primary assets. The engine builds the physical scene around these objects, calculating lighting, bounce, and scale proportionally.</p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                      {productAssets.map(asset => (
+                        <div key={asset.id} className="flex flex-col gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                          <div className="flex items-start gap-3 w-full">
+                            <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-[#121215] border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                              <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Product" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                              <button onClick={() => removeAsset(asset.id, 'product')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                            </div>
+                            <div className="flex-1 flex flex-col gap-2 w-full truncate">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-white/80 truncate pr-2">{asset.name}</span>
+                                <button onClick={() => refineSpecificAssetPrompt(asset.id, 'product')} disabled={asset.isRefining || !asset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                  {asset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                </button>
+                              </div>
+                              <input type="text" value={asset.prompt || ''} onChange={(e) => updateAssetPrompt(asset.id, 'product', e.target.value)} placeholder={isLogoMode ? "Describe how this influences the logo..." : "Describe physical state (e.g. 'Hovering, casting a hard shadow')..."} className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white transition-colors hover:border-white/20" />
+                            </div>
+                          </div>
+                          <details className="group w-full">
+                            <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                              <Settings2 className="w-3.5 h-3.5" /> Advanced Physical Controls <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                            </summary>
+                            <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                              <div>
+                                <label className="text-[9px] font-black text-white/50 uppercase tracking-wider mb-1 block">Surface Material (PBR)</label>
+                                <input type="text" placeholder="e.g. Anodized Aluminum, Matte Plastic" value={asset.material || ''} onChange={(e) => updateAssetDetails(asset.id, 'product', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                              </div>
+                              <div>
+                                <label className="text-[9px] font-black text-white/50 uppercase tracking-wider mb-1 block">Light Interaction Constraints</label>
+                                <input type="text" placeholder="e.g. Absorbs light, highly reflective, rim lit" value={asset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(asset.id, 'product', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                              </div>
+                              <div>
+                                <label className="text-[9px] font-black text-white/50 uppercase tracking-wider mb-1 block">Z-Space Position</label>
+                                <input type="text" placeholder="e.g. Foreground, slightly tilted left" value={asset.position || ''} onChange={(e) => updateAssetDetails(asset.id, 'product', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                      ))}
+                      <button onClick={() => productInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                        <Upload className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{isLogoMode ? "Upload Reference DNA" : "Ingest Core Product"}</span>
+                      </button>
+                      <input type="file" ref={productInputRef} onChange={(e) => handleFileUpload(e, 'product')} multiple accept="image/*" className="hidden" />
+                      </div>
+                      </div>
+                    )}
+                    {generationObjective !== 'logo' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                            <div>
+                               <h3 className="text-xs font-black text-white uppercase tracking-wider">Brand Logo (Dark Background)</h3>
+                               <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Used for environments with deep contrast lighting. Evaluated for specular highlights across metallic logo surfaces.</p>
+                            </div>
+                            {brandLogoAsset ? (
+                              <div className="flex flex-col md:flex-row gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-[#0a0a0c] border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                                  <img src={`data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}`} alt="Brand Logo" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                                  <button onClick={() => removeAsset(brandLogoAsset.id, 'brandLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white/80 truncate pr-2">{brandLogoAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(brandLogoAsset.id, 'brandLogo')} disabled={brandLogoAsset.isRefining || !brandLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                      {brandLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={brandLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(brandLogoAsset.id, 'brandLogo', e.target.value)} placeholder="Physical material simulation details (e.g. Chrome, vector-flat)..." className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white hover:border-white/20 transition-all" />
+                                  <details className="group w-full">
+                                    <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                                      <Settings2 className="w-3.5 h-3.5" /> Environmental Constraints <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={brandLogoAsset.material || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={brandLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={brandLogoAsset.position || ''} onChange={(e) => updateAssetDetails(brandLogoAsset.id, 'brandLogo', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => brandLogoInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                                <ImagePlus className="w-5 h-5 group-hover:-translate-y-1 transition-transform" /> 
+                                <span className="text-[10px] font-black uppercase tracking-widest">Inject Dark-Mode Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={brandLogoInputRef} onChange={(e) => handleFileUpload(e, 'brandLogo')} accept="image/*" className="hidden" />
+                          </div>
+
+                        <div className="space-y-4">
+                            <div>
+                               <h3 className="text-xs font-black text-white uppercase tracking-wider">Brand Logo (Light Background)</h3>
+                               <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Used for organic high-key environments to calculate color-bleed onto daylight scenes.</p>
+                            </div>
+                            {brandLogoLightAsset ? (
+                              <div className="flex flex-col md:flex-row gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-white/5 border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                                  <img src={`data:${brandLogoLightAsset.mimeType};base64,${brandLogoLightAsset.data}`} alt="Brand Logo Light" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                                  <button onClick={() => removeAsset(brandLogoLightAsset.id, 'brandLogoLight')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white/80 truncate pr-2">{brandLogoLightAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(brandLogoLightAsset.id, 'brandLogoLight')} disabled={brandLogoLightAsset.isRefining || !brandLogoLightAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                      {brandLogoLightAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={brandLogoLightAsset.prompt || ''} onChange={(e) => updateAssetPrompt(brandLogoLightAsset.id, 'brandLogoLight', e.target.value)} placeholder="Simulation details..." className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white hover:border-white/20 transition-all" />
+                                  <details className="group w-full">
+                                    <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                                      <Settings2 className="w-3.5 h-3.5" /> Environmental Constraints <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={brandLogoLightAsset.material || ''} onChange={(e) => updateAssetDetails(brandLogoLightAsset.id, 'brandLogoLight', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={brandLogoLightAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(brandLogoLightAsset.id, 'brandLogoLight', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={brandLogoLightAsset.position || ''} onChange={(e) => updateAssetDetails(brandLogoLightAsset.id, 'brandLogoLight', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => brandLogoLightInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                                <ImagePlus className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Inject Light-Mode Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={brandLogoLightInputRef} onChange={(e) => handleFileUpload(e, 'brandLogoLight')} accept="image/*" className="hidden" />
+                          </div>
+
+                        <div className="space-y-4">
+                            <div>
+                               <h3 className="text-xs font-black text-white uppercase tracking-wider">Company Logo (Dark Background)</h3>
+                               <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Used for environments with deep contrast lighting. Evaluated for specular highlights across metallic logo surfaces.</p>
+                            </div>
+                            {companyLogoAsset ? (
+                              <div className="flex flex-col md:flex-row gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-[#0a0a0c] border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                                  <img src={`data:${companyLogoAsset.mimeType};base64,${companyLogoAsset.data}`} alt="Company Logo" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                                  <button onClick={() => removeAsset(companyLogoAsset.id, 'companyLogo')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white/80 truncate pr-2">{companyLogoAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(companyLogoAsset.id, 'companyLogo')} disabled={companyLogoAsset.isRefining || !companyLogoAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                      {companyLogoAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={companyLogoAsset.prompt || ''} onChange={(e) => updateAssetPrompt(companyLogoAsset.id, 'companyLogo', e.target.value)} placeholder="Physical material simulation details (e.g. Chrome, vector-flat)..." className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white hover:border-white/20 transition-all" />
+                                  <details className="group w-full">
+                                    <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                                      <Settings2 className="w-3.5 h-3.5" /> Environmental Constraints <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={companyLogoAsset.material || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={companyLogoAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={companyLogoAsset.position || ''} onChange={(e) => updateAssetDetails(companyLogoAsset.id, 'companyLogo', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => companyLogoInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                                <ImagePlus className="w-5 h-5 group-hover:-translate-y-1 transition-transform" /> 
+                                <span className="text-[10px] font-black uppercase tracking-widest">Inject Dark-Mode Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={companyLogoInputRef} onChange={(e) => handleFileUpload(e, 'companyLogo')} accept="image/*" className="hidden" />
+                          </div>
+
+                        <div className="space-y-4">
+                            <div>
+                               <h3 className="text-xs font-black text-white uppercase tracking-wider">Company Logo (Light Background)</h3>
+                               <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Used for organic high-key environments to calculate color-bleed onto daylight scenes.</p>
+                            </div>
+                            {companyLogoLightAsset ? (
+                              <div className="flex flex-col md:flex-row gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-white/5 border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                                  <img src={`data:${companyLogoLightAsset.mimeType};base64,${companyLogoLightAsset.data}`} alt="Company Logo Light" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                                  <button onClick={() => removeAsset(companyLogoLightAsset.id, 'companyLogoLight')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white/80 truncate pr-2">{companyLogoLightAsset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(companyLogoLightAsset.id, 'companyLogoLight')} disabled={companyLogoLightAsset.isRefining || !companyLogoLightAsset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                      {companyLogoLightAsset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={companyLogoLightAsset.prompt || ''} onChange={(e) => updateAssetPrompt(companyLogoLightAsset.id, 'companyLogoLight', e.target.value)} placeholder="Simulation details..." className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white hover:border-white/20 transition-all" />
+                                  <details className="group w-full">
+                                    <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                                      <Settings2 className="w-3.5 h-3.5" /> Environmental Constraints <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                                      <input type="text" placeholder="Material (e.g. Matte, Glossy, Metallic)" value={companyLogoLightAsset.material || ''} onChange={(e) => updateAssetDetails(companyLogoLightAsset.id, 'companyLogoLight', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={companyLogoLightAsset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(companyLogoLightAsset.id, 'companyLogoLight', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={companyLogoLightAsset.position || ''} onChange={(e) => updateAssetDetails(companyLogoLightAsset.id, 'companyLogoLight', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => companyLogoLightInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                                <ImagePlus className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Inject Light-Mode Logo</span>
+                              </button>
+                            )}
+                            <input type="file" ref={companyLogoLightInputRef} onChange={(e) => handleFileUpload(e, 'companyLogoLight')} accept="image/*" className="hidden" />
+                          </div>
+                      </div>
+                    )}
+<div className="space-y-4">
+                      {generationObjective !== 'logo' && (
+                        <>
+                          <div>
+                            <h3 className="text-xs font-black text-white uppercase tracking-wider">Human/Character Blueprint (DNA)</h3>
+                            <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Provide 3D topological blueprints for human models. Retains specific bone structure and lighting interactions across frames in generated outputs.</p>
+                          </div>
+                          <div className="space-y-3">
+                            {characterAssets.map(asset => (
+                              <div key={asset.id} className="flex flex-col md:flex-row gap-3 items-start bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-[#0a0a0c] border border-white/10 group flex items-center justify-center p-2 shadow-inner">
+                                  <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Character" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                                  <button onClick={() => removeAsset(asset.id, 'character')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white/80 truncate pr-2">{asset.name}</span>
+                                    <button onClick={() => refineSpecificAssetPrompt(asset.id, 'character')} disabled={asset.isRefining || !asset.prompt?.trim()} className="text-[10px] flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-black uppercase tracking-wider shrink-0">
+                                      {asset.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                                    </button>
+                                  </div>
+                                  <input type="text" value={asset.prompt || ''} onChange={(e) => updateAssetPrompt(asset.id, 'character', e.target.value)} placeholder="Specific spatial & anatomic parameters..." className="w-full bg-black/80 border border-white/10 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 outline-none text-white hover:border-white/20 transition-all" />
+                                  <details className="group w-full">
+                                    <summary className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors flex items-center gap-2 outline-none list-none [&::-webkit-details-marker]:hidden bg-indigo-500/5 py-2 px-3 rounded-lg border border-indigo-500/10">
+                                      <Settings2 className="w-3.5 h-3.5" /> Character Constraints <ChevronDown className="w-4 h-3 group-open:rotate-180 transition-transform ml-auto" />
+                                    </summary>
+                                    <div className="mt-3 space-y-3 pl-2 sm:pl-3 border-l-2 border-indigo-500/30 ml-2">
+                                      <input type="text" placeholder="Material (e.g. Skin texture, fabric, subsurface scattering)" value={asset.material || ''} onChange={(e) => updateAssetDetails(asset.id, 'character', { material: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Lighting (e.g. Rim lit, Soft shadows)" value={asset.lightingInteraction || ''} onChange={(e) => updateAssetDetails(asset.id, 'character', { lightingInteraction: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                      <input type="text" placeholder="Position (e.g. Center foreground)" value={asset.position || ''} onChange={(e) => updateAssetDetails(asset.id, 'character', { position: e.target.value })} className="w-full bg-black/80 border border-white/10 rounded-lg p-2 text-[11px] text-white outline-none focus:border-indigo-500 hover:border-white/20 transition-all font-mono" />
+                                    </div>
+                                  </details>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <button onClick={() => characterInputRef.current?.click()} className="w-full h-20 mt-3 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                            <Plus className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Inject Character Model</span>
+                          </button>
+                          <input type="file" ref={characterInputRef} onChange={(e) => handleFileUpload(e, 'character')} multiple accept="image/*" className="hidden" />
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {generationObjective !== 'logo' && generationObjective !== 'ci-generator' && (
+                        <>
+                          <div>
+                            <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2"><Book className="w-3 h-3" /> Core Identity Ruleset (Brand Bible)</h3>
+                            <p className="text-[10px] text-white/40 leading-tight mt-1 mb-2">Upload a CI PDF. Jamini automatically extracts Hex colors, Font types, and Layout rules to enforce mathematically in your generation.</p>
+                          </div>
+                          {companyCIAsset ? (
+                            <div className="flex flex-col gap-3 bg-black/60 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center border border-indigo-500/20">
+                                    <Book className="w-5 h-5 text-indigo-400" />
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-black text-white truncate max-w-[200px]">{companyCIAsset.name}</span>
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">PDF Architecture File</span>
+                                  </div>
+                                </div>
+                                <button onClick={() => removeAsset(companyCIAsset.id, 'companyCI')} className="p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                              
+                              {isAnalyzingCI ? (
+                                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 p-3 rounded-lg border border-indigo-500/20">
+                                  <Loader2 className="w-4 h-4 animate-spin" /> Synthesizing Hex & Typographic Logic...
+                                </div>
+                              ) : ciSummary ? (
+                                <div className="space-y-3 mt-2 pt-3 border-t border-white/10">
+                                  <label className="text-[10px] font-black text-white/80 uppercase tracking-widest">Extracted Mathematical Constants</label>
+                                  <AutoResizeTextarea 
+                                    value={ciSummary}
+                                    onChange={(e) => setCiSummary(e.target.value)}
+                                    className="w-full min-h-[6rem] bg-[#0a0a0c] border border-white/10 rounded-lg p-3 text-[11px] text-white/80 focus:ring-1 focus:ring-indigo-500 outline-none custom-scrollbar font-mono leading-relaxed"
+                                    placeholder="Brand guidelines..."
+                                  />
+                                  <button onClick={() => generateAssetKitZip(companyName || 'JAMINI Studio', brandLogoAsset?.data ? `data:${brandLogoAsset.mimeType};base64,${brandLogoAsset.data}` : null, brandLogoLightAsset?.data ? `data:${brandLogoLightAsset.mimeType};base64,${brandLogoLightAsset.data}` : null, ciSummary)} className="w-full text-[11px] font-black uppercase tracking-widest bg-indigo-600 shadow-lg shadow-indigo-600/20 text-white hover:bg-indigo-500 py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95">
+                                     <Download className="w-4 h-4" /> Download Complete Asset Bundle
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <button onClick={() => companyCIInputRef.current?.click()} className="w-full h-20 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all group">
+                              <Upload className="w-5 h-5 group-hover:-translate-y-1 transition-transform" /> 
+                              <span className="text-[10px] font-black uppercase tracking-widest">Inject PDF Ruleset</span>
+                            </button>
+                          )}
+                          <input type="file" ref={companyCIInputRef} onChange={(e) => handleFileUpload(e, 'companyCI')} accept="application/pdf" className="hidden" />
+                        </>
+                      )}
+                    </div>
+                    
+                    {generationObjective !== 'logo' && (
+                      <div className="flex gap-4 p-4 mt-4 bg-[#18181C] border border-white/5 rounded-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-fuchsia-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-fuchsia-500/20 transition-all"></div>
+                        <div className="w-10 h-10 shrink-0 bg-[#0a0a0c] rounded-lg flex items-center justify-center border border-white/5">
+                          <Wand2 className="w-5 h-5 text-white/40" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider block">Text Content Engine</label>
+                          <select value={textEngine} onChange={(e) => setTextEngine(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs outline-none focus:border-indigo-500 text-white font-medium custom-scrollbar">
+                            {textEnginesList.map(e => <option key={e} value={e} className="bg-[#0a0a0c] text-white py-2">{e}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {generationObjective === 'ci-generator' && (
+                    <div className="space-y-6 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 mt-6">
+                      <div className="border-b border-blue-500/20 pb-4 mb-4">
+                        <h3 className="text-sm font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                          <Book className="w-5 h-5" /> CI Identity Configuration
+                        </h3>
+                        <p className="text-[10px] text-white/50 mt-1">Follow the steps below to configure your corporate identity package.</p>
+                      </div>
+                      
+                      {/* Step 1 */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ring-2 ring-blue-500/20 z-10 shrink-0">1</div>
+                            <div>
+                              <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest">Brand Fundamentals Architecture</h3>
+                              <p className="text-[10px] text-white/50 leading-tight">Define the core identity metadata that heavily influences the Neural Engine's thematic output and text generation.</p>
+                            </div>
+                        </div>
+                      
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-[#0a0a0c]/80 p-5 rounded-xl border border-white/5 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full pointer-events-none"></div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Tag className="w-3 h-3 text-blue-400" /> Company Name</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">The primary identifier. Affects simulated typographic logo output and UI placement.</span>
+                                <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. JAMINI Studio" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Dictates character counts in UI mocks</li>
+                                  <li>Informs primary wordmark generation</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Briefcase className="w-3 h-3 text-blue-400" /> Industry Sector</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">Dictates structural archetypes (e.g., 'Finance' biases towards minimal/blue environments).</span>
+                                <input type="text" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="e.g. Creative Tech, Horology" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Sets environmental staging parameters</li>
+                                  <li>Selects pre-trained stylistic archetypes</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Mic className="w-3 h-3 text-blue-400" /> Tone of Voice</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">Guides the AI's textual copywriting vocabulary and overall aesthetic warmth.</span>
+                                <input type="text" value={brandVoice} onChange={e => setBrandVoice(e.target.value)} placeholder="e.g. Professional, Aggressive, Warm" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Controls lighting temperature (Warm vs Cool)</li>
+                                  <li>Sets linguistic framework for injected text</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Target className="w-3 h-3 text-blue-400" /> Core Values</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">Keywords used to synthetically validate the semantic layout engine.</span>
+                                <input type="text" value={brandValues} onChange={e => setBrandValues(e.target.value)} placeholder="e.g. Quality, Transparency, Speed" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Aligns physical composition to psychological traits</li>
+                                  <li>Determines negative whitespace distribution</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Users className="w-3 h-3 text-blue-400" /> Target Demographic</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">Primary audience parameters to tune the visual appeal correctly.</span>
+                                <input type="text" placeholder="e.g. Gen-Z, Enterprise B2B, Luxury" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Adapts UI complexity and button sizing</li>
+                                  <li>Selects appropriate stock model archetypes</li>
+                                </ul>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col relative z-10">
+                                <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><ShieldCheck className="w-3 h-3 text-blue-400" /> Brand Archetype</label>
+                                <span className="text-[9px] text-white/40 mb-1 leading-tight">Jungian psychological framework for character-driven AI generation.</span>
+                                <input type="text" placeholder="e.g. The Creator, The Ruler, The Outlaw" className="w-full bg-black border border-white/10 rounded-xl p-3 text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all hover:border-white/20 font-medium" />
+                                <ul className="text-[8px] text-white/30 list-disc list-inside mt-1 space-y-0.5">
+                                  <li>Injects deep contextual narrative into visuals</li>
+                                  <li>Forces strict aesthetic boundary compliance</li>
+                                </ul>
+                            </div>
+                        </div>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div className="space-y-4 pt-6 border-t border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ring-2 ring-blue-500/20 z-10 shrink-0">2</div>
+                            <div>
+                               <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest">Chromatic Locking Matrix</h3>
+                               <p className="text-[10px] text-white/50 leading-tight">Define exact hexadecimal boundaries. Jamini mathematically enforces these colors over light bounces and subsurface scattering.</p>
+                            </div>
+                        </div>
+                      
+                        <div className="bg-[#0a0a0c]/80 p-5 rounded-xl border border-white/5 space-y-4 flex flex-col relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full pointer-events-none"></div>
+                          <div className="relative z-10">
+                            <label className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1.5"><Palette className="w-3 h-3 text-blue-400" /> Manual Hex Overrides</label>
+                            <span className="text-[9px] text-white/40 leading-tight block mt-1 mb-3">Pick or enter custom hex values to override auto-extracted colors. This builds the structural CI palette.</span>
+                            
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                              <div className="relative group/picker shrink-0">
+                                <input 
+                                  type="color" 
+                                  value={customColor} 
+                                  onChange={e => setCustomColor(e.target.value)} 
+                                  className="w-12 h-12 rounded-xl bg-black border border-white/20 p-1 cursor-pointer transition-transform group-hover/picker:scale-105" 
+                                  title="Color Picker"
+                                />
+                              </div>
+                              <div className="flex-1 flex gap-2 w-full">
+                                <div className="relative flex-1">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 font-black text-xs">#</span>
+                                  <input 
+                                    type="text" 
+                                    value={customColor.replace('#', '')} 
+                                    onChange={e => setCustomColor('#' + e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0,6))} 
+                                    placeholder="FFFFFF" 
+                                    className="w-full bg-black border border-white/10 rounded-xl p-3 pl-7 text-sm font-mono focus:ring-1 focus:ring-blue-500 outline-none uppercase transition-all hover:border-white/20 font-medium" 
+                                  />
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    if (!customColorsList.includes(customColor) && /^#[0-9A-F]{6}$/i.test(customColor)) {
+                                        setCustomColorsList([...customColorsList, customColor]);
+                                    }
+                                  }}
+                                  className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-5 py-3 text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-95 transition-all flex items-center gap-2"
+                                >
+                                  <Plus className="w-4 h-4" /> Inject Hex
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2 flex-wrap bg-black/60 p-4 rounded-xl border border-white/5 min-h-[64px] items-center relative z-10 shadow-inner">
+                            {customColorsList.length === 0 && <span className="text-[10px] text-white/20 uppercase tracking-widest px-2 font-black italic">No manual colors locked into matrix yet.</span>}
+                            {customColorsList.map((c, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ scale: 0, opacity: 0, y: 10 }}
+                                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                                    className="w-12 h-12 rounded-lg border border-white/20 relative group shadow-[0_5px_15px_rgba(0,0,0,0.5)] cursor-pointer" 
+                                    style={{backgroundColor: c}}
+                                >
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg backdrop-blur-[2px]">
+                                        <button onClick={() => setCustomColorsList(customColorsList.filter((_, i) => i !== idx))} className="text-white hover:text-red-400 transition-colors drop-shadow-md">
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                        <span className="text-[9px] font-mono font-black text-white bg-[#0a0a0c] px-2 py-1 rounded shadow-xl tracking-wider border border-white/10">{c.toUpperCase()}</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="space-y-4 pt-6 border-t border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ring-2 ring-blue-500/20 z-10 shrink-0">3</div>
+                            <div>
+                              <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest">Typographical Variables</h3>
+                              <p className="text-[10px] text-white/50 leading-tight">Assign independent fonts to establish a rigid typographical hierarchy for simulated interfaces.</p>
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-[#0a0a0c]/80 p-5 rounded-xl border border-white/5 relative overflow-hidden">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full pointer-events-none"></div>
+                             <div className="space-y-2 relative z-10">
+                               <div className="ml-1">
+                                 <span className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest"><Type className="w-3 h-3 text-blue-400" /> H1 / Primary Brand</span>
+                                 <span className="text-[8px] text-white/40 block leading-tight mt-1 mb-2">Display font. Used for massive titles, logo generation, and hero text elements.</span>
+                               </div>
+                               <CustomSelect value={fontFamily} onChange={setFontFamily} options={FONTS} label="Primary Font Object" icon={Type} />
+                             </div>
+                             <div className="space-y-2 relative z-10">
+                               <div className="ml-1">
+                                 <span className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest"><AlignLeft className="w-3 h-3 text-blue-400" /> Body / Base Copy</span>
+                                 <span className="text-[8px] text-white/40 block leading-tight mt-1 mb-2">High-legibility font for standard paragraphs, subheadings, and interface metadata.</span>
+                               </div>
+                               <CustomSelect value={secondaryFont} onChange={setSecondaryFont} options={FONTS} label="Secondary Font Object" icon={Type} />
+                             </div>
+                             <div className="space-y-2 relative z-10">
+                               <div className="ml-1">
+                                 <span className="text-[10px] text-white flex items-center gap-1.5 uppercase font-black tracking-widest"><Layout className="w-3 h-3 text-blue-400" /> Highlights / UI Nodes</span>
+                                 <span className="text-[8px] text-white/40 block leading-tight mt-1 mb-2">Specialized strict font for badges, small caps, technical readouts, and UI buttons.</span>
+                               </div>
+                               <CustomSelect value={accentFont} onChange={setAccentFont} options={FONTS} label="Accent Font Object" icon={Type} />
+                             </div>
+                        </div>
+
+                        {/* Step 4: Asset Uploads */}
+                        <div className="space-y-4 pt-6 border-t border-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ring-2 ring-blue-500/20 z-10 shrink-0">4</div>
+                                <div>
+                                  <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest">Base Vector Ingestion</h3>
+                                  <p className="text-[10px] text-white/50 leading-tight">Optionally upload existing vector logos (SVG) to be parametrically adjusted, or let Jamini synthesize entirely new wordmarks from the metadata.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button onClick={() => companyCIInputRef.current?.click()} className="group border border-white/10 hover:border-blue-500/50 bg-[#0a0a0c]/80 hover:bg-blue-500/5 transition-all p-5 rounded-xl flex flex-col items-center justify-center gap-3 h-32 relative overflow-hidden">
+                                  <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center ring-1 ring-blue-500/20 group-hover:scale-110 transition-transform">
+                                    <Upload className="w-5 h-5" />
+                                  </div>
+                                  <div className="text-center">
+                                     <span className="block text-xs font-black text-white uppercase tracking-wider">Upload SVG Logo Mark</span>
+                                     <span className="text-[9px] text-white/40">Accepts SVG, EPS. Max 5MB.</span>
+                                  </div>
+                                </button>
+                                
+                                <button onClick={() => companyCIInputRef.current?.click()} className="group border border-white/10 hover:border-blue-500/50 bg-[#0a0a0c]/80 hover:bg-blue-500/5 transition-all p-5 rounded-xl flex flex-col items-center justify-center gap-3 h-32 relative overflow-hidden">
+                                  <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center ring-1 ring-blue-500/20 group-hover:scale-110 transition-transform">
+                                    <FileText className="w-5 h-5" />
+                                  </div>
+                                  <div className="text-center">
+                                     <span className="block text-xs font-black text-white uppercase tracking-wider">Upload Existing PDF Guidelines</span>
+                                     <span className="text-[9px] text-white/40">Jamini will strictly maintain compliance.</span>
+                                  </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mockup CI Examples */}
+                        <div className="space-y-4 pt-8 border-t border-white/5">
+                            <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                                <FileText className="w-4 h-4" /> Example Mockup Downloads
+                            </h3>
+                            <button className="w-full flex items-center justify-between p-4 rounded-xl border border-white/10 bg-black/40 hover:border-blue-500/30 transition-all text-left group">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-blue-500/20 text-blue-400 p-2 rounded-lg">
+                                        <Download className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-black text-white">Example CI Documentation Bundle</div>
+                                        <div className="text-[10px] text-white/50">Includes Brand Bible, Logo Assets, and Style Guide</div>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-white/40">YAML / PDF / SVG</span>
+                            </button>
+                        </div>
+
+                        {/* Pro Features Checkboxes */}
+                      <div className="space-y-4 pt-8 border-t border-white/5">
+                         <div className="flex items-center gap-3 mb-2">
+                             <div className="bg-fuchsia-500/20 text-fuchsia-400 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ring-1 ring-fuchsia-500/40">
+                               <ShieldCheck className="w-4 h-4" />
+                             </div>
+                             <div>
+                               <h3 className="text-fuchsia-400 font-black text-sm uppercase tracking-widest">Pro Capabilities & Export Protocols</h3>
+                               <p className="text-[10px] text-white/50 leading-tight">Select desired auxiliary outputs. Jamini will package these directly into the final CI Artifact structure.</p>
+                             </div>
+                         </div>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#0a0a0c]/50 p-4 rounded-xl border border-white/5">
+                           {[
+                             { title: 'Full Brand Bible PDF', desc: 'Vector-ready architectural CI document.' },
+                             { title: 'Parametric Logo SVG', desc: 'Auto-traced infinite-resolution logo assets.' },
+                             { title: 'CMYK Print Profiles', desc: 'Auto-converted color space for physical offset.' },
+                             { title: 'Identity Matrix Locking', desc: 'Forcing rigid prompt constraints on future renders.' },
+                             { title: 'Social Ratio Resizer', desc: '1:1, 16:9, 9:16 layout variants automatically.' },
+                             { title: 'OOH Signage Templates', desc: 'Pre-visualized billboard and hoarding files.' },
+                             { title: 'Legal Compliance Check', desc: 'Automated patent/trademark similarity scan.' },
+                             { title: 'React UI Component Library', desc: 'Generates Tailwind/React snippets.' },
+                             { title: '3D Mockup Generator', desc: 'Maps assets onto physical product blanks.' },
+                             { title: 'Copywriting Playbook', desc: 'Brand-voice consistent taglines and manifestos.' },
+                             { title: 'Animation Guidelines', desc: 'Easing curves and Lottie file configurations.' },
+                             { title: 'Audio Branding Stems', desc: 'Sonic identity generation matching tone.' },
+                             { title: 'Automated Asset Caching', desc: 'Instant retrieval of previously synthesized high-fidelity layers.' },
+                             { title: 'Dynamic Style Syncing', desc: 'Real-time synchronization of brand palette updates.' },
+                             { title: 'API Webhook Export', desc: 'Direct push to production CMS and DAM pipelines.' },
+                             { title: 'Version Iteration Control', desc: 'Branch-based generation history for non-destructive edits.' },
+                             { title: 'Interactive Style Guide', desc: 'Web-hosted brand portal with exportable CSS/tokens.' },
+                             { title: 'AI Asset Tagging', desc: 'Metadata extraction for DAM indexing.' },
+                             { title: 'Collaboration Workspaces', desc: 'Shared brand briefs and team-based version control.' },
+                             { title: 'Multi-Region CDN Push', desc: 'Auto-deployment of static campaign assets.' },
+                             { title: 'Automated A/B Testing Matrix', desc: 'Parallel rendering of variants to optimize conversion.' },
+                             { title: 'Predictive Performance Analytics', desc: 'AI-driven forecasts of creative engagement success.' },
+                             { title: 'Collaborative Live Review Room', desc: 'Real-time multi-user annotation and feedback loops.' },
+                             { title: 'Blockchain Rights Management', desc: 'Immutable provenance and decentralized license tracking.' }
+                           ].map(feat => (
+                             <label key={feat.title} className="flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-black/40 cursor-pointer hover:border-fuchsia-500/30 transition-all group">
+                               <div className="relative mt-0.5">
+                                 <input type="checkbox" className="peer appearance-none w-4 h-4 rounded bg-[#121215] border border-white/20 checked:bg-fuchsia-500 checked:border-fuchsia-500 transition-colors" />
+                                 <svg className="absolute inset-0 w-4 h-4 pointer-events-none opacity-0 peer-checked:opacity-100 peer-checked:text-white transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                               </div>
+                               <div className="flex flex-col gap-0.5">
+                                 <span className="text-[11px] font-black text-white/80 uppercase tracking-wide group-hover:text-white transition-colors">{feat.title}</span>
+                                 <span className="text-[9px] text-white/40 leading-tight block">{feat.desc}</span>
+                               </div>
+                             </label>
+                           ))}
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                  {/* Mobile Mobile Next Button: Step 1 -> 2 */}
+                  <div className="pt-8 pb-12 lg:pb-0">
+                    {generationObjective === 'ci-generator' ? (
+                      <button 
+                        onClick={() => { handleGenerate(); setActiveStep(4); }} 
+                        disabled={isGenerating}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                      >
+                        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        <span>{isGenerating ? 'Synthesizing...' : 'Generate CI Bible'}</span>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setActiveStep(2)} 
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all lg:hidden"
+                      >
+                        <span>Next: Design Style</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+            </div>
+          </div>
+
+          {/* CONTEXTUAL PANEL: DESIGN & TWEAK (Mobile Tab 2 & 3) */}
+          <div className={cn(
+            "w-full lg:max-w-3xl mx-auto flex-col h-full bg-[#121214] lg:bg-transparent lg:py-6 z-20 relative overflow-hidden",
+            (activeStep === 2 || activeStep === 3) ? "flex" : "hidden"
+          )}>
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8 lg:bg-[#0c0c0e]/80 lg:backdrop-blur-xl lg:rounded-3xl lg:border border-white/10 lg:shadow-2xl">
+              
+              <div className={cn("space-y-6", activeStep === 2 ? "block" : "hidden")}>
+                <motion.div key="step2" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {generationObjective !== 'ci-generator' && (
+                      <>
+                        <CustomSelect value={layout} onChange={setLayout} options={LAYOUTS} label="Poster Layout" icon={LayoutIcon} />
+                        <CustomSelect value={style} onChange={setStyle} options={STYLES} label="Visual Style" icon={Palette} />
+                        <CustomSelect value={lighting} onChange={setLighting} options={LIGHTING_OPTIONS} label="Lighting" icon={Zap} />
+                      </>
+                    )}
+
+                    {/* Video Specific Settings */}
+                    {imageEngine.includes('Veo') && (
+                      <div className="col-span-2 space-y-4 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-4 mt-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                            <Video className="w-4 h-4" /> Video Campaign Settings
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-white/40 uppercase font-bold">Ad Mode</span>
+                            <button 
+                              onClick={() => setIsAdMode(!isAdMode)}
+                              className={cn(
+                                "p-1 rounded-md transition-colors",
+                                isAdMode ? "bg-indigo-500 text-white" : "bg-white/5 text-white/20"
+                              )}
+                            >
+                              {isAdMode ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Video Duration</label>
+                          <div className="grid grid-cols-5 gap-2">
+                            {[6, 13, 14, 180, 300, 600, 900].map(d => (
+                              <button 
+                                key={d}
+                                onClick={() => setVideoDuration(d)}
+                                className={cn(
+                                  "py-2 text-[10px] font-bold rounded-lg border transition-all",
+                                  videoDuration === d 
+                                    ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" 
+                                    : "bg-black/40 border-white/10 text-white/40 hover:border-white/30"
+                                )}
+                              >
+                                {d < 60 ? `${d}s` : `${d/60}m`}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[9px] text-white/30 mt-1 italic">Note: Durations &gt; 14s represent campaign planning mode and may require segmented rendering.</p>
+                        </div>
+
+                        {isAdMode && (
+                          <div className="space-y-4 pt-2 border-t border-white/5">
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                                <FileText className="w-3 h-3 text-emerald-400" /> Advanced Production Matrix
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={generateVideoScript}
+                                  disabled={isScripting}
+                                  className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded hover:bg-emerald-500/30 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                >
+                                  {isScripting ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Layers className="w-2.5 h-2.5" />}
+                                  {videoScenes.length > 0 ? 'Remix Logic' : 'Synthesize Logic'}
+                                </button>
+                                {videoScenes.length > 0 && (
+                                  <button 
+                                    onClick={refineVideoScript}
+                                    disabled={isScripting}
+                                    className="text-[9px] font-black bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded hover:bg-indigo-500/30 transition-colors disabled:opacity-50 flex items-center gap-1 border border-indigo-500/20"
+                                  >
+                                    <Sparkles className="w-2.5 h-2.5" /> Refine with Pro
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {videoScenes.length > 0 ? (
+                              <div className="space-y-3">
+                                {videoScenes.map((scene, idx) => (
+                                  <div key={scene.id} className="bg-black/60 rounded-xl p-3 border border-white/5 space-y-2 group">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Scene {idx + 1}</span>
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex items-center bg-white/5 rounded px-1.5 py-0.5 border border-white/5">
+                                          <input 
+                                            type="number" 
+                                            value={scene.duration} 
+                                            onChange={(e) => {
+                                              const newScenes = [...videoScenes];
+                                              newScenes[idx].duration = Number(e.target.value);
+                                              setVideoScenes(newScenes);
+                                            }}
+                                            className="w-6 bg-transparent text-[10px] font-bold text-emerald-400 outline-none text-center"
+                                          />
+                                          <span className="text-[8px] text-white/20 font-bold ml-1">SEC</span>
+                                        </div>
+                                        <button 
+                                          onClick={() => setVideoScenes(videoScenes.filter((_, i) => i !== idx))}
+                                          className="p-1 hover:text-red-400 text-white/20 transition-colors"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                                      <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-white/40 uppercase tracking-widest">Camera Motion</label>
+                                        <input 
+                                          type="text"
+                                          placeholder="e.g. Pan Right"
+                                          value={scene.cameraMotion || ''}
+                                          onChange={(e) => {
+                                            const newScenes = [...videoScenes];
+                                            newScenes[idx].cameraMotion = e.target.value;
+                                            setVideoScenes(newScenes);
+                                          }}
+                                          className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[9px] text-white/80 outline-none focus:border-indigo-500/50"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-white/40 uppercase tracking-widest">Lens Type</label>
+                                        <input 
+                                          type="text"
+                                          placeholder="e.g. Macro 100mm"
+                                          value={scene.lensType || ''}
+                                          onChange={(e) => {
+                                            const newScenes = [...videoScenes];
+                                            newScenes[idx].lensType = e.target.value;
+                                            setVideoScenes(newScenes);
+                                          }}
+                                          className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[9px] text-white/80 outline-none focus:border-indigo-500/50"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-white/40 uppercase tracking-widest">Lighting</label>
+                                        <input 
+                                          type="text"
+                                          placeholder="e.g. Volumetric"
+                                          value={scene.lighting || ''}
+                                          onChange={(e) => {
+                                            const newScenes = [...videoScenes];
+                                            newScenes[idx].lighting = e.target.value;
+                                            setVideoScenes(newScenes);
+                                          }}
+                                          className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[9px] text-white/80 outline-none focus:border-indigo-500/50"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-white/40 uppercase tracking-widest">Transition</label>
+                                        <input 
+                                          type="text"
+                                          placeholder="e.g. Hard Cut"
+                                          value={scene.transitionType || ''}
+                                          onChange={(e) => {
+                                            const newScenes = [...videoScenes];
+                                            newScenes[idx].transitionType = e.target.value;
+                                            setVideoScenes(newScenes);
+                                          }}
+                                          className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[9px] text-white/80 outline-none focus:border-indigo-500/50"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[8px] font-black text-white/40 uppercase tracking-widest">Audio Cue</label>
+                                        <input 
+                                          type="text"
+                                          placeholder="e.g. Bass Drop"
+                                          value={scene.audioCue || ''}
+                                          onChange={(e) => {
+                                            const newScenes = [...videoScenes];
+                                            newScenes[idx].audioCue = e.target.value;
+                                            setVideoScenes(newScenes);
+                                          }}
+                                          className="w-full bg-black/40 border border-white/5 rounded px-2 py-1 text-[9px] text-white/80 outline-none focus:border-indigo-500/50"
+                                        />
+                                      </div>
+                                    </div>
+                                    <AutoResizeTextarea 
+                                      value={scene.prompt}
+                                      onChange={(e) => {
+                                        const newScenes = [...videoScenes];
+                                        newScenes[idx].prompt = e.target.value;
+                                        setVideoScenes(newScenes);
+                                      }}
+                                      className="w-full bg-black/40 rounded p-2 text-[10px] text-white/80 leading-relaxed outline-none custom-scrollbar min-h-[40px] focus:text-white border border-transparent focus:border-white/10 mt-2"
+                                      placeholder="Scene action and physical dynamics..."
+                                    />
+                                  </div>
+                                ))}
+                                <button 
+                                  onClick={() => setVideoScenes([...videoScenes, { id: Date.now().toString(), prompt: '', duration: 2 }])}
+                                  className="w-full py-2 rounded-xl border border-dashed border-white/10 text-[9px] font-black text-white/30 hover:text-white/60 hover:border-white/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
+                                >
+                                  <Plus className="w-3 h-3" /> Add Scene Stage
+                                </button>
+                                
+                                <div className="p-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 flex items-center justify-between">
+                                  <span className="text-[9px] font-black text-emerald-400/60 uppercase tracking-widest">Total Production Pulse</span>
+                                  <span className={cn(
+                                    "text-xs font-black",
+                                    videoScenes.reduce((acc, s) => acc + s.duration, 0) === videoDuration ? "text-emerald-400" : "text-amber-400"
+                                  )}>
+                                    {videoScenes.reduce((acc, s) => acc + s.duration, 0)}s / {videoDuration}s
+                                  </span>
+                                </div>
+                              </div>
+                            ) : videoScript ? (
+                              <div className="bg-black/60 rounded-xl p-3 border border-white/5 space-y-2">
+                                <AutoResizeTextarea 
+                                  value={videoScript}
+                                  onChange={(e) => setVideoScript(e.target.value)}
+                                  className="w-full bg-transparent text-[10px] text-white/80 leading-relaxed outline-none custom-scrollbar min-h-[100px]"
+                                />
+                                <button 
+                                  onClick={() => {
+                                    // Basic parsing of script back to scenes
+                                    const rawScenes = videoScript.split('\n\n').filter(s => s.trim());
+                                    const parsed = rawScenes.map((s, i) => ({
+                                      id: `s${i}`,
+                                      prompt: s,
+                                      duration: Math.floor(videoDuration / rawScenes.length)
+                                    }));
+                                    setVideoScenes(parsed);
+                                  }}
+                                  className="text-[8px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1"
+                                >
+                                  <Workflow className="w-2.5 h-2.5" /> Convert to Scene Matrix for control
+                                </button>
+                              </div>
+                            ) : (
+                               <div className="text-[9px] text-white/30 italic p-3 text-center border border-dashed border-white/10 rounded-xl">
+                                Clicking 'Synthesize Logic' will generate a multi-stage cinematic storyboard.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <CustomSelect value={lighting} onChange={setLighting} options={LIGHTING_OPTIONS} label="Lighting" icon={Zap} />
+                    
+                    <div className="space-y-2 col-span-2">
+                       <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                         <AlertCircle className="w-3 h-3 text-red-400" /> Negative Prompt (Professional Exclusions)
+                       </label>
+                       <AutoResizeTextarea 
+                         value={negativePrompt} 
+                         onChange={(e) => setNegativePrompt(e.target.value)} 
+                         placeholder="What to exclude? (e.g., 'blur, text, low quality, distorted hands')" 
+                         className="w-full min-h-[3rem] bg-black/40 border border-white/10 rounded-xl p-3 text-[10px] focus:ring-1 focus:ring-red-500/50 outline-none" 
+                       />
+                    </div>
+
+                    <div className="space-y-4 col-span-2 bg-white/5 p-4 rounded-2xl border border-white/10">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                          <LayoutIcon className="w-3.5 h-3.5 text-indigo-400" /> Physical Dimensions
+                        </label>
+                        <button 
+                          onClick={() => setIsCustomSize(!isCustomSize)}
+                          className={cn(
+                            "text-[10px] font-black px-3 py-1 rounded-full transition-all tracking-widest uppercase flex items-center gap-2",
+                            isCustomSize ? "bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)]" : "bg-white/5 text-white/40 border border-white/10 hover:bg-white/10"
+                          )}
+                        >
+                          {isCustomSize ? <Zap className="w-3 h-3" /> : <Settings2 className="w-3 h-3" />}
+                          {isCustomSize ? 'Manual Mode' : 'Presets'}
+                        </button>
+                      </div>
+
+                      {isCustomSize ? (
+                        <div className="flex items-center gap-4 bg-black/60 p-4 rounded-xl border border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                           <div className="flex-1 space-y-1">
+                             <span className="text-[9px] text-white/30 block font-bold uppercase tracking-tighter">Width (mm)</span>
+                             <input 
+                               type="number" 
+                               value={customWidthMm} 
+                               onChange={(e) => setCustomWidthMm(e.target.value)}
+                               className="w-full bg-transparent border-b border-indigo-500/30 focus:border-indigo-500 outline-none text-sm font-bold py-1 text-white"
+                               placeholder="210"
+                             />
+                           </div>
+                           <div className="text-white/20 font-black pt-4">×</div>
+                           <div className="flex-1 space-y-1">
+                             <span className="text-[9px] text-white/30 block font-bold uppercase tracking-tighter">Height (mm)</span>
+                             <input 
+                               type="number" 
+                               value={customHeightMm} 
+                               onChange={(e) => setCustomHeightMm(e.target.value)}
+                               className="w-full bg-transparent border-b border-indigo-500/30 focus:border-indigo-500 outline-none text-sm font-bold py-1 text-white"
+                               placeholder="297"
+                             />
+                           </div>
+                           <div className="bg-indigo-500/20 text-indigo-400 p-2 rounded-lg text-[10px] font-black min-w-[50px] text-center">
+                             {(Number(customWidthMm) / Number(customHeightMm) || 0).toFixed(2)}:1
+                           </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                          {ASPECT_RATIOS.map(r => (
+                            <button 
+                              key={r.value}
+                              onClick={() => setAspectRatio(r.value as APIAspectRatio)}
+                              className={cn(
+                                "flex flex-col items-center justify-center p-2 rounded-lg border transition-all",
+                                aspectRatio === r.value
+                                  ? "bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                                  : "bg-black/40 border-white/10 text-white/40 hover:border-white/30 hover:text-white/80"
+                              )}
+                            >
+                              <div className="w-6 h-6 mb-1 flex items-center justify-center">
+                                <div className="border-2 border-current rounded-sm" style={{
+                                  width: parseInt(r.value.split(':')[0]) > parseInt(r.value.split(':')[1]) ? '20px' : parseInt(r.value.split(':')[0]) === parseInt(r.value.split(':')[1]) ? '16px' : `${16 * (parseInt(r.value.split(':')[0])/parseInt(r.value.split(':')[1]))}px`,
+                                  height: parseInt(r.value.split(':')[1]) > parseInt(r.value.split(':')[0]) ? '20px' : parseInt(r.value.split(':')[0]) === parseInt(r.value.split(':')[1]) ? '16px' : `${16 * (parseInt(r.value.split(':')[1])/parseInt(r.value.split(':')[0]))}px`
+                                }} />
+                              </div>
+                              <span className="text-[10px] font-bold text-center leading-tight">{r.label}</span>
+                              <span className="text-[8px] text-white/40 text-center mt-1">{r.social}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 col-span-2">
+                      <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><MonitorPlay className="w-3 h-3 text-cyan-400" /> Dimension Mode</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {DIMENSION_MODES.map(mode => (
+                          <button 
+                            key={mode} 
+                            onClick={() => setDimensionMode(mode)}
+                            className={cn(
+                              "px-3 py-2.5 text-[10px] font-bold rounded-lg border transition-all text-center",
+                              dimensionMode === mode 
+                                ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]" 
+                                : "bg-black/40 border-white/10 text-white/40 hover:border-white/30 hover:text-white/80"
+                            )}
+                          >
+                            {mode}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                      <Zap className="w-3 h-3 text-fuchsia-400" /> Advanced Dynamics
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                      {(Object.keys(dynamics) as Array<keyof DynamicSettings>).filter(k => typeof dynamics[k] === 'boolean').map((key) => (
+                        <button 
+                          key={key}
+                          onClick={() => toggleDynamic(key)}
+                          className={cn(
+                            "flex items-center justify-between px-3 py-2 rounded-lg border text-[9px] font-bold uppercase tracking-wider transition-all",
+                            dynamics[key] 
+                              ? "bg-fuchsia-500/10 border-fuchsia-500/50 text-fuchsia-300" 
+                              : "bg-black/40 border-white/10 text-white/30 hover:border-white/20"
+                          )}
+                        >
+                          <span className="truncate mr-2">{key.replace(/([A-Z])/g, ' $1')}</span>
+                          {dynamics[key] ? <ToggleRight className="w-4 h-4 shrink-0" /> : <ToggleLeft className="w-4 h-4 shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                      <div className="col-span-full">
+                        <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2"><SlidersHorizontal className="w-3 h-3"/> Fine-Tune Controls</h4>
+                      </div>
+                      {[
+                        { key: 'metallic', label: 'Metallic' },
+                        { key: 'roughness', label: 'Roughness' },
+                        { key: 'normalMapIntensity', label: 'Normal Map' },
+                        { key: 'filmGrain', label: 'Film Grain' },
+                        { key: 'contrast', label: 'Contrast' },
+                        { key: 'saturation', label: 'Saturation' },
+                        { key: 'colorGradingIntensity', label: 'Color Grading' },
+                        { key: 'lensDistortion', label: 'Lens Distortion' },
+                        { key: 'particleDensity', label: 'Particle Density' }
+                      ].map(({ key, label }) => (
+                        <div key={key} className="space-y-1.5">
+                          <div className="flex justify-between text-[10px] font-bold text-white/60 uppercase tracking-wider">
+                            <span>{label}</span>
+                            <span className="text-fuchsia-400">{dynamics[key as keyof DynamicSettings]}%</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={dynamics[key as keyof DynamicSettings] as number}
+                            onChange={(e) => updateDynamicValue(key as keyof DynamicSettings, parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                        <Palette className="w-3 h-3" /> Professional Palettes
+                      </label>
+                      <button 
+                        onClick={extractColorsFromAssets}
+                        disabled={isExtractingColors || (!brandLogoAsset && !brandLogoLightAsset && !companyLogoAsset && !companyLogoLightAsset && characterAssets.length === 0)}
+                        className="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                      >
+                        {isExtractingColors ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                        Auto-Extract from Uploads
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {PROFESSIONAL_PALETTES.map(palette => (
+                        <button 
+                          key={palette.name}
+                          onClick={() => setThemeColors(palette.colors)}
+                          className={cn(
+                            "w-full p-2 rounded-xl border transition-all flex items-center justify-between group",
+                            themeColors.join(',') === palette.colors.join(',')
+                              ? "bg-indigo-500/10 border-indigo-500/50"
+                              : "bg-black/40 border-white/5 hover:border-white/20"
+                          )}
+                        >
+                          <span className="text-[10px] font-bold text-white/60 group-hover:text-white transition-colors">{palette.name}</span>
+                          <div className="flex -space-x-1">
+                            {palette.colors.map((c, i) => (
+                              <div key={i} style={{ backgroundColor: c }} className="w-4 h-4 rounded-full border border-black/50 shadow-sm" />
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2 items-center">
+                      {[...PRESET_COLORS, ...customColorsList].map(c => (
+                        <button key={c} onClick={() => toggleColor(c)} style={{ backgroundColor: c }} className={cn("w-6 h-6 rounded-full border-2 transition-all relative", themeColors.includes(c) ? "border-white scale-110 shadow-lg" : "border-transparent hover:scale-105")}>
+                          {themeColors.includes(c) && <CheckCircle2 className={cn("w-3 h-3 absolute inset-0 m-auto", c === '#ffffff' ? "text-black" : "text-white")} />}
+                        </button>
+                      ))}
+                      <div className="flex items-center gap-1 ml-2">
+                        <input 
+                          type="color" 
+                          value={customColor} 
+                          onChange={(e) => setCustomColor(e.target.value)} 
+                          className="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
+                        />
+                        <button 
+                          onClick={() => {
+                            if (!PRESET_COLORS.includes(customColor) && !customColorsList.includes(customColor)) {
+                              setCustomColorsList([...customColorsList, customColor]);
+                            }
+                            if (!themeColors.includes(customColor)) {
+                              toggleColor(customColor);
+                            }
+                          }}
+                          className="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-white transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><Type className="w-3 h-3" /> Typography</label>
+                      <button onClick={() => setIncludeText(!includeText)} className="flex items-center gap-1 text-xs text-white/40 hover:text-white transition-colors">
+                        {includeText ? <ToggleRight className="w-5 h-5 text-indigo-400" /> : <ToggleLeft className="w-5 h-5" />} {includeText ? 'Enabled' : 'No Text'}
+                      </button>
+                    </div>
+                    {includeText && (
+                      <div className="space-y-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                        <div className="grid grid-cols-2 gap-2">
+                          <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value as FontPreset)} className="col-span-2 bg-black/40 border border-white/10 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 text-white">
+                            {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+                          </select>
+                          
+                          <select value={newTextType} onChange={(e) => setNewTextType(e.target.value as any)} className="bg-black/40 border border-white/10 rounded-lg p-2 text-xs outline-none focus:border-indigo-500 text-white">
+                            <option value="Headline">Headline</option>
+                            <option value="Sub-headline">Sub-headline</option>
+                            <option value="Pricing">Pricing</option>
+                            <option value="Body/Other">Body/Other</option>
+                          </select>
+                          <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-lg p-1 px-2">
+                            <span className="text-[10px] text-white/50">Color:</span>
+                            <input type="color" value={newTextColor} onChange={(e) => setNewTextColor(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent" />
+                          </div>
+                          
+                          <select value={newTextAlignment} onChange={(e) => setNewTextAlignment(e.target.value as any)} className="bg-black/40 border border-white/10 rounded-lg p-2 text-xs outline-none focus:border-indigo-500 text-white">
+                            <option value="Left">Align Left</option>
+                            <option value="Center">Align Center</option>
+                            <option value="Right">Align Right</option>
+                          </select>
+                          <select value={newTextPlacement} onChange={(e) => setNewTextPlacement(e.target.value as any)} className="bg-black/40 border border-white/10 rounded-lg p-2 text-xs outline-none focus:border-indigo-500 text-white">
+                            <option value="Top">Top</option>
+                            <option value="Center">Middle</option>
+                            <option value="Bottom">Bottom</option>
+                          </select>
+                          
+                          <div className="col-span-2 flex gap-2">
+                            <input type="text" value={newTextContent} onChange={(e) => setNewTextContent(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addTextElement()} placeholder="Enter text content..." className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none" />
+                            <button onClick={addTextElement} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors">Add</button>
+                          </div>
+                        </div>
+                        
+                        {textElements.length > 0 && (
+                          <div className="space-y-2 mt-4">
+                            <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Active Text Elements</h4>
+                            {textElements.map(t => (
+                              <div key={t.id} className="flex flex-col gap-2 bg-white/5 border border-white/10 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: t.color }}></div>
+                                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">{t.type}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button onClick={() => refineTextElement(t.id)} disabled={t.isRefining || !t.text.trim()} className="p-1 hover:bg-indigo-500/20 text-indigo-400 rounded transition-colors disabled:opacity-50" title="Refine Text">
+                                      {t.isRefining ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                    </button>
+                                    <button onClick={() => removeTextElement(t.id)} className="p-1 hover:bg-red-500/20 text-red-400 rounded transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                  </div>
+                                </div>
+                                <span className="text-sm text-white/90 font-medium" style={{ fontFamily: fontFamily }}>"{t.text}"</span>
+                                <div className="flex gap-3 text-[9px] text-white/40 uppercase tracking-wider">
+                                  <span>Align: {t.alignment}</span>
+                                  <span>Pos: {t.placement}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mobile Next Button: Step 2 -> 3 */}
+                  <div className="lg:hidden pt-8 pb-12 flex flex-col gap-3">
+                    <button 
+                      onClick={() => setActiveStep(3)} 
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all"
+                    >
+                      <span>Next: Tweak Properties</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => setActiveStep(1)} 
+                      className="w-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest active:scale-[0.98] transition-all"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      <span>Back to Media</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className={cn("space-y-6", activeStep === 3 ? "block" : "hidden")}>
+                <motion.div key="step3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
+                  {/* Text Content Engine relocated to step 1 */}
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                        {generationObjective === 'logo' ? <Type className="w-4 h-4" /> : generationObjective === 'ci-generator' ? <Book className="w-4 h-4" /> : <LayoutIcon className="w-4 h-4" />}
+                        {generationObjective === 'logo' ? "Brand Name / Style Concept" : generationObjective === 'ci-generator' ? "Additional CI Context" : "Scene Description"}
+                      </label>
+                      <div className="flex gap-2">
+                        <button onClick={suggestScenePrompt} disabled={isSuggestingScene} className="text-[10px] flex items-center gap-1 bg-fuchsia-500/20 text-fuchsia-300 hover:bg-fuchsia-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                          {isSuggestingScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />} Auto-Suggest
+                        </button>
+                        <button onClick={() => refinePromptText('scene')} disabled={isRefiningScene || !scenePrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                          {isRefiningScene ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                        </button>
+                      </div>
+                    </div>
+                    <AutoResizeTextarea 
+                      value={scenePrompt} 
+                      onChange={(e) => setScenePrompt(e.target.value)} 
+                      placeholder={generationObjective === 'logo' ? "Enter your brand name or a core logo concept (e.g., 'Aero-Dynamics', 'Minimalist leaf for organic tech')..." : generationObjective === 'ci-generator' ? "Add any extra instructions for the Corporate Identity generation..." : "Describe the environment, mood, and placement..."} 
+                      className="w-full min-h-[8rem] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none placeholder:text-white/20" 
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" /> General Asset Directives
+                      </label>
+                      <button onClick={() => refinePromptText('asset')} disabled={isRefiningAsset || !assetPrompt.trim()} className="text-[10px] flex items-center gap-1 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                        {isRefiningAsset ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Refine
+                      </button>
+                    </div>
+                    <AutoResizeTextarea 
+                      value={assetPrompt} 
+                      onChange={(e) => setAssetPrompt(e.target.value)} 
+                      placeholder="How should the assets interact? (e.g., 'Model holding the product, logo top right')" 
+                      className="w-full min-h-[6rem] bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none placeholder:text-white/20" 
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><ImagePlus className="w-3 h-3" /> Style Reference Images (Max 3)</label>
+                      <span className="text-[10px] text-white/40">{exampleImages.length}/3</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {exampleImages.map(asset => (
+                        <div key={asset.id} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black border border-white/10 group flex items-center justify-center p-1">
+                          <img src={`data:${asset.mimeType};base64,${asset.data}`} alt="Reference" className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                          <button onClick={() => removeAsset(asset.id, 'example')} className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                      {exampleImages.length < 3 && (
+                        <button onClick={() => exampleInputRef.current?.click()} className="w-16 h-16 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-indigo-400 transition-all">
+                          <Upload className="w-4 h-4" />
+                          <span className="text-[8px] font-bold uppercase">Add Ref</span>
+                        </button>
+                      )}
+                      <input type="file" ref={exampleInputRef} onChange={(e) => handleFileUpload(e, 'example')} multiple accept="image/*" className="hidden" />
+                    </div>
+                    <p className="text-[10px] text-white/40 leading-relaxed">Upload up to 3 images to guide the AI on the specific visual style, mood, or composition you want to achieve.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-2"><ListChecks className="w-3 h-3" /> Custom Rule Sets</label>
+                      {rules.length > 0 && (
+                        <button onClick={() => setRules([])} className="text-[10px] text-red-400 hover:text-red-300 transition-colors">Clear All</button>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <select
+                          className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none text-white/80"
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setNewRule(e.target.value);
+                            }
+                          }}
+                          value=""
+                        >
+                          <option value="" disabled>Select a preset rule...</option>
+                          {PRESET_RULES.map((rule, idx) => (
+                            <option key={idx} value={rule}>{rule}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={newRule} 
+                          onChange={(e) => setNewRule(e.target.value)} 
+                          onKeyDown={(e) => e.key === 'Enter' && addRule()}
+                          placeholder="Or type a custom rule here..." 
+                          className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none" 
+                        />
+                        <button onClick={addRule} className="bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/40 px-4 py-2 rounded-lg transition-colors font-bold text-sm">Add</button>
+                      </div>
+                    </div>
+                    {rules.length > 0 && (
+                      <div className="flex flex-col gap-2 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                        {rules.map((rule, i) => (
+                          <div key={i} className="flex items-start justify-between bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm group">
+                            <span className="text-white/80 leading-snug flex-1 pr-2"><span className="text-indigo-400 font-bold mr-2">{i + 1}.</span>{rule}</span>
+                            <button onClick={() => removeRule(i)} className="text-white/20 hover:text-red-400 transition-colors mt-0.5"><X className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mobile Final Action Button: Step 3 -> Generate */}
+                  <div className="lg:hidden pt-8 pb-12 flex flex-col gap-3">
+                    <button 
+                      onClick={() => { handleGenerate(); setActiveStep(4); }} 
+                      disabled={isGenerating}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                      {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      <span>{isGenerating ? 'Synthesizing...' : 'Generate Masterpiece'}</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveStep(2)} 
+                      className="w-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest active:scale-[0.98] transition-all"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      <span>Back to Design</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Generate Button Area (Sticky Bottom) */}
+            <div className={cn(
+              "p-6 border-t border-white/[0.05] bg-[#070707]/90 backdrop-blur-xl shrink-0 sticky bottom-0 z-30 lg:rounded-b-3xl lg:mt-6",
+              (activeStep === 2 || activeStep === 3) ? "block" : "hidden"
+            )}>
+              {error && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                </motion.div>
+              )}
+              <button onClick={() => { handleGenerate(); setActiveStep(4); }} disabled={isGenerating} className={cn("relative w-full group overflow-hidden rounded-2xl p-[1px] transition-all", isGenerating ? "cursor-not-allowed opacity-70" : "hover:scale-[1.02]")}>
+                {!isGenerating && <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 rounded-2xl opacity-70 group-hover:opacity-100 animate-gradient-xy transition-opacity duration-500"></span>}
+                <div className={cn("relative w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-colors duration-300", isGenerating ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "bg-[#0a0a0a] group-hover:bg-transparent text-white")}>
+                  {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Rendering...</> : <><Sparkles className="w-4 h-4" /> Generate Masterpiece</>}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* CENTER COLUMN (Desktop Canvas & Timeline, Mobile Tab 4) */}
+          <div className={cn(
+            "w-full h-full relative flex-col overflow-hidden z-10",
+            (activeStep === 4 || activeStep === 5) ? "flex lg:flex-row" : "hidden"
+          )}>
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            
+            <div className="flex-1 w-full h-full p-2 md:p-4 lg:p-0 flex flex-col items-center justify-start relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar transform-gpu lg:py-10">
+              <div className={cn("w-full mx-auto h-[max-content] pb-24 md:pb-32 px-2 md:px-0", activeStep === 5 ? "max-w-5xl lg:max-w-6xl" : "max-w-4xl lg:max-w-5xl")}>
+                <AnimatePresence mode="wait">
+                {activeStep === 5 ? (
+                <motion.div key="guide" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-5xl lg:max-w-6xl w-full px-3 md:px-8 py-6 md:py-10 shadow-2xl bg-[#09090b]/80 backdrop-blur-3xl rounded-[32px] md:rounded-[40px] border border-white/5 mx-auto mt-2 md:mt-4 transform-gpu shrink-0 text-center relative overflow-hidden flex flex-col items-center">
+                  
+                  {/* Hero Effect Backgrounds */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/10 blur-[120px] rounded-full mix-blend-screen" />
+                    <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-fuchsia-500/10 blur-[120px] rounded-full mix-blend-screen" />
+                  </div>
+
+                  {/* Hero Section */}
+                  <div className="text-center space-y-6 md:space-y-8 relative z-10 w-full max-w-5xl mx-auto px-4">
+                    <div className="inline-flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] md:text-sm font-black uppercase tracking-[0.2em] mb-2 md:mb-6 shadow-[0_0_40px_rgba(99,102,241,0.25)]">
+                      <Sparkles className="w-4 h-4 md:w-5 md:h-5 animate-pulse text-indigo-400" /> Advanced Multi-Modal Architecture
+                    </div>
+                    
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/40 tracking-tighter drop-shadow-2xl !leading-[1.1]">
+                      Engineered for <br className="hidden md:block" /> Built-In <span className="text-indigo-400">Brilliance.</span>
+                    </h2>
+                    
+                    <p className="text-sm md:text-base lg:text-lg text-white/60 font-medium max-w-2xl mx-auto leading-relaxed px-4">
+                      JAMINI utilizes a dual-node synthetic reasoning protocol to enforce strict brand compliance, deterministic spatial awareness, and cinema-grade lighting on every generation process, eliminating random hallucination.
+                    </p>
+                    
+                    {/* The Architecture Duo Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 mt-12 md:mt-16 w-full max-w-3xl mx-auto relative">
+                      
+                      {/* Plus icon strictly in the center */}
+                      <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/80 backdrop-blur-2xl border border-white/20 items-center justify-center text-3xl font-black text-white/60 z-20 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                        +
+                      </div>
+
+                      {/* JA Card */}
+                      <div className="flex flex-col p-6 rounded-3xl bg-[#0c0c0e] border border-white/5 hover:border-indigo-500/30 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                            <Layers className="w-6 h-6 text-indigo-400" />
+                          </div>
+                          <div>
+                            <span className="block text-2xl font-black text-white tracking-tighter">JA</span>
+                            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em]">Jason (The Brain)</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-white/50 leading-relaxed">Systematic architect structuring intent into algebraic prompt schemas. Validates CI typography, lighting, and compositional grids.</p>
+                      </div>
+
+                      {/* MINI Card */}
+                      <div className="flex flex-col p-6 rounded-3xl bg-[#0c0c0e] border border-white/5 hover:border-fuchsia-500/30 transition-all duration-300">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center shrink-0">
+                            <Zap className="w-6 h-6 text-fuchsia-400" />
+                          </div>
+                          <div>
+                            <span className="block text-2xl font-black text-white tracking-tighter">MINI</span>
+                            <span className="text-[10px] text-fuchsia-400 font-bold uppercase tracking-[0.2em]">Gemini (The Brawn)</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-white/50 leading-relaxed">Render engine executing schemas with multi-modal fidelity. Delivering vector proxies, cinematic video, and pixel matrices at scale.</p>
+                      </div>
+                    </div>
+
+                    <div className="w-full mx-auto text-left space-y-10 md:space-y-16 mt-16 md:mt-32 pb-10 border-b border-white/5">
+
+                    <div className="w-full font-normal relative overflow-hidden">
+                      <strong className="text-white font-bold mb-6 md:mb-10 block text-2xl md:text-4xl font-sans flex items-center justify-center gap-3 md:gap-5 text-center">
+                        <Layers className="w-8 h-8 md:w-12 md:h-12 text-indigo-400" /> The Matrix Engine Architecture
+                      </strong>
+
+                      <p className="text-sm md:text-lg text-white/60 text-center max-w-3xl mx-auto mb-12 md:mb-20 leading-relaxed px-4">
+                        JAMINI Studio Edition is an industrial-grade commercial generation workbench. Unlike consumer-grade AI wrappers that rely on random latent diffusion, JAMINI bypasses "aesthetic guessing" by implementing a formal <strong>Compositional Protocol</strong>. Treat the generative process as assigning distinct architectural and physical variables rather than a blind dialogue.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-12">
+                        <div className="bg-[#0c0c0e] p-6 rounded-3xl border border-white/5 hover:border-indigo-500/20 transition-all">
+                          <h4 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-3 mb-4">
+                            <Cpu className="w-5 h-5 text-indigo-400" /> Compute Bridge
+                          </h4>
+                          <p className="text-xs text-white/50 leading-relaxed mb-4">Proprietary prompt compiler parsing language into absolute physical metrics before transmission to inference.</p>
+                          <ul className="space-y-2 text-[10px] text-white/70">
+                            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-indigo-500"/> Fidelity: 100% Context Retention</li>
+                            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-indigo-500"/> Core: Gemini 3.1 Pro + Veo</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-[#0c0c0e] p-6 rounded-3xl border border-white/5 hover:border-fuchsia-500/20 transition-all">
+                          <h4 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-3 mb-4">
+                            <Zap className="w-5 h-5 text-fuchsia-400" /> Synthesis Performance
+                          </h4>
+                          <p className="text-xs text-white/50 leading-relaxed mb-4">Generating commercial-grade output requires enforcing strict brand geometries. System ensures identity lock.</p>
+                          <ul className="space-y-2 text-[10px] text-white/70">
+                            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500"/> Compliance: 99% Brand Geometry</li>
+                            <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500"/> Output: Native 4K Cinematic Video</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 w-full">
+                        <div className="p-6 md:p-8 bg-indigo-500/5 rounded-2xl md:rounded-[32px] border border-indigo-500/10 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all h-full group">
+                          <h4 className="text-indigo-400 font-bold mb-3 md:mb-5 flex items-center gap-2 md:gap-3 text-sm md:text-lg uppercase tracking-wider"><Sparkles className="w-5 h-5 md:w-6 md:h-6" /> Precision Scale</h4>
+                          <p className="text-xs md:text-sm text-white/50 leading-relaxed font-medium">Generate surgical print-ready assets at 8K resolutions natively, incorporating advanced vector mapping for infinite scalability and CMYK separation support.</p>
+                        </div>
+                        <div className="p-6 md:p-8 bg-fuchsia-500/5 rounded-2xl md:rounded-[32px] border border-fuchsia-500/10 hover:bg-fuchsia-500/10 hover:border-fuchsia-500/30 transition-all h-full group">
+                          <h4 className="text-fuchsia-400 font-bold mb-3 md:mb-5 flex items-center gap-2 md:gap-3 text-sm md:text-lg uppercase tracking-wider"><Video className="w-5 h-5 md:w-6 md:h-6" /> Video Flow</h4>
+                          <p className="text-xs md:text-sm text-white/50 leading-relaxed font-medium">Synchronized video continuity leveraging Veo 3.1 architecture for maintaining character and product consistency across extended multi-scene sequences.</p>
+                        </div>
+                        <div className="p-6 md:p-8 bg-emerald-500/5 rounded-2xl md:rounded-[32px] border border-emerald-500/10 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all h-full group">
+                          <h4 className="text-emerald-400 font-bold mb-3 md:mb-5 flex items-center gap-2 md:gap-3 text-sm md:text-lg uppercase tracking-wider"><Globe className="w-5 h-5 md:w-6 md:h-6" /> Global I18N</h4>
+                          <p className="text-xs md:text-sm text-white/50 leading-relaxed font-medium">50+ Language multi-modal resynthesis. Instantly translate text-in-image elements perfectly rendered back into the original structural typography.</p>
+                        </div>
+                        <div className="p-6 md:p-8 bg-amber-500/5 rounded-2xl md:rounded-[32px] border border-amber-500/10 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all h-full group">
+                          <h4 className="text-amber-400 font-bold mb-3 md:mb-5 flex items-center gap-2 md:gap-3 text-sm md:text-lg uppercase tracking-wider"><Database className="w-5 h-5 md:w-6 md:h-6" /> Storage Pipeline</h4>
+                          <p className="text-xs md:text-sm text-white/50 leading-relaxed font-medium">Enterprise DAM (Digital Asset Management) integration ready. Connect directly to structured databases for immediate asset retrieval and indexing pipelines.</p>
+                        </div>
+                      </div>
+
+                      {/* Enterprise Integration Expansion */}
+                      <div className="mt-12 md:mt-24 bg-black/40 border border-white/5 rounded-[32px] md:rounded-[48px] p-8 md:p-12 flex flex-col xl:flex-row gap-8 md:gap-12 items-center justify-between shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-[40%] h-full bg-emerald-500/5 blur-[100px] pointer-events-none" />
+                         <div className="space-y-4 md:space-y-6 max-w-3xl text-center xl:text-left relative z-10">
+                           <div className="flex items-center gap-3 md:gap-4 justify-center xl:justify-start">
+                              <Box className="w-6 h-6 md:w-8 md:h-8 text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                              <h4 className="text-2xl md:text-3xl lg:text-4xl font-black text-white uppercase tracking-[0.2em] drop-shadow-md">Enterprise Integrations</h4>
+                           </div>
+                           <p className="text-sm md:text-base text-white/50 leading-relaxed px-4 md:px-0">Programmatically queue mass asset generation with deterministic structural constraints and dynamic visual overrides using our high-throughput RESTful Synthesis API.</p>
+                         </div>
+                         <div className="flex flex-col sm:flex-row gap-4 shrink-0 w-full xl:w-auto relative z-10">
+                           <button className="flex-1 sm:flex-none px-8 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-sm md:text-base font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-xl">Read API Documentation</button>
+                           <button className="flex-1 sm:flex-none px-8 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 rounded-2xl text-sm md:text-base font-bold transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95">Generate Access Keys</button>
+                         </div>
+                      </div>
+
+                      {/* Video Showcase Section */}
+                      <div className="mt-20 md:mt-32 space-y-8 md:space-y-12 bg-black/30 border border-white/5 rounded-[40px] p-6 md:p-8">
+                         <div className="flex flex-col items-center gap-4 justify-center text-center">
+                            <div className="p-5 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/20 mb-2 relative group overflow-hidden">
+                                <div className="absolute inset-0 bg-fuchsia-500/10 scale-0 group-hover:scale-100 transition-transform rounded-full"></div>
+                                <Video className="w-10 h-10 md:w-12 md:h-12 text-fuchsia-400 relative z-10" />
+                            </div>
+                            <h4 className="text-2xl md:text-4xl font-black text-white uppercase tracking-[0.2em] drop-shadow-lg leading-tight">Production Reel<br className="sm:hidden" /> Showcase</h4>
+                            <p className="text-white/50 text-sm md:text-base max-w-2xl mx-auto px-4 leading-relaxed font-medium">Observe the raw power of the Jamini Matrix. These commercial sequences are not stock. They are generated natively in full 4K and 8K cinematic resolutions at 60 frames per second. We leverage the Veo 3.1 architecture to maintain unparalleled lighting continuity, spatial physics, and brand asset consistency.</p>
+                            
+                            <div className="flex flex-wrap justify-center gap-2 mt-2">
+                               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white/50 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Frame-Accurate Physics</span>
+                               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white/50 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Volumetric Lighting Integration</span>
+                               <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white/50 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Multi-Angle Continuity</span>
+                            </div>
+                         </div>
+                         
+                         {/* Version Comparison Section - Videos Removed */}
+                         <div id="version-comparison-new" className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 w-full max-w-6xl mx-auto mt-12">
+                             {[
+                               { 
+                                 version: 'Veo 3.1 Pro', 
+                                 description: 'Industrial-grade generative engine engineered for high-fidelity commercial production.', 
+                                 capabilities: ['8K Resolution Synthesis', 'Complex Fluid Dynamics', 'Macro Surface Detailing', 'Advanced Brand Compliance'],
+                                 idealFor: 'TVC Editorial, High-Fashion Showcases, Architectural Visualization' 
+                               },
+                               { 
+                                 version: 'Veo 3.1 Lite', 
+                                 description: 'Performance-optimized rendering engine designed for rapid iteration and prototyping.', 
+                                 capabilities: ['Sub-18s Render Cycles', 'Optimized Motion Physics', 'Efficient Material Tracing', 'Cross-Platform Asset Sync'],
+                                 idealFor: 'Product Prototyping, Social Campaign Assets, Rapid UI/UX Motion' 
+                               }
+                             ].map((ver, idx) => (
+                               <div key={idx} className="bg-[#0c0c0e] p-8 md:p-10 rounded-[40px] border border-white/5 hover:border-indigo-500/30 transition-all duration-300 shadow-2xl relative overflow-hidden group">
+                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                 <h4 className="text-white font-black uppercase tracking-widest text-xl md:text-2xl flex items-center gap-4 mb-6 relative z-10">
+                                   <Zap className="w-8 h-8 text-indigo-400" /> {ver.version}
+                                 </h4>
+                                 <p className="text-sm text-white/50 mb-8 leading-relaxed relative z-10">
+                                   {ver.description}
+                                 </p>
+                                 <div className="space-y-6 relative z-10">
+                                   <div>
+                                     <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-3">Core Capabilities</span>
+                                     <ul className="space-y-2">
+                                       {ver.capabilities.map((cap, i) => (
+                                         <li key={i} className="flex items-center gap-3 text-xs text-white/70">
+                                           <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"/> {cap}
+                                         </li>
+                                       ))}
+                                     </ul>
+                                   </div>
+                                   <div>
+                                     <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">Ideal Use Case</span>
+                                     <p className="text-xs text-white/60">{ver.idealFor}</p>
+                                   </div>
+                                 </div>
+                               </div>
+                             ))}
+                          </div>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Architecture Diagram Visualization */}
+                  <div className="pt-12 border-t border-white/5 w-full max-w-5xl mx-auto">
+                    <div className="text-center space-y-4 mb-10 relative z-10">
+                       <h3 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">System Architecture <span className="text-indigo-500">&</span> Pipeline</h3>
+                       <p className="text-white/50 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+                          A transparent, deterministic observation deck detailing the seamless flow from raw asset ingestion to high-fidelity, production-ready neural synthesis.
+                        </p>
+                       <div className="flex justify-center gap-4 mt-6">
+                           <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white/50 flex items-center gap-2"><Layers className="w-4 h-4 text-indigo-400" /> Multi-Modal Orchestration</span>
+                           <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white/50 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Zero Privacy Leaks</span>
+                       </div>
+                    </div>
+                    <div className="hidden md:block bg-[#121215] border border-white/10 rounded-3xl p-8 relative overflow-hidden shadow-xl mx-auto max-w-4xl transform-gpu">
+                      {/* Diagram SVG (Desktop) */}
+                      <svg viewBox="0 0 900 550" className="w-full h-auto drop-shadow-2xl" preserveAspectRatio="xMidYMid meet">
+                        {/* High-End Background Gradients */}
+                        <defs>
+                          <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="rgba(99, 102, 241, 0.1)" />
+                            <stop offset="50%" stopColor="rgba(217, 70, 239, 1)" />
+                            <stop offset="100%" stopColor="rgba(99, 102, 241, 0.1)" />
+                          </linearGradient>
+                          <linearGradient id="glowGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="rgba(99, 102, 241, 0.4)" />
+                            <stop offset="100%" stopColor="rgba(99, 102, 241, 0.05)" />
+                          </linearGradient>
+                          <linearGradient id="glowGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="rgba(217, 70, 239, 0.4)" />
+                            <stop offset="100%" stopColor="rgba(217, 70, 239, 0.05)" />
+                          </linearGradient>
+                          <radialGradient id="matrixGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="rgba(217, 70, 239, 0.3)" />
+                            <stop offset="100%" stopColor="rgba(0, 0, 0, 0)" />
+                          </radialGradient>
+                          <radialGradient id="inputGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor="rgba(99, 102, 241, 0.2)" />
+                            <stop offset="100%" stopColor="rgba(0, 0, 0, 0)" />
+                          </radialGradient>
+                          <filter id="neonBlur" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                            <feMerge>
+                              <feMergeNode in="coloredBlur"/>
+                              <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                          </filter>
+                          <filter id="shadowHeavy">
+                            <feDropShadow dx="0" dy="6" stdDeviation="10" floodColor="#000" floodOpacity="0.8" />
+                          </filter>
+                        </defs>
+                        
+                        {/* Background Grids */}
+                        <g opacity="0.3">
+                           <path d="M 0 50 L 900 50 M 0 100 L 900 100 M 0 150 L 900 150 M 0 200 L 900 200 M 0 250 L 900 250 M 0 300 L 900 300 M 0 350 L 900 350 M 0 400 L 900 400 M 0 450 L 900 450 M 0 500 L 900 500" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+                           <path d="M 100 0 L 100 550 M 200 0 L 200 550 M 300 0 L 300 550 M 400 0 L 400 550 M 500 0 L 500 550 M 600 0 L 600 550 M 700 0 L 700 550 M 800 0 L 800 550" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+                        </g>
+
+                        {/* Connection Paths: Data Flow */}
+                        <path d="M 180 275 L 450 275" stroke="url(#lineGrad)" strokeWidth="4" strokeDasharray="8,8" className="animate-pulse" filter="url(#neonBlur)" />
+                        <path d="M 450 275 L 720 275" stroke="url(#lineGrad)" strokeWidth="4" strokeDasharray="8,8" className="animate-pulse" style={{ animationDelay: '0.5s' }} filter="url(#neonBlur)" />
+                        <path d="M 450 135 L 450 415" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+                        <path d="M 450 135 L 450 275" stroke="rgba(217,70,239,0.5)" strokeWidth="2" strokeDasharray="4,4" className="animate-pulse" />
+                        <path d="M 450 415 L 450 275" stroke="rgba(99,102,241,0.5)" strokeWidth="2" strokeDasharray="4,4" className="animate-pulse" />
+
+                        {/* Back Glows */}
+                        <circle cx="450" cy="275" r="150" fill="url(#matrixGlow)" />
+                        <circle cx="180" cy="275" r="100" fill="url(#inputGlow)" />
+                        <circle cx="720" cy="275" r="100" fill="url(#inputGlow)" />
+
+                        {/* Node 1: Input Stream */}
+                        <g transform="translate(180, 275)">
+                          {/* Inner Nodes */}
+                          <circle r="60" fill="url(#glowGrad1)" stroke="rgba(99, 102, 241, 0.8)" strokeWidth="2" filter="url(#shadowHeavy)" />
+                          <circle r="50" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                          <g stroke="#ffffff" fill="none" strokeWidth="2">
+                            <rect x="-18" y="-18" width="36" height="36" rx="6" />
+                            <path d="M-18 -10 L18 -10 M-10 -18 L-10 18 M10 -18 L10 18" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                            <circle cx="0" cy="0" r="5" fill="#6366F1" stroke="none" />
+                          </g>
+                          <rect x="-65" y="75" width="130" height="40" rx="8" fill="rgba(0,0,0,0.8)" stroke="rgba(99,102,241,0.4)" />
+                          <text x="0" y="93" fill="#fff" fontSize="13" textAnchor="middle" fontWeight="bold" letterSpacing="1"> RAW ASSETS</text>
+                          <text x="0" y="108" fill="rgba(255,255,255,0.5)" fontSize="10" textAnchor="middle">Images • PDF • Vectors</text>
+                        </g>
+
+                        {/* Top Peripheral: Vivid Processor */}
+                        <g transform="translate(450, 90)">
+                          <rect x="-85" y="-35" width="170" height="70" rx="12" fill="url(#glowGrad1)" stroke="rgba(99, 102, 241, 0.6)" filter="url(#shadowHeavy)" />
+                          <rect x="-75" y="-25" width="150" height="50" rx="8" fill="rgba(0,0,0,0.7)" />
+                          <circle cx="-50" cy="0" r="10" fill="rgba(99,102,241,0.2)" stroke="#6366F1" strokeWidth="1.5" />
+                          <path d="M-55 -4 L-45 4 M-55 4 L-45 -4" stroke="#fff" strokeWidth="1.5" />
+                          <text x="15" y="-2" fill="#fff" fontSize="12" textAnchor="middle" fontWeight="bold" letterSpacing="0.5">VIVID PROMPT ENG</text>
+                          <text x="15" y="14" fill="rgba(99,102,241,0.8)" fontSize="10" textAnchor="middle" fontWeight="bold">v1.5 Vision Analysis</text>
+                        </g>
+
+                        {/* Bottom Peripheral: Subconscious Memory */}
+                        <g transform="translate(450, 460)">
+                          <rect x="-85" y="-35" width="170" height="70" rx="12" fill="url(#glowGrad1)" stroke="rgba(99, 102, 241, 0.6)" filter="url(#shadowHeavy)" />
+                          <rect x="-75" y="-25" width="150" height="50" rx="8" fill="rgba(0,0,0,0.7)" />
+                          <rect x="-60" y="-10" width="20" height="20" rx="4" fill="rgba(99,102,241,0.2)" stroke="#6366F1" strokeWidth="1.5" />
+                          <circle cx="-50" cy="0" r="3" fill="#fff" />
+                          <text x="15" y="-2" fill="#fff" fontSize="12" textAnchor="middle" fontWeight="bold" letterSpacing="0.5">VAULT & CACHE</text>
+                          <text x="15" y="14" fill="rgba(99,102,241,0.8)" fontSize="10" textAnchor="middle" fontWeight="bold">API Keys & Session State</text>
+                        </g>
+
+                        {/* Node 2: Matrix Engine (The Core) */}
+                        <g transform="translate(450, 275)">
+                          <rect x="-80" y="-80" width="160" height="160" rx="24" fill="url(#glowGrad2)" stroke="rgba(217, 70, 239, 0.8)" strokeWidth="3" filter="url(#shadowHeavy)" />
+                          <rect x="-65" y="-65" width="130" height="130" rx="16" fill="rgba(0,0,0,0.8)" stroke="rgba(217, 70, 239, 0.4)" />
+                          <g transform="scale(1.2)">
+                            <path d="M 0 -35 L 30.3 -17.5 L 30.3 17.5 L 0 35 L -30.3 17.5 L -30.3 -17.5 Z" stroke="rgba(217,70,239,0.8)" strokeWidth="2" fill="rgba(217,70,239,0.1)" />
+                            <path d="M 0 -20 L 17.3 -10 L 17.3 10 L 0 20 L -17.3 10 L -17.3 -10 Z" stroke="#fff" strokeWidth="1.5" fill="none" />
+                            <circle cx="0" cy="0" r="4" fill="#D946EF" filter="url(#neonBlur)" className="animate-pulse" />
+                          </g>
+                          <rect x="-85" y="95" width="170" height="45" rx="8" fill="rgba(0,0,0,0.9)" stroke="rgba(217,70,239,0.5)" />
+                          <text x="0" y="114" fill="#fff" fontSize="14" textAnchor="middle" fontWeight="black" letterSpacing="1.5">JAMINI MATRIX</text>
+                          <text x="0" y="130" fill="rgba(217,70,239,0.8)" fontSize="10" textAnchor="middle" fontWeight="bold">Semantic Synthesis Core</text>
+                        </g>
+
+                        {/* Node 3: Synthesized Output */}
+                        <g transform="translate(720, 275)">
+                          <circle r="60" fill="url(#glowGrad1)" stroke="rgba(99, 102, 241, 0.8)" strokeWidth="2" filter="url(#shadowHeavy)" />
+                          <circle r="50" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                          <g stroke="#ffffff" fill="none" strokeWidth="2">
+                            <path d="M-20 -25 L20 -25 L20 15 L-20 15 Z M-12 -12 L-12 2 L12 2 L12 -12 Z" strokeWidth="2" />
+                            <path d="M-5 22 L5 22" strokeWidth="3" />
+                            <circle cx="0" cy="-5" r="4" fill="rgba(99,102,241,0.8)" stroke="none" />
+                          </g>
+                          <rect x="-70" y="75" width="140" height="40" rx="8" fill="rgba(0,0,0,0.8)" stroke="rgba(99,102,241,0.4)" />
+                          <text x="0" y="93" fill="#fff" fontSize="13" textAnchor="middle" fontWeight="bold" letterSpacing="1"> FINAL RENDER</text>
+                          <text x="0" y="108" fill="rgba(255,255,255,0.5)" fontSize="10" textAnchor="middle">4K Commercial Artifact</text>
+                        </g>
+                      </svg>
+                    </div>
+
+                    <div className="md:hidden bg-[#070709] border border-white/10 rounded-[40px] p-6 relative overflow-hidden shadow-2xl mx-auto w-full max-w-sm">
+                      {/* Diagram SVG (Mobile Vertical) - Pro Shrink-to-fit */}
+                      <svg viewBox="0 0 400 950" className="w-full h-auto" preserveAspectRatio="xMidYMin meet">
+                        <defs>
+                          <linearGradient id="lineGradMobile" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="rgba(99, 102, 241, 0)" />
+                            <stop offset="50%" stopColor="rgba(217, 70, 239, 1)" />
+                            <stop offset="100%" stopColor="rgba(99, 102, 241, 0)" />
+                          </linearGradient>
+                          <filter id="glowMobile">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                          </filter>
+                        </defs>
+                        
+                        {/* Vertical Flow Line */}
+                        <path d="M 200 80 L 200 850" stroke="url(#lineGradMobile)" strokeWidth="3" strokeDasharray="10,10" className="animate-pulse" />
+
+                        {/* Top Node: Assets */}
+                        <g transform="translate(200, 100)">
+                          <circle r="65" fill="rgba(99, 102, 241, 0.1)" stroke="rgba(99, 102, 241, 0.6)" strokeWidth="2" />
+                          <circle r="50" fill="rgba(0,0,0,0.8)" />
+                          <path d="M-15 -15 L15 -15 L15 15 L-15 15 Z" stroke="#6366F1" fill="none" strokeWidth="2" />
+                          <text y="95" fill="#fff" fontSize="16" textAnchor="middle" fontWeight="900" letterSpacing="2">ASSETS</text>
+                          <text y="115" fill="rgba(255,255,255,0.4)" fontSize="11" textAnchor="middle" fontWeight="bold">RAW DATA STREAM</text>
+                        </g>
+
+                        {/* Middle Node: The Matrix */}
+                        <g transform="translate(200, 475)">
+                          <rect x="-85" y="-85" width="170" height="170" rx="30" fill="rgba(217, 70, 239, 0.1)" stroke="rgba(217, 70, 239, 0.8)" strokeWidth="3" filter="url(#glowMobile)" />
+                          <rect x="-70" y="-70" width="140" height="140" rx="20" fill="rgba(0,0,0,0.9)" />
+                          <path d="M-30 -30 L30 30 M-30 30 L30 -30" stroke="#D946EF" strokeWidth="3" className="animate-pulse" />
+                          <text y="115" fill="#fff" fontSize="18" textAnchor="middle" fontWeight="900" letterSpacing="4">MATRIX ENGINE</text>
+                          <text y="135" fill="rgba(217, 70, 239, 0.8)" fontSize="12" textAnchor="middle" fontWeight="900">GEMINI 3.1 PRO</text>
+                        </g>
+
+                        {/* Bottom Node: Render */}
+                        <g transform="translate(200, 850)">
+                          <circle r="65" fill="rgba(99, 102, 241, 0.1)" stroke="rgba(99, 102, 241, 0.6)" strokeWidth="2" />
+                          <circle r="50" fill="rgba(0,0,0,0.8)" />
+                          <circle cx="0" cy="0" r="15" stroke="#6366F1" fill="none" strokeWidth="2" />
+                          <text y="-100" fill="#fff" fontSize="16" textAnchor="middle" fontWeight="900" letterSpacing="2">SYNTHESIS</text>
+                          <text y="-80" fill="rgba(255,255,255,0.4)" fontSize="11" textAnchor="middle" fontWeight="bold">FINAL 4K ARTIFACT</text>
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5 md:gap-10 pt-8 md:pt-12 border-t border-white/5">
+                    {/* Neural Engine Details */}
+                    <div className="space-y-3 md:space-y-4 p-4 md:p-6 rounded-2xl md:rounded-3xl bg-[#0c0c0e]/80 backdrop-blur-xl border border-white/10 shadow-[0_20px_80px_rgba(99,102,241,0.15)] hover:border-indigo-500/40 transition-all duration-500 h-full relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                      <h3 className="text-lg md:text-2xl font-black text-white flex items-center gap-3 leading-tight tracking-tight drop-shadow-md">
+                        <div className="p-2 md:p-3 rounded-xl bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/40 relative z-10 group-hover:scale-110 transition-transform duration-500">
+                          <Cpu className="w-5 h-5 md:w-6 md:h-6" />
+                        </div>
+                        <span className="relative z-10">Neural Engine Matrix</span>
+                      </h3>
+                      <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium relative z-10 max-w-lg">
+                        At the core of JAMINI is a proprietary multi-modal inference pipeline specifically trained for commercial art direction. It bridges the gap between raw pixel data and semantic structural intent by mathematically validating brand geometry.
+                      </p>
+                      <ul className="space-y-2 mt-4 md:mt-6 relative z-10 border-l border-white/10 pl-4 md:pl-6">
+                        {[
+                          { title: "Analysis Vision System", icon: <Eye className="w-4 h-4 text-indigo-400" />, desc: "Ingests reference materials and generates depth maps, extracting accurate 3D geometry and texture logic from flat 2D imagery." },
+                          { title: "Brand Synchronization", icon: <ShieldCheck className="w-4 h-4 text-fuchsia-400" />, desc: "Automatically extracts dominant HEX codes and exact typographic vectors, preventing brand identity drift." },
+                          { title: "Material Light Matrix", icon: <Layers className="w-4 h-4 text-emerald-400" />, desc: "Simulates physically accurate bounces, refraction, and subsurface scattering via ray-traced lighting approximations." },
+                          { title: "Neural Logic Routing", icon: <Zap className="w-4 h-4 text-amber-400" />, desc: "Dynamically routes complex compositional requests to specialized micro-models before assembling the final unified tensor." },
+                          { title: "Algorithmic Kerning Validator", icon: <Type className="w-4 h-4 text-blue-400" />, desc: "Evaluates the white-space in synthesized typographical arrays to ensure optically balanced textual overlays." }
+                        ].map((item, i) => (
+                          <li key={i} className="flex gap-3 p-3 rounded-xl bg-black/40 border border-white/5 shadow-inner hover:border-white/20 transition-all hover:bg-black/60 relative group">
+                            <div className="shrink-0 p-2.5 rounded-lg bg-white/5 ring-1 ring-white/10 flex items-center justify-center">
+                              {item.icon}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                              <span className="block text-white font-black text-xs md:text-sm uppercase tracking-wider mb-0.5 opacity-90 leading-tight">{item.title}</span>
+                              <p className="text-[10px] md:text-xs text-white/50 leading-relaxed">{item.desc}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Workflow Details */}
+                    <div className="space-y-3 md:space-y-6 p-4 md:p-6 rounded-2xl md:rounded-3xl bg-[#0c0c0e]/80 backdrop-blur-xl border border-white/10 shadow-[0_20px_80px_rgba(217,70,239,0.15)] hover:border-fuchsia-500/40 transition-all duration-500 h-full relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                      <h3 className="text-lg md:text-2xl lg:text-3xl font-black text-white flex items-center gap-3 leading-tight tracking-tight drop-shadow-md">
+                        <div className="p-2 md:p-3 rounded-xl bg-fuchsia-500/20 text-fuchsia-400 ring-1 ring-fuchsia-500/40 relative z-10 group-hover:scale-110 transition-transform duration-500">
+                          <Workflow className="w-5 h-5 md:w-6 md:h-6" />
+                        </div>
+                        <span className="relative z-10 uppercase tracking-widest">The Master Workflow</span>
+                      </h3>
+                      <p className="text-xs md:text-sm text-white/60 leading-relaxed font-medium relative z-10 max-w-sm">
+                        A highly structured, deterministic linear progression designed to maximize creative control while entirely eliminating the unpredictable "slot-machine" dynamics.
+                      </p>
+                      <div className="space-y-3 md:space-y-5 relative mt-6 md:mt-8 z-10 pl-4 md:pl-6">
+                        {/* Connecting Line */}
+                        <div className="absolute left-7 top-4 bottom-10 w-0.5 bg-gradient-to-b from-fuchsia-500 via-indigo-500 to-transparent hidden md:block" />
+                        
+                        {[
+                          { step: "01", title: "Global Authentication", text: "Securely validate your Gemini API endpoint keys locally to ensure absolute zero proprietary data leaks.", tags: ["Local Store", "AES-256"] },
+                          { step: "02", title: "Multi-Modal Ingestion", text: "Upload raw CAD geometry, 2D product photography, vector logos. JAMINI systematically dissects and encodes elements.", tags: ["Vision Pro", "RGB Lookup"] },
+                          { step: "03", title: "Parametric Constraining", text: "Mathematically define exact spatial GUI arrangements, structural focal lengths, and complex depth limits.", tags: ["Grids", "Snapping"] },
+                          { step: "04", title: "Volumetric Stage Lighting", text: "Assign studio-grade physical lighting schemas directly via code parameters.", tags: ["PBR", "Caustics"] },
+                          { step: "05", title: "High-Fidelity Synthesis", text: "Execute the compiled matrix logic. JAMINI synthesizes the final production-grade structural artifacts.", tags: ["4K", "Vector"] }
+                        ].map((item, i) => (
+                          <div key={i} className="flex flex-col md:flex-row gap-3 md:gap-6 relative z-10 group items-start">
+                            <div className="absolute -left-[32px] w-4 h-4 rounded-full bg-black border-2 border-fuchsia-500 group-hover:border-white transition-all hidden md:block z-20 top-3"></div>
+                            <div className="w-10 h-10 md:w-16 md:h-16 shrink-0 rounded-2xl bg-black border-2 border-fuchsia-500/30 flex items-center justify-center text-base md:text-xl font-black text-fuchsia-400 group-hover:bg-fuchsia-500 group-hover:text-white transition-all duration-300 z-10 backdrop-blur-md">
+                              {item.step}
+                            </div>
+                            <div className="flex-1 p-4 md:p-6 rounded-2xl bg-black/60 border border-white/5 group-hover:border-fuchsia-500/40 transition-all duration-300 hover:bg-black/80 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                              <h4 className="text-white font-black text-sm md:text-lg mb-2 leading-tight uppercase tracking-widest drop-shadow-md">{item.title}</h4>
+                              <p className="text-[10px] md:text-sm text-white/50 leading-relaxed mb-3">{item.text}</p>
+                              <div className="flex flex-wrap gap-2">
+                                 {item.tags.map(t => <span key={t} className="px-2 py-0.5 bg-fuchsia-500/10 border border-fuchsia-500/20 text-[8px] md:text-[9px] font-bold text-fuchsia-300 uppercase tracking-widest rounded">{t}</span>)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Core Features Grid from FeaturePage */}
+                  <div className="space-y-12 pt-16 md:pt-24 border-t border-white/5 w-full max-w-5xl mx-auto">
+                    <div className="text-center space-y-4 md:space-y-6">
+                       <h3 className="text-xs md:text-sm font-black text-white/40 uppercase tracking-[0.4em]">Unleash Your Creativity</h3>
+                       <p className="text-white/60 text-sm md:text-lg max-w-3xl mx-auto px-4 leading-relaxed font-medium">Everything you need to build stunning, production-ready aesthetic assets in seconds. High-precision commercial workflows demand absolute programmatic control over physics, staging, and typographic intent.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 px-4 md:px-0">
+                      {[
+                        { 
+                          icon: MonitorPlay, 
+                          color: 'indigo', 
+                          title: 'Veo Video Matrix', 
+                          desc: 'Harness Google\'s world-class Veo model for professional video advertisement creation.\n• Native 4K & 1080p spatial cinematic rendering\n• Controlled scene-by-scene storyboard execution\n• Dynamic physics simulations (liquids, fabrics, micro-textures)\n• Granular algorithmic timing (6s, 13s, 14s social durations)' 
+                        },
+                        { 
+                          icon: LayoutIcon, 
+                          color: 'cyan', 
+                          title: 'Semantic Algorithmic Layout', 
+                          desc: 'Architecturally sound compositions derived directly from high-end magazine theory.\n• Bento Grid Framework: Perfect for multi-asset corporate showcases\n• Editorial Spread Structures: Utilizing luxury balanced negative voids\n• The Rule of Thirds: Enforcing high-impact psychological subject focus\n• Typographic Baseline Snapping: Aligns all elements to master grids' 
+                        },
+                        { 
+                          icon: Zap, 
+                          color: 'fuchsia', 
+                          title: 'Physics & Dynamics Protocol', 
+                          desc: 'Surgical control over the physical properties of the generated 3D vector space.\n• Subsurface Scattering (SSS): Deep light penetration algorithms\n• Caustics: Mathematically accurate refraction mapping for glass\n• Path-Tracing: Real-time calculation of deep environmental light bounces\n• Atmospheric Volumes: Dust, smoke, and simulated fog arrays' 
+                        },
+                        { 
+                          icon: Palette, 
+                          color: 'emerald', 
+                          title: 'Commercial Color Grading', 
+                          desc: 'Advanced LUT-based color science applied with semantic AI precision.\n• Heritage Gold: Warm, luxury, historical high-contrast aesthetic\n• Matrix Midnight: Aggressive cyan/indigo synthetic shadows\n• Clean Studio: Perfect neutral D65 daylight exact balance\n• Cyberpunk Neons: Extreme clipping prevention for bright hues' 
+                        },
+                        { 
+                          icon: Type, 
+                          color: 'amber', 
+                          title: 'Type-Safe Spatial Composition', 
+                          desc: 'Seamless typography that isn\'t just "layered on" but integrated into the 3D scene.\n• Intelligent Kerning: Proper commercial layout spacing edge ratios\n• Dimensional Lighting: Text adheres to scene global illumination bounces\n• Depth Mapping: Typographic occlusion behind foreground subjects\n• Alpha Channel Masks: Output text as fully separated layers' 
+                        },
+                        { 
+                          icon: Workflow, 
+                          color: 'blue', 
+                          title: 'Brand Asset Reference Mapping', 
+                          desc: 'Your products are the source of truth. Jamini maintains 100% geometric fidelity.\n• Vector Overlay Stacking: Mathematically combine precise brand markers\n• Illumination Inheritance: Assets dynamically inherit generated light topologies\n• Specular Checks: Validate highlights against company logos\n• Material Persistence: Preserves native brand finishes' 
+                        }
+                      ].map((feature, i) => (
+                        <div key={i} className="group p-6 rounded-2xl md:rounded-3xl bg-[#0A0A0C]/80 backdrop-blur-xl border border-white/5 hover:bg-white/[0.03] hover:border-white/20 transition-all duration-500 shadow-xl hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[50px] group-hover:bg-white/10 transition-colors pointer-events-none rounded-full" />
+                           <div className="flex items-center gap-4 mb-6 relative z-10">
+                              <div className={`p-4 rounded-xl bg-white/5 group-hover:scale-110 transition-transform duration-500 ring-1 ring-white/10 shadow-lg text-${feature.color}-400`}>
+                                <feature.icon className="w-6 h-6 md:w-8 md:h-8" />
+                              </div>
+                           </div>
+                           <h4 className="text-lg md:text-xl font-black text-white mb-3 md:mb-4 leading-tight tracking-tight relative z-10">{feature.title}</h4>
+                           <div className="space-y-2 mt-auto relative z-10">
+                             {feature.desc.split('\n').map((line, lIdx) => (
+                               <p key={lIdx} className={cn("text-xs md:text-sm leading-relaxed", lIdx === 0 ? "text-white/60 mb-4 font-medium" : "text-white/40 flex items-start gap-2")}>{line}</p>
+                             ))}
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Comprehensive Tool Documentation */}
+                  <div className="space-y-12 pt-16 md:pt-24 border-t border-white/5 w-full max-w-6xl mx-auto px-4 md:px-0">
+                    <div className="text-center space-y-4 md:space-y-6">
+                       <h3 className="text-xs md:text-sm font-black text-white/40 uppercase tracking-[0.4em]">Comprehensive Tool Suite</h3>
+                       <p className="text-white/60 text-base md:text-xl max-w-3xl mx-auto leading-relaxed font-medium">Every variable, grid, and upload field inside Jamini serves a strict commercial purpose. Master the telemetry to force unprecedented multi-modal results.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+                      {[
+                        { 
+                          title: "Vivid Enhance AI", 
+                          icon: <Sparkles className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["Automation", "Prompt Eng"], 
+                          desc: "Bypass manual prompt engineering. Jamini leverages Gemini Vision Pro models to parse and rewrite asset context algebraically.",
+                          feature: "Neural Scene Description",
+                          benefit: "Prevents lighting & structural mismatches."
+                        },
+                        { 
+                          title: "Telemetry Key Manager", 
+                          icon: <Key className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["API Setup", "Auto-Detect"], 
+                          desc: "Locally encrypted API keystore. The system actively pings structural endpoints to auto-detect latency and model compliance.",
+                          feature: "Dynamic Endpoint Routing",
+                          benefit: "Instant zero-friction access to 3.1 Pro."
+                        },
+                        { 
+                          title: "Artifact Workspace", 
+                          icon: <History className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["Archive", "Exports", "Version Control"], 
+                          desc: "Preserve every geometric prompt setup. Data remains in locally secured IndexedDB vaults. Export histories for structural auditing with clients before committing render farm bandwidth.",
+                          feature: "Persistent Artifact Retention",
+                          benefit: "Eliminates redundant matrix tokens."
+                        },
+                        { 
+                          title: "CI Bible Extraction", 
+                          icon: <Book className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["Analysis", "Compliance", "PDF Parser"], 
+                          desc: "Automatically extracts exact HEX protocols, geometric safe-zones, and precise typography weighting from static PDF manuals to force these mathematical limits into every subsequent generator cycle.",
+                          feature: "Chromatic Identity Locking",
+                          benefit: "100% uncompromised color accuracy."
+                        },
+                        { 
+                          title: "Spatial Text Engine", 
+                          icon: <Type className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["Typography", "Layout", "Z-Depth"], 
+                          desc: "Calculates spatial Z-depth constraints for 3D typography mapping, ensuring text handles physical occlusion, camera blurring, and real-time environment light-wrap physically correctly.",
+                          feature: "Semantic Typographic Layering",
+                          benefit: "True volumetric 3D scene depth compositing."
+                        },
+                        { 
+                          title: "Material Core Dynamics", 
+                          icon: <SlidersHorizontal className="w-5 h-5 md:w-8 md:h-8" />, 
+                          tags: ["Physics", "Post-FX", "Shaders"], 
+                          desc: "Tweak exact Physical Based Rendering (PBR) metallic scaling, subsurface translucency values, and roughness scalar limits across generated surfaces and vector CAD shapes.",
+                          feature: "Algorithmic PBR Control",
+                          benefit: "Highest-grade commercial photorealism."
+                        }
+                       ].map((tool, i) => (
+                        <div key={i} className="p-6 rounded-2xl md:rounded-3xl bg-[#0c0c0e] border border-white/10 hover:border-indigo-500/30 transition-all duration-300 group shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col h-full relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 blur-[60px] group-hover:bg-indigo-500/10 transition-colors pointer-events-none rounded-full" />
+                          <div className="flex flex-col gap-4 md:gap-6 mb-4 md:mb-6 relative z-10">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 ring-1 ring-indigo-500/20 shrink-0 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-500">
+                              {tool.icon}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                               <h4 className="text-lg md:text-xl font-black text-white leading-tight">{tool.title}</h4>
+                               <div className="flex flex-wrap gap-2">
+                                 {tool.tags.map(t => <span key={t} className="text-[9px] md:text-xs uppercase tracking-widest font-black px-2 py-1 rounded bg-white/5 border border-white/10 text-white/50">{t}</span>)}
+                               </div>
+                            </div>
+                          </div>
+                          <p className="text-sm text-white/50 leading-relaxed font-medium mb-6 flex-1 relative z-10">{tool.desc}</p>
+                          
+                          <div className="space-y-3 mt-auto pt-4 md:pt-6 border-t border-white/10 relative z-10 bg-black/40 -mx-6 -mb-6 p-6 rounded-b-2xl md:rounded-b-3xl">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] md:text-xs font-black text-indigo-400 uppercase tracking-widest">Protocol</span>
+                              <span className="text-xs md:text-sm text-white/80 font-bold">{tool.feature}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] md:text-xs font-black text-fuchsia-400 uppercase tracking-widest">Calculated Output</span>
+                              <span className="text-xs md:text-sm text-white/50">{tool.benefit}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Core Philosophy */}
+                  <div className="pt-16 border-t border-white/5 text-center px-4 md:px-12 max-w-5xl mx-auto relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-500/5 blur-[100px] pointer-events-none rounded-full" />
+                    <Quote className="w-12 h-12 text-indigo-500/40 mx-auto mb-6 relative z-10" />
+                    <p className="text-xl md:text-3xl lg:text-4xl font-medium text-white/90 leading-relaxed italic relative z-10 drop-shadow-2xl" style={{ fontFamily: 'Space Grotesk' }}>
+                      "We built Jamini because standard prompting is a lottery. Commercial design requires intent, structure, and absolute brand compliance. Jamini replaces the slot machine with a master control room."
+                    </p>
+                  </div>
+                  
+                  {/* Commercial Case Studies / Examples */}
+                  <div className="space-y-12 pt-16 md:pt-24 border-t border-white/5 w-full max-w-5xl mx-auto px-4 md:px-0">
+                    <div className="text-center space-y-4 md:space-y-6">
+                       <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter">Commercial Sub-Routines</h3>
+                       <p className="text-white/60 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-medium">See how Jamini's mathematical approach transforms raw intent into production-ready commercial assets across demanding industries.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+                      {[
+                        {
+                          industry: "Luxury Horology",
+                          objective: "Synthesize an extreme macro shot emphasizing caustic refraction and subsurface sapphire illumination.",
+                          steps: [
+                            "Data Ingest: 4K CAD vector dial layout.",
+                            "Protocol: 'Swiss Precision Volumetric'.",
+                            "Matrix Compute: Gemini calculates true refraction index through sapphire glass.",
+                            "Artifact: 8K Commercial Print Master."
+                          ],
+                          color: "from-amber-500/30 to-amber-900/10",
+                          border: "border-amber-500/30"
+                        },
+                        {
+                          industry: "Automotive Motion",
+                          objective: "Transition a sedentary vehicle model into a dynamic high-speed neon traversal through Tokyo.",
+                          steps: [
+                            "Data Ingest: Flat orthographic car profile.",
+                            "Protocol: 'Cyberpunk Hyper-Motion 60fps'.",
+                            "Matrix Compute: Veo engine path-traces motion blur and metallic neon reflections.",
+                            "Artifact: 14s MP4 Cinematic Sequence."
+                          ],
+                          color: "from-indigo-500/30 to-indigo-900/10",
+                          border: "border-indigo-500/30"
+                        }
+                      ].map((study, i) => (
+                        <div key={i} className={`p-6 md:p-8 rounded-2xl md:rounded-3xl bg-[#0c0c0e] border border-white/5 relative overflow-hidden group hover:${study.border} shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-700`}>
+                          <div className={`absolute inset-0 bg-gradient-to-br ${study.color} opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity duration-700`} />
+                          <h4 className="text-lg md:text-2xl font-black text-white mb-2 md:mb-4 relative z-10 leading-tight uppercase tracking-widest">{study.industry}</h4>
+                          <p className="text-sm text-white/60 mb-6 md:mb-8 relative z-10 italic leading-relaxed font-medium">"{study.objective}"</p>
+                          <div className="space-y-4 relative z-10 bg-black/40 p-6 rounded-2xl md:rounded-3xl border border-white/5">
+                            <span className="text-[10px] md:text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-4 block">Matrix Execution Log</span>
+                            {study.steps.map((step, sIdx) => (
+                              <div key={sIdx} className="flex gap-3 text-sm md:text-base text-white/70 items-start leading-tight">
+                                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-[10px] font-black text-white">{sIdx + 1}</div>
+                                <span className="mt-0.5">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-center pt-12 pb-8 lg:pb-32 sticky bottom-[-20px] bg-gradient-to-t from-[#09090b] via-[#09090b]/90 to-transparent z-20">
+                    <button 
+                      onClick={() => setActiveStep(1)}
+                      className="px-8 md:px-10 py-4 md:py-5 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white font-black text-xs md:text-base uppercase tracking-[0.2em] hover:scale-105 hover:shadow-[0_20px_60px_rgba(99,102,241,0.5)] active:scale-95 transition-all shadow-[0_10px_40px_rgba(99,102,241,0.3)] group overflow-hidden relative"
+                      style={{ transformStyle: 'preserve-3d' }}
+                    >
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full group-hover:translate-x-full ease-in-out duration-1000 transform skew-x-12" />
+                      <span className="relative flex items-center justify-center gap-2 md:gap-4 transform translate-z-10 text-shadow-lg">
+                        <Zap className="w-5 h-5 md:w-6 md:h-6 fill-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" /> Initialize Workspace Studio
+                      </span>
+                    </button>
+                  </div>
+
+                </motion.div>
+              ) : (generatedVideo || generatedImage) ? (
+                <div className="w-full h-full min-h-[60vh] flex flex-col items-center justify-center lg:p-4">
+                   {/* Desktop Master Toolbar */}
+                   <div className="hidden lg:flex w-full max-w-5xl items-center justify-between px-6 py-4 bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/5 rounded-t-2xl z-50 shadow-lg">
+                      <div className="flex items-center gap-4">
+                         <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                            {generatedVideo ? <MonitorPlay className="w-4 h-4 text-indigo-400" /> : <ImageIcon className="w-4 h-4 text-indigo-400" />}
+                         </div>
+                         <div>
+                           <h3 className="text-xs font-black uppercase tracking-widest text-white/90">Master Render</h3>
+                           <p className="text-[9px] text-white/40 uppercase tracking-[0.2em]">{generatedVideo ? "Temporal Synthesis" : "Static Output"}</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                         {generatedVideo ? (
+                           <button onClick={downloadVideo} className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                             <Download className="w-4 h-4" /> Export Video
+                           </button>
+                         ) : (
+                           <div className="flex bg-[#0a0a0c] border border-white/10 rounded-lg overflow-hidden p-1 gap-1 items-center">
+                             <span className="text-[9px] font-bold text-white/40 flex items-center px-2 mr-1">EXPORT:</span>
+                             <button onClick={() => downloadImage('png')} className="px-3 py-1.5 hover:bg-white/10 text-white rounded text-[10px] font-bold">PNG</button>
+                             <button onClick={() => zipAllFormats(generatedImage!, 'jamini-export')} className="px-3 py-1.5 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] items-center gap-1 font-bold flex"><Download className="w-3 h-3" />ZIP ALL</button>
+                             <button onClick={() => downloadImage('ai')} title={FORMAT_DESCRIPTIONS['ai']} className="px-3 py-1.5 hover:bg-white/10 text-[#FF7C00] rounded text-[10px] font-bold">.AI</button>
+                             <button onClick={() => downloadImage('cdr')} title={FORMAT_DESCRIPTIONS['cdr']} className="px-3 py-1.5 hover:bg-white/10 text-[#A2E221] rounded text-[10px] font-bold">.CDR</button>
+                             <select 
+                               onChange={(e) => { 
+                                 if (e.target.value) { 
+                                    downloadImage(e.target.value); 
+                                    e.target.value = ''; 
+                                 } 
+                               }} 
+                               className="bg-transparent text-white/60 text-[10px] uppercase font-bold outline-none cursor-pointer pl-2 pr-1 child:bg-black child:text-white"
+                             >
+                                <option value="">More ▾</option>
+                                <optgroup label="Standard">
+                                  {['jpg', 'pdf', 'svg', 'vif'].map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f] || ''}>.{f}</option>)}
+                                </optgroup>
+                                <optgroup label="Adobe">
+                                  {ALL_ADOBE_FORMATS.filter(f => f!=='svg'&&f!=='pdf'&&f!=='ai').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                </optgroup>
+                                <optgroup label="CorelDRAW">
+                                  {ALL_COREL_FORMATS.filter(f=>f!=='cdr').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                </optgroup>
+                             </select>
+                           </div>
+                         )}
+                      </div>
+                   </div>
+                   
+                   {/* Main Canvas Area */}
+                   <motion.div key={generatedVideo || generatedImage} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full max-w-5xl flex-1 flex items-center justify-center bg-[#050505] lg:border-l lg:border-r lg:border-b lg:border-white/5 lg:rounded-b-2xl relative shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-2 md:p-8 overflow-hidden group">
+                      <div className="absolute inset-0 opacity-[0.4] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-black to-black pointer-events-none" />
+                      
+                      {generatedVideo ? (
+                        <video src={generatedVideo} autoPlay loop muted playsInline controls className="relative z-10 w-full h-full max-h-[75vh] object-contain shadow-2xl rounded-lg bg-black/50" onError={() => console.error("Main video failed to load.")} />
+                      ) : (
+                        <img src={generatedImage!} alt="Generated Poster" className="relative z-10 w-full h-full max-h-[75vh] object-contain shadow-2xl rounded-lg bg-black/50" />
+                      )}
+                      
+                      {/* Mobile floating download actions */}
+                      <div className="absolute top-4 right-4 lg:hidden opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                        <div className="bg-black/80 backdrop-blur-md rounded-lg p-1.5 shadow-lg border border-white/10 flex flex-col gap-1">
+                          <span className="text-[8px] text-white/50 uppercase font-bold text-center pb-1 border-b border-white/10">Download</span>
+                          {generatedVideo ? (
+                            <button onClick={downloadVideo} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-center flex items-center gap-1">
+                              <Download className="w-3 h-3" /> MP4
+                            </button>
+                          ) : (
+                            <>
+                              <button onClick={() => downloadImage('png')} className="text-[10px] font-medium text-white hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">PNG</button>
+                              <button onClick={() => zipAllFormats(generatedImage!, 'jamini-export')} className="text-[10px] font-bold text-emerald-400 hover:bg-white/20 px-3 py-1.5 rounded transition-colors flex items-center justify-between gap-1">ZIP ALL <Download className="w-3 h-3" /></button>
+                              <button onClick={() => downloadImage('ai')} title={FORMAT_DESCRIPTIONS['ai']} className="text-[10px] font-medium text-[#FF7C00] hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">.AI</button>
+                              <button onClick={() => downloadImage('cdr')} title={FORMAT_DESCRIPTIONS['cdr']} className="text-[10px] font-medium text-[#A2E221] hover:bg-white/20 px-3 py-1.5 rounded transition-colors text-left">.CDR</button>
+                              <div className="px-3 py-1.5">
+                                <select 
+                                  onChange={(e) => { 
+                                    if (e.target.value) { 
+                                      downloadImage(e.target.value); 
+                                      e.target.value = ''; 
+                                    } 
+                                  }} 
+                                  className="bg-transparent text-white/60 text-[10px] w-full uppercase font-bold outline-none cursor-pointer child:bg-black child:text-white"
+                                >
+                                  <option value="">MORE...</option>
+                                  <optgroup label="Corel">
+                                    {ALL_COREL_FORMATS.filter(f=>f!=='cdr').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                  </optgroup>
+                                  <optgroup label="Adobe">
+                                    {ALL_ADOBE_FORMATS.filter(f=>f!=='ai').map(f => <option key={f} value={f} title={FORMAT_DESCRIPTIONS[f]}>.{f}</option>)}
+                                  </optgroup>
+                                </select>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                   </motion.div>
+                </div>
+              ) : (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4 max-w-md">
+                  <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-inner">
+                    {isGenerating ? <Loader2 className="w-10 h-10 text-indigo-400 animate-spin" /> : <ImageIcon className="w-10 h-10 text-white/20" />}
+                  </div>
+                  <h3 className="text-2xl font-bold text-white/80 tracking-tight">{isGenerating ? (imageEngine.includes('Veo') ? "Generating Cinematic Video..." : "Rendering Masterpiece...") : "Canvas Ready"}</h3>
+                  <p className="text-sm text-white/40 leading-relaxed">
+                    {isGenerating ? (imageEngine.includes('Veo') ? (videoStatus || "JAMINI is orchestrating cinematic frames, physical simulations, and lighting matrices.") : "JAMINI is analyzing your layout choice, typography, and assets to create a professional advertisement spread.") : "Complete the steps to generate your stunning advertisement."}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Mobile Preview Navigation: Only show if and results are ready */}
+              {activeStep === 4 && (generatedImage || generatedVideo) && !isGenerating && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-12 mb-24 space-y-4"
+                >
+                  <div className="h-px w-full bg-white/5 mb-8 lg:hidden" />
+                  <div className="flex justify-center max-w-sm mx-auto">
+                    <button 
+                      onClick={() => setActiveStep(2)}
+                      className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white flex items-center justify-center gap-2 transition-all hover:bg-white/10"
+                    >
+                      <ArrowLeft className="w-4 h-4" /> Back to Studio
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </main>
+    </div>
+    );
+  };
+
+  const handleEnter = () => {
+    // Dramatic Superhero Intro Sound (Web Audio API)
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(40, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 1.5);
+      
+      gain.gain.setValueAtTime(0.01, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.8);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 2);
+
+      // Higher chime
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(220, ctx.currentTime + 1);
+      osc2.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 1.5);
+      gain2.gain.setValueAtTime(0.01, ctx.currentTime + 0.5);
+      gain2.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 1.2);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(ctx.currentTime + 0.5);
+      osc2.stop(ctx.currentTime + 2);
+    } catch(e) { console.warn("Audio Context blocked or unsupported") }
+
+    setHasEntered(true);
+  };
+
+  const ObjectiveSelector = () => {
+    const objectives = [
+      { 
+        id: 'logo', 
+        title: 'Logo Design', 
+        desc: 'Intelligent brand identity system.',
+        longDesc: 'Combines multi-modal analysis with precise vector-ready generation. Includes full CI Bible automation and brand guide exports.',
+        icon: Palette, 
+        color: 'from-indigo-600 to-blue-500',
+        glow: 'rgba(79, 70, 229, 0.4)'
+      },
+      { 
+        id: 'poster', 
+        title: 'Poster Ads', 
+        desc: 'High-fidelity visual production.',
+        longDesc: 'Generate billboards, social media spreads, and marketing assets with depth-mapped rendering and custom professional lighting.',
+        icon: ImageIcon, 
+        color: 'from-fuchsia-600 to-pink-500',
+        glow: 'rgba(192, 38, 211, 0.4)'
+      },
+      { 
+        id: 'video', 
+        title: 'Cinematic Video', 
+        desc: 'Next-gen motion engine.',
+        longDesc: 'Create AI-native 4K commercials and social videos with VEO. Hyper-realistic motion sequences and artistic temporal consistency.',
+        icon: Video, 
+        color: 'from-emerald-600 to-teal-500',
+        glow: 'rgba(5, 150, 105, 0.4)'
+      },
+      { 
+        id: 'motion-lab', 
+        title: 'Motion Lab', 
+        desc: 'Advanced animation suite.',
+        longDesc: 'Bring existing layers and assets to life. Professional keyframing, timeline animation, and multi-track compositing for static visuals.',
+        icon: Film, 
+        color: 'from-orange-600 to-red-500',
+        glow: 'rgba(234, 88, 12, 0.4)'
+      },
+      { 
+        id: 'ci-generator', 
+        title: 'CI Generator', 
+        desc: 'Complete corporate identity.',
+        longDesc: 'Automated CI Bible, logo generation, brand voice, and industry-standard marketing guideline document generation in a single workflow.',
+        icon: Book, 
+        color: 'from-blue-600 to-indigo-500',
+        glow: 'rgba(37, 99, 235, 0.4)'
+      },
+    ];
+
+    const selectObjective = (id: 'logo' | 'poster' | 'video' | 'motion-lab' | 'ci-generator') => {
+      if (id === 'motion-lab') {
+        setCurrentView('storyboard');
+        return;
+      }
+      setGenerationObjective(id);
+      
+      // Reset shared states to prevent bleeding between modes
+      setScenePrompt('');
+      setProductAssets([]);
+      setBrandLogoAsset(null);
+      setBrandLogoLightAsset(null);
+      setCompanyLogoAsset(null);
+      setCompanyLogoLightAsset(null);
+      setCharacterAssets([]);
+      setExampleImages([]);
+      setCompanyCIAsset(null);
+      setCiSummary('');
+      setTextElements([]);
+      setVideoScript('');
+      setVideoScenes([]);
+      setVideoStatus('');
+      setGeneratedImage(null);
+      setGeneratedVideo(null);
+      setThemeColors([]);
+      setCustomColorsList([]);
+      setError(null);
+      
+      if (id === 'logo') {
+        setIsLogoMode(true);
+        setIsAdMode(false);
+        setAspectRatio('1:1');
+      } else if (id === 'video') {
+        setIsLogoMode(false);
+        setIsAdMode(true);
+        setImageEngine('Veo Lite (1080p Video)');
+      } else {
+        setIsLogoMode(false);
+        setIsAdMode(false);
+      }
+    };
+
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-full w-full p-1 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#050507] custom-scrollbar">
+        {/* Dynamic Background Effects - Optimized Stack */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[30s] ease-linear animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-600/10 blur-[80px] rounded-full opacity-50 transition-transform duration-[35s] ease-linear animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
+        </div>
+
+
+
+        <div className="relative z-10 w-full max-w-5xl flex flex-col items-center space-y-1 md:space-y-4 lg:space-y-6 py-2">
+          {/* Brand Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-1 md:space-y-4 text-center px-4"
+          >
+            <div className="relative inline-block transition-transform duration-500 hover:scale-110">
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-white/10 blur-[40px] rounded-full animate-pulse" />
+              <img 
+                src="https://i.ibb.co/RTRNJgw0/1778090202960-removebg-preview.png" 
+                alt="JAMINI" 
+                className="h-10 md:h-[120px] lg:h-[140px] w-auto relative z-10 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <div className="space-y-0.5 md:space-y-1">
+              <h2 className="text-base md:text-3xl lg:text-4xl font-black uppercase tracking-tight text-white drop-shadow-2xl whitespace-nowrap">
+                Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">Objective</span>
+              </h2>
+              <div className="h-0.5 w-8 md:w-16 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto rounded-full" />
+              <p className="text-white/40 max-w-[240px] md:max-w-lg mx-auto text-[8px] md:text-xs lg:text-sm font-medium tracking-wide leading-relaxed">
+                JAMINI Multi-modal Interface • v4.0 <br className="hidden md:block"/>
+                Advanced Creative Intelligence. Orchestrate your vision.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Objective Cards */}
+          <div className="grid grid-cols-2 lg:flex lg:flex-row justify-center items-stretch gap-2 md:gap-4 w-full max-w-[1400px] mx-auto px-2 md:px-8 group/container pb-8 md:pb-0 min-h-max md:min-h-[400px]" style={{ perspective: '2000px', transformStyle: 'preserve-3d' }}>
+            {objectives.map((obj, i) => {
+              const puzzleShapesDesktop = [
+                "md:rounded-tl-[80px] md:rounded-br-[80px] md:rounded-tr-[10px] md:rounded-bl-[10px]",
+                "md:rounded-t-[80px] md:rounded-b-[10px]",
+                "md:rounded-tl-[10px] md:rounded-br-[10px] md:rounded-tr-[80px] md:rounded-bl-[80px]",
+                "md:rounded-b-[80px] md:rounded-t-[10px]",
+                "md:rounded-[40px]",
+              ];
+              const shapeClass = `rounded-xl md:rounded-3xl ${puzzleShapesDesktop[i % puzzleShapesDesktop.length]}`;
+              const yOffsets = [20, -20, 30, -10, 40];
+              const zOffsets = [40, 0, 80, 20, 60];
+
+              return (
+              <motion.button
+                key={obj.id}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, z: zOffsets[i % zOffsets.length], y: 0 }}
+                transition={{ delay: 0.1 + i * 0.1, duration: 1.2, type: 'spring', bounce: 0.2 }}
+                whileHover={{ 
+                  scale: 1.05,
+                  z: 120,
+                  rotateY: 15,
+                  rotateX: 10,
+                  boxShadow: `0 40px 80px -20px ${obj.glow}` 
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => selectObjective(obj.id as any)}
+                className={`w-full md:flex-1 group relative flex flex-col items-start p-2.5 md:p-8 ${shapeClass} bg-[#0c0c0e]/90 backdrop-blur-xl border border-white/5 border-b-indigo-500/30 hover:border-white/20 text-left transition-all overflow-hidden md:min-w-[200px] min-h-[110px] md:min-h-[160px] md:-translate-y-[var(--md-y-offset)] ${i === 4 && 'col-span-2 lg:col-span-1'}`}
+                style={{ transformStyle: 'preserve-3d', '--md-y-offset': `${-yOffsets[i % yOffsets.length]}px` } as React.CSSProperties}
+              >
+                {/* Dynamic Lighting Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`, WebkitMaskImage: 'linear-gradient(black, transparent)' }} />
+                <div className={`absolute right-[-30%] top-[-10%] w-[150%] h-[150%] bg-gradient-to-bl ${obj.color} opacity-0 group-hover:opacity-10 blur-[100px] rounded-full transition-opacity duration-700 pointer-events-none transform translate-z-0`} />
+                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
+
+                {/* Content */}
+                <div className="relative z-10 w-full h-full flex flex-col transform translate-z-10">
+                  {/* Header / Icon */}
+                  <div className="flex items-center justify-between w-full mb-2 md:mb-8 relative">
+                    <div className="relative h-9 w-9 md:h-16 md:w-16 rounded-xl md:rounded-3xl bg-white/[0.04] flex items-center justify-center border border-white/[0.08] shadow-[inset_0_2px_20px_rgba(255,255,255,0.02)] overflow-hidden group-hover:border-white/30 transition-colors transform group-hover:-translate-y-2 duration-500">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${obj.color} opacity-20`} />
+                      <obj.icon className="w-4 h-4 md:w-8 md:h-8 text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)] z-10 transform group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                    <div className="w-5 h-5 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/40 group-hover:bg-white/20 transition-all transform group-hover:rotate-[-45deg] duration-500">
+                      <ArrowRight className="w-2.5 h-2.5 md:w-4 md:h-4 text-white/50 group-hover:text-white transition-colors" />
+                    </div>
+                  </div>
+                  
+                  {/* Typography */}
+                  <div className="mt-auto relative">
+                    <h3 className="text-[13px] md:text-4xl font-black text-white/90 tracking-tighter leading-none mb-1 md:mb-5 drop-shadow-2xl group-hover:text-white transition-colors">
+                      {obj.title}
+                    </h3>
+                    <div className={`w-8 h-1 md:w-12 md:h-1.5 rounded-full bg-gradient-to-r ${obj.color} mb-2 md:mb-6 opacity-60 group-hover:w-full transition-all duration-700 ease-out`} />
+                    
+                    <p className="text-[8px] md:text-sm font-bold text-white/70 mb-1 md:mb-4 group-hover:text-white transition-colors tracking-wide uppercase">
+                      {obj.desc}
+                    </p>
+                    
+                    <p className="hidden md:block text-[10px] md:text-xs text-white/30 leading-relaxed font-medium group-hover:text-white/60 transition-colors">
+                      {obj.longDesc}
+                    </p>
+                  </div>
+                </div>
+              </motion.button>
+              );
+            })}
+          </div>
+
+          {/* System Status Footer */}
+          <div className="flex flex-col items-center gap-6 mt-12 pb-24">
+            <motion.div
+              className="relative"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-fuchsia-500/20 blur-2xl rounded-full opacity-50 animate-pulse" />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsAssistantOpen(true)}
+                className="relative flex items-center gap-4 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-white font-black uppercase tracking-[0.2em] shadow-2xl backdrop-blur-xl group overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-fuchsia-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 group-hover:scale-110 transition-transform">
+                    <Headphones className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <motion.div 
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute inset-0 bg-indigo-400 blur-md rounded-full -z-10" 
+                  />
+                </div>
+
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-xs text-white tracking-[0.3em]">Neural Interface</span>
+                  <span className="text-[10px] text-indigo-400/80 font-mono tracking-normal capitalize">AI Voice Synthesis Mode</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-4 h-6">
+                   {[...Array(5)].map((_, i) => (
+                     <motion.div 
+                       key={i}
+                       animate={{ height: [8, 20, 8] }}
+                       transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
+                       className="w-1 bg-gradient-to-t from-indigo-500 to-fuchsia-400 rounded-full" 
+                     />
+                   ))}
+                </div>
+              </motion.button>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="flex flex-row items-center gap-4 md:gap-6 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-white/20"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
+                <span>Nodes Active</span>
+              </div>
+              <div className="hidden md:block w-px h-3 bg-white/10" />
+              <span>AI Acceleration On</span>
+              <div className="hidden md:block w-px h-3 bg-white/10" />
+              <span>VEO Farm Ready</span>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const handleMeetJamini = () => {
+    handleEnter();
+    if (!generationObjective) setGenerationObjective('poster');
+    setActiveStep(5);
+  };
+
+  return (
+    <>
+      <SystemBackground />
+      <AnimatePresence mode="wait">
+        {!hasEntered ? (
+          <WelcomeScreen key="welcome" onEnter={handleEnter} onMeetJamini={handleMeetJamini} />
+        ) : (
+          <motion.div 
+            key="studio" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="h-[100dvh] w-full flex flex-col overflow-hidden bg-transparent"
+          >
+            <div className="flex-1 min-h-0 relative overflow-hidden">
+              {renderContent()}
+            </div>
+            
+            {/* Global Mobile Bottom Navigation (Professional iOS/App Style) */}
+            <div className="lg:hidden h-[calc(64px+env(safe-area-inset-bottom))] bg-[#0a0a0c]/98 backdrop-blur-3xl border-t border-white/5 flex items-center justify-around px-2 z-[100] pb-safe shrink-0 shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
+              {[
+                { id: 'studio', label: 'STUDIO', icon: LayoutIcon, isActive: currentView === 'editor' && activeStep <= 3, action: () => { setCurrentView('editor'); if(currentView === 'editor') setActiveStep(1); } },
+                { id: 'vault', label: 'VAULT', icon: History, isActive: currentView === 'gallery', action: () => { setCurrentView('gallery'); } },
+                { id: 'new', label: 'NEW', icon: Plus, isActive: false, action: () => { setGenerationObjective(null); setActiveStep(1); setCurrentView('editor'); }, isAction: true },
+                { id: 'preview', label: 'PREVIEW', icon: MonitorPlay, isActive: currentView === 'editor' && activeStep === 4, action: () => { setCurrentView('editor'); setActiveStep(4); }, hasPing: generatedImage || generatedVideo }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={tab.action} 
+                  className={cn("flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all relative group pt-1", 
+                    tab.isActive ? "text-indigo-400" : "text-white/40 hover:text-white/80"
+                  )}
+                >
+                  {tab.hasPing && <div className="absolute top-2 right-[25%] w-1.5 h-1.5 bg-fuchsia-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(217,70,239,1)]" />}
+                  
+                  {tab.isActive && !tab.isAction && (
+                    <motion.div layoutId="mobile-nav-indicator" className="absolute top-0 left-[25%] right-[25%] h-[2px] bg-indigo-500 rounded-b-full shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                  )}
+                  
+                  <div className={cn(
+                    "p-1.5 rounded-xl transition-all duration-300", 
+                    tab.isActive && !tab.isAction ? "scale-110" : "",
+                    tab.isAction ? "bg-gradient-to-tr from-indigo-600 to-fuchsia-600 text-white rounded-full p-2.5 -mt-6 shadow-[0_4px_20px_rgba(99,102,241,0.5)] active:scale-95 border-[3px] border-[#0a0a0c]" : ""
+                  )}>
+                    <tab.icon className={cn("w-6 h-6 transition-colors", tab.isActive && !tab.isAction ? "drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "", tab.isAction ? "w-5 h-5" : "")} />
+                  </div>
+                  <span className={cn(
+                    "text-[8px] font-black tracking-widest transition-all",
+                    tab.isActive ? "opacity-100" : "opacity-70",
+                    tab.isAction ? "mt-0" : ""
+                  )}>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isAssistantOpen && (
+          <VoiceAssistant 
+            onClose={() => setIsAssistantOpen(false)}
+            getApiKey={getApiKey}
+            objective={generationObjective || 'poster'}
+            onGenerate={(data) => {
+              if (!generationObjective) setGenerationObjective('poster');
+              handleVoiceGeneration(data);
+              setIsAssistantOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

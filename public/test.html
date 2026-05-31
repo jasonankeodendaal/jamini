@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script type="module">
+  import { GoogleGenAI } from "https://esm.sh/@google/genai";
+  const ai = new GoogleGenAI({ apiKey: '' });
+  console.log("Calling generateContent...");
+  ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: 'hello'
+  }).then(res => {
+    console.log("Success", res);
+  }).catch(err => {
+    console.log("Error", err);
+  });
+</script>
+</body>
+</html>

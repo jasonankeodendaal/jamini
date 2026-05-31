@@ -1,0 +1,151 @@
+1378:  const handleGenerate = async () => {
+1379-    if (!scenePrompt.trim()) { setError("Please enter a scene description."); return; }
+1380-    setIsGenerating(true); setError(null);
+1381-
+1382-    try {
+1383-      const colorText = themeColors.length > 0 ? `Use the following color theme: ${themeColors.join(', ')}.` : '';
+1384-      
+1385-      const specificAssetPrompts = [
+1386-        ...productAssets.filter(a => a.prompt?.trim() || a.material || a.lightingInteraction || a.position).map(a => `Product Asset (${a.name}): ${a.prompt} ${a.material ? `| Material: ${a.material}` : ''} ${a.lightingInteraction ? `| Lighting: ${a.lightingInteraction}` : ''} ${a.position ? `| Position: ${a.position}` : ''} -> CRITICAL: This is a strict product placement. Do NOT alter, redesign, stylize, or modify this product image in any way. It MUST be the exact product uploaded, preserving its original shape, branding, and details.`),
+1387-        ...(brandLogoAsset?.prompt?.trim() || brandLogoAsset?.material || brandLogoAsset?.lightingInteraction || brandLogoAsset?.position ? [`Brand Logo Asset: ${brandLogoAsset.prompt} ${brandLogoAsset.material ? `| Material: ${brandLogoAsset.material}` : ''} ${brandLogoAsset.lightingInteraction ? `| Lighting: ${brandLogoAsset.lightingInteraction}` : ''} ${brandLogoAsset.position ? `| Position: ${brandLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided.`] : []),
+1388-        ...(companyLogoAsset?.prompt?.trim() || companyLogoAsset?.material || companyLogoAsset?.lightingInteraction || companyLogoAsset?.position ? [`Company Logo Asset: ${companyLogoAsset.prompt} ${companyLogoAsset.material ? `| Material: ${companyLogoAsset.material}` : ''} ${companyLogoAsset.lightingInteraction ? `| Lighting: ${companyLogoAsset.lightingInteraction}` : ''} ${companyLogoAsset.position ? `| Position: ${companyLogoAsset.position}` : ''} -> CRITICAL: Do NOT alter, redesign, or modify this logo. Use exactly as provided.`] : []),
+1389-        ...(characterAsset?.prompt?.trim() || characterAsset?.material || characterAsset?.lightingInteraction || characterAsset?.position ? [`Character Asset: ${characterAsset.prompt} ${characterAsset.material ? `| Material: ${characterAsset.material}` : ''} ${characterAsset.lightingInteraction ? `| Lighting: ${characterAsset.lightingInteraction}` : ''} ${characterAsset.position ? `| Position: ${characterAsset.position}` : ''}`] : [])
+1390-      ].join('\n');
+1391-      
+1392-      const assetInstruction = specificAssetPrompts 
+1393-        ? `Asset Specific Instructions:\n${specificAssetPrompts}\nGeneral Asset Instruction: ${assetPrompt.trim() || 'Integrate the uploaded products, logos, and character naturally into the scene.'}` 
+1394-        : (assetPrompt.trim() ? `Follow these specific instructions for the uploaded assets: ${assetPrompt}.` : 'Integrate the uploaded products, logos, and character naturally into the scene.');
+1395-        
+1396-      const noTextInstruction = !includeText ? "CRITICAL REQUIREMENT: Generate the image with ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, AND NO WATERMARKS anywhere in the image." : "";
+1397-      
+1398-      const referenceInstruction = exampleImages.length > 0 ? `CRITICAL STYLE REFERENCE INSTRUCTION: You MUST thoroughly scan the provided reference images. Your output MUST maintain strict, absolute consistency with their style, layout, look, feel, and logo placement. Under NO circumstances should you generate random, hallucinated, or out-of-place elements. You are strictly bound to the aesthetic and composition of the references. Replicate their exact visual language while integrating the provided product assets.` : '';
+1399-      
+1400-      const textElementsPrompt = (includeText && textElements.length > 0) 
+1401-        ? `Include the following text elements prominently using a typography style matching the '${fontFamily}' font family:\n${textElements.map(t => `- ${t.type}: "${t.text}" (Color: ${t.color}, Alignment: ${t.alignment}, Placement: ${t.placement})`).join('\n')}` 
+1402-        : '';
+1403-
+1404-      let engineEnhancement = '';
+1405-      if (imageEngine.includes('3.1 Flash')) {
+1406-        engineEnhancement = 'CRITICAL: Render as an absolute masterpiece, 8k resolution, hyper-realistic, insanely detailed, octane render, volumetric lighting, photorealistic textures, flawless composition.';
+1407-      } else if (imageEngine.includes('3.0 Pro')) {
+1408-        engineEnhancement = 'CRITICAL: Highly creative, award-winning composition, unique perspective, avant-garde, striking visual storytelling, bold and artistic interpretation, cinematic lighting, perfect color grading, ultra-premium commercial photography.';
+1409-      }
+1410-
+1411-      let modelName = 'gemini-2.5-flash-image';
+1412-      if (imageEngine === 'Nano Banana 2 (Gemini 3.1 Flash Image) (Free)') modelName = 'gemini-3.1-flash-image-preview';
+1413-      if (imageEngine === 'ImageFX (S2)') modelName = 'gemini-3.1-flash-image-preview'; // Fallback to highest quality image model
+1414-      if (imageEngine === 'Gemini 3.0 Pro Image (Paid)') modelName = 'gemini-3-pro-image-preview';
+1415-
+1416-      const requiresUserKey = imageEngine.includes('Paid');
+1417-
+1418-      // @ts-ignore - window.aistudio is injected by the platform
+1419-      if (requiresUserKey && window.aistudio) {
+1420-        // @ts-ignore
+1421-        const hasKey = await window.aistudio.hasSelectedApiKey();
+1422-        if (!hasKey) {
+1423-          // @ts-ignore
+1424-          await window.aistudio.openSelectKey();
+1425-        }
+1426-      }
+1427-
+1428-      const customRulesText = rules.length > 0 ? `CRITICAL RULES TO FOLLOW:\n${rules.map((r, i) => `${i + 1}. ${r}`).join('\n')}` : '';
+1429-
+1430-      const fullPrompt = `Professional high-end advertisement poster. 
+1431-        Dimension: ${dimensionMode}. 
+1432-        Layout: ${layout}. 
+1433-        Scene: ${scenePrompt}. 
+1434-        Style: ${style}. 
+1435-        Lighting: ${lighting}. 
+1436-        ${colorText} 
+1437-        ${noTextInstruction} 
+1438-        ${textElementsPrompt} 
+1439-        ${assetInstruction} 
+1440-        ${referenceInstruction} 
+1441-        ${engineEnhancement} 
+1442-        ${customRulesText} 
+1443-        Dynamics: ${Object.entries(dynamics).filter(([k, v]) => typeof v === 'boolean' && v).map(([k, _]) => k.replace(/([A-Z])/g, ' $1')).join(', ')}.
+1444-        Material Properties: Metallic (${dynamics.metallic}%), Roughness (${dynamics.roughness}%), Normal Map Intensity (${dynamics.normalMapIntensity}%), Film Grain (${dynamics.filmGrain}%), Contrast (${dynamics.contrast}%), Saturation (${dynamics.saturation}%), Color Grading Intensity (${dynamics.colorGradingIntensity}%), Lens Distortion (${dynamics.lensDistortion}%), Particle Density (${dynamics.particleDensity}%).
+1445-        ${dynamics.noMistakes ? "CRITICAL: Ensure zero anatomical errors, perfect symmetry where applicable, and flawless object boundaries." : ""}
+1446-        Composition: Top-class product photography, high detail, 4k resolution, sharp focus. 
+1447-        If a character is provided, render them in a high-quality 3D animation style with expressive features. 
+1448-        Ensure the logos (if provided) are placed professionally as branding. CRITICAL: Do NOT alter, redesign, or modify the logos in any way. Use them EXACTLY as provided. 
+1449-        The uploaded product images are the main subjects.
+1450-        
+1451-        CRITICAL INSTRUCTION: You MUST strictly follow all provided prompts, styles, and rules. Use the selected Layout (${layout}) and Visual Style (${style}) as the primary framework, heavily informed by the Style Reference Images to ensure absolute consistency.
+1452-        CRITICAL INSTRUCTION: You MUST incorporate EVERY single uploaded asset into the final image. Do not omit any product, logo, or character provided.
+1453-        CRITICAL INSTRUCTION: The uploaded product images are the main subjects. You MUST preserve the exact appearance of the uploaded product images. Do not regenerate, hallucinate, or stylize the products. They must look exactly like the uploaded assets.`;
+1454-
+1455-      const parts: any[] = [{ text: fullPrompt }];
+1456-      productAssets.forEach(asset => parts.push({ inlineData: { data: asset.data, mimeType: asset.mimeType } }));
+1457-      if (brandLogoAsset) parts.push({ inlineData: { data: brandLogoAsset.data, mimeType: brandLogoAsset.mimeType } });
+1458-      if (companyLogoAsset) parts.push({ inlineData: { data: companyLogoAsset.data, mimeType: companyLogoAsset.mimeType } });
+1459-      if (characterAsset) parts.push({ inlineData: { data: characterAsset.data, mimeType: characterAsset.mimeType } });
+1460-      exampleImages.forEach(asset => parts.push({ inlineData: { data: asset.data, mimeType: asset.mimeType } }));
+1461-
+1462-      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
+1463-      const ai = new GoogleGenAI({ apiKey });
+1464-      let imageUrl = '';
+1465-      let videoUrl = '';
+1466-
+1467-      if (imageEngine === 'Veo (Video Generation)') {
+1468-        const response = await ai.models.generateVideos({
+1469-          model: 'veo-3.1-lite-generate-preview',
+1470-          prompt: fullPrompt,
+1471-          config: {
+1472-            numberOfVideos: 1,
+1473-            resolution: '1080p',
+1474-            aspectRatio: aspectRatio === '16:9' || aspectRatio === '9:16' ? aspectRatio : '16:9'
+1475-          }
+1476-        });
+1477-        let operation = response;
+1478-        while (!operation.done) {
+1479-          await new Promise(resolve => setTimeout(resolve, 5000));
+1480-          operation = await ai.operations.get({ name: operation.name });
+1481-        }
+1482-        if (operation.response?.generatedVideos?.[0]?.video?.uri) {
+1483-          videoUrl = operation.response.generatedVideos[0].video.uri;
+1484-        }
+1485-      } else if (imageEngine.includes('Hugging Face')) {
+1486-        const hfModel = imageEngine === 'I2VGen-XL (Hugging Face)' ? 'ali-vilab/i2vgen-xl' : 'Wan-AI/Wan2.1-T2V-14B';
+1487-        const response = await fetch(`https://api-inference.huggingface.co/models/${hfModel}`, {
+1488-          headers: { 
+1489-            "Authorization": `Bearer ${import.meta.env.VITE_HF_TOKEN || ''}`, 
+1490-            "Content-Type": "application/json" 
+1491-          },
+1492-          method: "POST",
+1493-          body: JSON.stringify({ inputs: fullPrompt }),
+1494-        });
+1495-        if (!response.ok) {
+1496-          throw new Error(`Hugging Face API Error: ${response.statusText}. This may require a valid HF token in settings or the model is currently busy.`);
+1497-        }
+1498-        const blob = await response.blob();
+1499-        videoUrl = URL.createObjectURL(blob);
+1500-      } else if (imageEngine === 'Imagen 4.0 (Free)' || imageEngine === 'Imagen 3.0 (Free)') {
+1501-        const response = await ai.models.generateImages({
+1502-          model: imageEngine === 'Imagen 4.0 (Free)' ? 'imagen-4.0-generate-001' : 'imagen-3.0-generate-001',
+1503-          prompt: fullPrompt,
+1504-          config: {
+1505-            numberOfImages: 1,
+1506-            outputMimeType: 'image/jpeg',
+1507-            aspectRatio: aspectRatio,
+1508-          },
+1509-        });
+1510-        const base64EncodeString = response.generatedImages?.[0]?.image?.imageBytes;
+1511-        if (base64EncodeString) {
+1512-          imageUrl = `data:image/jpeg;base64,${base64EncodeString}`;
+1513-        }
+1514-      } else {
+1515-        const response = await ai.models.generateContent({
+1516-          model: modelName,
+1517-          contents: { parts },
+1518-          config: { imageConfig: { aspectRatio: aspectRatio } }
+1519-        });
+1520-
+1521-        for (const part of response.candidates?.[0]?.content?.parts || []) {
+1522-          if (part.inlineData) { imageUrl = `data:image/png;base64,${part.inlineData.data}`; break; }
+1523-        }
+1524-      }
+1525-
+1526-      if (videoUrl) {
+1527-        setGeneratedVideo(videoUrl);
+1528-        setGeneratedImage(null);
